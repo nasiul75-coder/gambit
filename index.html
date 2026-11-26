@@ -110,9 +110,14 @@
 
     /* Matte Architectural Panels — Zero Generic Glow */
     .studio-panel {
-      background: rgba(19, 22, 28, 0.94);
-      border: 1px solid var(--border-hairline);
+      background: rgba(19, 22, 28, 0.95);
+      border: 1px solid #262C36;
       box-shadow: 0 24px 48px -18px rgba(0, 0, 0, 0.72);
+    }
+
+    .studio-header {
+      background: rgba(11, 13, 17, 0.95);
+      border-bottom: 1px solid #262C36;
     }
 
     .studio-header {
@@ -368,20 +373,29 @@
       -webkit-appearance: none;
       appearance: none;
       width: 100%;
-      height: 3px;
-      background: rgba(255, 255, 255, 0.14);
-      border-radius: 2px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 3px;
       outline: none;
     }
 
     input[type="range"].studio-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
       background: var(--brass);
-      border: 1px solid #0B0D11;
+      border: 2px solid #0B0D11;
+      cursor: pointer;
+    }
+
+    input[type="range"].studio-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background: var(--brass);
+      border: 2px solid #0B0D11;
       cursor: pointer;
     }
 
@@ -550,18 +564,18 @@
 
       <!-- Email / Password Auth Form -->
       <form id="authForm" novalidate>
-        <!-- Player Tag (Sign Up Only) -->
+        <!-- Display Name (Sign Up Only) -->
         <div id="usernameCollapse" class="collapsible-field">
           <div class="collapsible-inner">
             <label for="usernameInput" class="block text-[11px] font-medium uppercase tracking-[0.12em] text-[#A1A7B3] mb-1.5">
-              Player Tag
+              Display Name
             </label>
             <input
               id="usernameInput"
               type="text"
               autocomplete="username"
               maxlength="24"
-              placeholder="Choose a display name"
+              placeholder="Enter your username"
               class="studio-input w-full px-3.5 py-2.5 text-sm"
             />
           </div>
@@ -641,47 +655,44 @@
        VIEW 2: POST-LOGIN 4-TIER SKILL CALIBRATION
   ========================================================== -->
   <section id="calibrationView" style="display: none;" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center px-4 py-8 sm:px-6 overflow-y-auto">
-    <div class="studio-panel w-full max-w-2xl rounded-[10px] p-6 sm:p-8 relative my-auto">
+    <div class="studio-panel w-full max-w-3xl rounded-[10px] p-6 sm:p-9 relative my-auto">
       <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brass/65 to-transparent"></div>
 
       <!-- Heading -->
-      <div class="mb-6">
-        <div class="text-[11px] font-semibold uppercase tracking-[0.20em] text-brass mb-1.5">
+      <div class="mb-7">
+        <div class="text-xs font-semibold uppercase tracking-[0.20em] text-brass mb-2">
           Rating Placement
         </div>
-        <h2 class="text-xl sm:text-2xl font-bold tracking-[0.06em] text-[#F3F4F6]">
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-[0.05em] text-[#F3F4F6]">
           CALIBRATE YOUR RATING
         </h2>
-        <p class="text-xs sm:text-sm text-[#A1A7B3] mt-1.5">
+        <p class="text-sm text-[#A1A7B3] mt-2">
           Select your current playing strength to assign your initial GBT rating.
         </p>
       </div>
 
-      <!-- 4 Tactile Skill Cards (2x2 Desktop, Stacked Mobile) -->
-      <div id="skillGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+      <!-- 4 Spacious Skill Cards (2x2 Desktop, Stacked Mobile) -->
+      <div id="skillGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-7">
 
         <!-- 1. Beginner (300 GBT) -->
         <button
           type="button"
           data-tier="beginner"
           data-gbt="300"
-          data-rank="NOVICE"
-          class="skill-card studio-card text-left p-4 flex items-start gap-3.5 cursor-pointer"
+          class="skill-card studio-card text-left p-5 sm:p-6 min-h-[124px] flex items-start gap-4 cursor-pointer"
         >
-          <div class="w-10 h-10 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
+          <div class="w-12 h-12 rounded-[8px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
             <!-- Pawn SVG -->
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="7" r="3" />
               <path d="M9.5 11h5l-1 4.5 2.5 3.5H8l2.5-3.5-1-4.5Z" />
               <line x1="6.5" y1="21" x2="17.5" y2="21" />
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold tracking-[0.06em] text-[#F3F4F6]">I AM A BEGINNER</span>
-            </div>
-            <p class="text-xs text-[#A1A7B3] mt-1">New to chess or learning core rules.</p>
-            <div class="mt-2.5 inline-flex items-center px-2 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 mono-num text-xs font-bold text-brass">
+            <div class="text-sm sm:text-base font-bold tracking-[0.05em] text-[#F3F4F6]">I AM A BEGINNER</div>
+            <p class="text-xs sm:text-sm text-[#A1A7B3] mt-1">New to chess or learning core rules.</p>
+            <div class="mt-3 inline-flex items-center px-2.5 py-1 rounded-[5px] bg-[#0B0D11] border border-brass/35 mono-num text-sm font-bold text-brass">
               300 GBT
             </div>
           </div>
@@ -692,22 +703,19 @@
           type="button"
           data-tier="intermediate"
           data-gbt="600"
-          data-rank="TACTICIAN"
-          class="skill-card studio-card text-left p-4 flex items-start gap-3.5 cursor-pointer"
+          class="skill-card studio-card text-left p-5 sm:p-6 min-h-[124px] flex items-start gap-4 cursor-pointer"
         >
-          <div class="w-10 h-10 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
+          <div class="w-12 h-12 rounded-[8px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
             <!-- Knight SVG -->
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M17 19H7l1.2-3.2c.6-1.6 1.8-2.4 2.5-3.3-1.2.2-2.4.8-3.7 1.2L5.5 11l3-4.5L9.5 4l2.5 1.5c3 .5 5.2 2.9 5.2 6.5 0 2.5-.8 4.8-.2 7Z" />
               <line x1="6" y1="21" x2="18" y2="21" />
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold tracking-[0.06em] text-[#F3F4F6]">I KNOW HOW TO PLAY</span>
-            </div>
-            <p class="text-xs text-[#A1A7B3] mt-1">Familiar with tactics and openings.</p>
-            <div class="mt-2.5 inline-flex items-center px-2 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 mono-num text-xs font-bold text-brass">
+            <div class="text-sm sm:text-base font-bold tracking-[0.05em] text-[#F3F4F6]">I KNOW HOW TO PLAY</div>
+            <p class="text-xs sm:text-sm text-[#A1A7B3] mt-1">Familiar with tactics and openings.</p>
+            <div class="mt-3 inline-flex items-center px-2.5 py-1 rounded-[5px] bg-[#0B0D11] border border-brass/35 mono-num text-sm font-bold text-brass">
               600 GBT
             </div>
           </div>
@@ -718,22 +726,19 @@
           type="button"
           data-tier="pro"
           data-gbt="1000"
-          data-rank="MASTER"
-          class="skill-card studio-card text-left p-4 flex items-start gap-3.5 cursor-pointer"
+          class="skill-card studio-card text-left p-5 sm:p-6 min-h-[124px] flex items-start gap-4 cursor-pointer"
         >
-          <div class="w-10 h-10 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
+          <div class="w-12 h-12 rounded-[8px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
             <!-- Rook SVG -->
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M6 4h3v2.5h2V4h2v2.5h2V4h3v4.5l-1.5 1.5v6.5l1.5 2.5H6l1.5-2.5V10L6 8.5V4Z" />
               <line x1="5.5" y1="21" x2="18.5" y2="21" />
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold tracking-[0.06em] text-[#F3F4F6]">I AM PRO</span>
-            </div>
-            <p class="text-xs text-[#A1A7B3] mt-1">Experienced club & competitive player.</p>
-            <div class="mt-2.5 inline-flex items-center px-2 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 mono-num text-xs font-bold text-brass">
+            <div class="text-sm sm:text-base font-bold tracking-[0.05em] text-[#F3F4F6]">I AM PRO</div>
+            <p class="text-xs sm:text-sm text-[#A1A7B3] mt-1">Experienced club & competitive player.</p>
+            <div class="mt-3 inline-flex items-center px-2.5 py-1 rounded-[5px] bg-[#0B0D11] border border-brass/35 mono-num text-sm font-bold text-brass">
               1000 GBT
             </div>
           </div>
@@ -744,12 +749,11 @@
           type="button"
           data-tier="professional"
           data-gbt="1499"
-          data-rank="GRANDMASTER"
-          class="skill-card studio-card text-left p-4 flex items-start gap-3.5 cursor-pointer"
+          class="skill-card studio-card text-left p-5 sm:p-6 min-h-[124px] flex items-start gap-4 cursor-pointer"
         >
-          <div class="w-10 h-10 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
+          <div class="w-12 h-12 rounded-[8px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
             <!-- King SVG -->
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="12" y1="2.5" x2="12" y2="7" />
               <line x1="9.75" y1="4.75" x2="14.25" y2="4.75" />
               <path d="M7.5 10.5c0-1.9 2-3.2 4.5-3.2s4.5 1.3 4.5 3.2c0 1.4-1 2.9-1.8 4.2l1.8 4.3h-9l1.8-4.3c-.8-1.3-1.8-2.8-1.8-4.2Z" />
@@ -757,11 +761,9 @@
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold tracking-[0.06em] text-[#F3F4F6]">I AM A PROFESSIONAL</span>
-            </div>
-            <p class="text-xs text-[#A1A7B3] mt-1">Tournament-level calculation & theory.</p>
-            <div class="mt-2.5 inline-flex items-center px-2 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 mono-num text-xs font-bold text-brass">
+            <div class="text-sm sm:text-base font-bold tracking-[0.05em] text-[#F3F4F6]">I AM A PROFESSIONAL</div>
+            <p class="text-xs sm:text-sm text-[#A1A7B3] mt-1">Tournament-level calculation & theory.</p>
+            <div class="mt-3 inline-flex items-center px-2.5 py-1 rounded-[5px] bg-[#0B0D11] border border-brass/35 mono-num text-sm font-bold text-brass">
               1499 GBT
             </div>
           </div>
@@ -770,23 +772,408 @@
       </div>
 
       <!-- Calibration Footer CTA -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
-        <div id="calibrationSummary" class="text-xs text-[#A1A7B3]">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-5 border-t border-white/[0.08]">
+        <div id="calibrationSummary" class="text-sm text-[#A1A7B3]">
           Select a playing strength above to continue.
         </div>
         <button
           type="button"
           id="confirmCalibrationBtn"
           disabled
-          class="btn-ivory w-full sm:w-auto px-6 py-2.5 text-xs tracking-[0.10em] uppercase flex items-center justify-center gap-2 cursor-pointer"
+          class="btn-ivory w-full sm:w-auto min-h-[58px] px-8 py-3.5 text-sm sm:text-base font-bold tracking-[0.10em] uppercase flex items-center justify-center gap-2.5 cursor-pointer"
         >
           <span>ENTER GAMBIT ARENA</span>
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
           </svg>
         </button>
       </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       VIEW 3: PRO DASHBOARD — HERO PROFILE TOP, SPACIOUS CONTROLS BELOW
+  ========================================================== -->
+  <section id="dashboardView" style="display: none;" class="view-layer view-hidden fixed inset-0 z-20 flex flex-col overflow-y-auto">
+
+    <!-- Top Slim Utility Bar -->
+    <header class="studio-header sticky top-0 z-30 min-h-[68px] shrink-0">
+      <div class="max-w-6xl mx-auto h-[68px] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+
+        <!-- Left: Exact 4-Ring G + King Emblem & Wordmark -->
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="w-9 h-9 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Emblem">
+              <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#EDE8DF" stroke-width="3.6" stroke-linecap="butt" stroke-linejoin="miter" />
+              <path d="M 74.6 25.4 A 34.8 34.8 0 1 0 84.3 55.5" stroke="#EDE8DF" stroke-width="3.6" stroke-linecap="butt" />
+              <path d="M 69.8 30.2 A 28.0 28.0 0 1 0 77.4 55.5" stroke="#EDE8DF" stroke-width="3.6" stroke-linecap="butt" />
+              <path d="M 65.0 35.0 A 21.2 21.2 0 1 0 70.5 55.4" stroke="#EDE8DF" stroke-width="3.6" stroke-linecap="butt" />
+              <g fill="#D4AF6A">
+                <rect x="74.9" y="21.0" width="2.2" height="6.8" rx="0.4" />
+                <rect x="72.6" y="23.2" width="6.8" height="2.2" rx="0.4" />
+                <path d="M 71.7 39.2 L 70.1 32.2 C 69.6 29.8 71.4 27.9 73.7 27.9 L 78.3 27.9 C 80.6 27.9 82.4 29.8 81.9 32.2 L 80.3 39.2 Z" />
+                <rect x="70.8" y="40.3" width="10.4" height="2.0" rx="0.8" />
+                <path d="M 69.4 46.2 C 69.4 44.3 70.9 43.3 72.6 43.3 L 79.4 43.3 C 81.1 43.3 82.6 44.3 82.6 46.2 Z" />
+              </g>
+            </svg>
+          </div>
+          <span class="font-brand text-base sm:text-lg font-semibold tracking-[0.34em] text-[#EDE8DF]">
+            GAMBIT
+          </span>
+        </div>
+
+        <!-- Right: Spacious Sound Toggle & Sign Out -->
+        <div class="flex items-center gap-3 shrink-0">
+          <button
+            type="button"
+            id="headerSoundBtn"
+            aria-label="Toggle chess sound effects"
+            title="Toggle Sound"
+            class="btn-gunmetal min-h-[44px] min-w-[44px] px-3 flex items-center justify-center shrink-0 cursor-pointer"
+          >
+            <svg class="sound-on-icon w-5 h-5 text-[#EDE8DF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+            <svg class="sound-off-icon w-5 h-5 hidden text-[#6C7382]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <line x1="23" y1="9" x2="17" y2="15" />
+              <line x1="17" y1="9" x2="23" y2="15" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            id="signOutBtn"
+            aria-label="Sign out"
+            title="Sign Out"
+            class="btn-gunmetal inline-flex items-center justify-center gap-2 min-h-[44px] px-4 sm:px-5 text-sm font-medium shrink-0 cursor-pointer"
+          >
+            <svg class="w-4 h-4 text-[#A1A7B3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span class="text-[#F3F4F6]">Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Single-Flow Dashboard: Profile Card First -> All Large Controls Below -->
+    <div class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9 flex flex-col gap-8 sm:gap-9">
+
+      <!-- =======================================================
+           HERO PROFILE CARD (First Visible Element Below Top Bar)
+      ======================================================== -->
+      <div class="studio-panel rounded-[12px] p-6 sm:p-8 relative overflow-hidden">
+        <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-brass/80 via-brass/35 to-transparent"></div>
+
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <!-- Left: Large Avatar + Display Name + Email -->
+          <div class="flex items-center gap-5 min-w-0">
+            <img
+              id="heroAvatarImg"
+              src=""
+              alt="Player Avatar"
+              class="hidden w-[72px] h-[72px] sm:w-[80px] sm:h-[80px] rounded-full object-cover border-2 border-brass/80 shrink-0"
+            />
+            <div
+              id="heroAvatarInitials"
+              class="w-[72px] h-[72px] sm:w-[80px] sm:h-[80px] rounded-full bg-[#0B0D11] border-2 border-brass/80 text-brass mono-num font-bold text-2xl sm:text-3xl flex items-center justify-center shrink-0"
+            >
+              PL
+            </div>
+            <div class="min-w-0">
+              <h1 id="heroUserName" class="text-[26px] sm:text-[32px] font-bold tracking-tight text-[#F3F4F6] leading-tight truncate">
+                Player
+              </h1>
+              <p id="heroUserEmail" class="text-sm sm:text-base text-[#A1A7B3] mt-1 truncate">
+                player@gambit.chess
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Clean Numeric Stat Pills (Peak GBT, Total Matches, Win Rate) -->
+          <div class="grid grid-cols-3 gap-3 sm:gap-4 shrink-0">
+            <div class="px-4 sm:px-5 py-3.5 rounded-[10px] bg-[#0E1117] border border-[#262C36]">
+              <div class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6C7382]">Peak GBT</div>
+              <div id="heroPeakGbt" class="mono-num text-xl sm:text-2xl font-bold text-brass mt-1">1000</div>
+            </div>
+            <div class="px-4 sm:px-5 py-3.5 rounded-[10px] bg-[#0E1117] border border-[#262C36]">
+              <div class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6C7382]">Matches</div>
+              <div id="heroTotalMatches" class="mono-num text-xl sm:text-2xl font-bold text-[#F3F4F6] mt-1">0</div>
+            </div>
+            <div class="px-4 sm:px-5 py-3.5 rounded-[10px] bg-[#0E1117] border border-[#262C36]">
+              <div class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6C7382]">Win Rate</div>
+              <div id="heroWinRate" class="mono-num text-xl sm:text-2xl font-bold text-[#F3F4F6] mt-1">0%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =======================================================
+           SECTION 1: SELECT FORMAT (4 Large Spacious Cards)
+      ======================================================== -->
+      <section aria-labelledby="selectFormatHeading">
+        <div class="flex items-center justify-between mb-4">
+          <h2 id="selectFormatHeading" class="text-sm sm:text-base font-bold uppercase tracking-[0.16em] text-[#F3F4F6]">
+            SELECT FORMAT
+          </h2>
+          <span class="mono-num text-xs uppercase tracking-[0.14em] text-[#A1A7B3]">4 Rated Modes</span>
+        </div>
+
+        <div id="formatCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+
+          <!-- 1. RAPID (10–30 mins) — Default Selected -->
+          <button
+            type="button"
+            data-format="rapid"
+            class="format-card studio-card selected text-left p-6 min-h-[126px] flex flex-col justify-between gap-4 cursor-pointer"
+          >
+            <div class="flex items-start justify-between gap-3 w-full">
+              <div class="w-11 h-11 rounded-[8px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="13" r="8" />
+                  <path d="M12 9v4l2.5 1.5" />
+                  <path d="M9 2h6" />
+                  <path d="M12 2v3" />
+                </svg>
+              </div>
+              <span id="cardRating-rapid" class="mono-num text-base font-bold text-brass">1000 GBT</span>
+            </div>
+            <div>
+              <div class="text-lg sm:text-[20px] font-bold tracking-[0.06em] text-[#F3F4F6]">RAPID</div>
+              <div class="text-sm text-[#A1A7B3] mt-0.5">10–30 mins</div>
+            </div>
+          </button>
+
+          <!-- 2. BLITZ (3–5 mins) -->
+          <button
+            type="button"
+            data-format="blitz"
+            class="format-card studio-card text-left p-6 min-h-[126px] flex flex-col justify-between gap-4 cursor-pointer"
+          >
+            <div class="flex items-start justify-between gap-3 w-full">
+              <div class="w-11 h-11 rounded-[8px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+              </div>
+              <span id="cardRating-blitz" class="mono-num text-base font-bold text-brass">1000 GBT</span>
+            </div>
+            <div>
+              <div class="text-lg sm:text-[20px] font-bold tracking-[0.06em] text-[#F3F4F6]">BLITZ</div>
+              <div class="text-sm text-[#A1A7B3] mt-0.5">3–5 mins</div>
+            </div>
+          </button>
+
+          <!-- 3. BULLET (15 sec–2 mins) -->
+          <button
+            type="button"
+            data-format="bullet"
+            class="format-card studio-card text-left p-6 min-h-[126px] flex flex-col justify-between gap-4 cursor-pointer"
+          >
+            <div class="flex items-start justify-between gap-3 w-full">
+              <div class="w-11 h-11 rounded-[8px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M5 12h6" />
+                  <path d="M3 8h5" />
+                  <path d="M4 16h5" />
+                  <path d="M12 7h4.5c2.5 0 4.5 2.2 4.5 5s-2 5-4.5 5H12V7Z" />
+                </svg>
+              </div>
+              <span id="cardRating-bullet" class="mono-num text-base font-bold text-brass">1000 GBT</span>
+            </div>
+            <div>
+              <div class="text-lg sm:text-[20px] font-bold tracking-[0.06em] text-[#F3F4F6]">BULLET</div>
+              <div class="text-sm text-[#A1A7B3] mt-0.5">15 sec–2 mins</div>
+            </div>
+          </button>
+
+          <!-- 4. GAMBIT (10 seconds–3 hours) -->
+          <button
+            type="button"
+            data-format="gambit"
+            class="format-card studio-card text-left p-6 min-h-[126px] flex flex-col justify-between gap-4 cursor-pointer"
+          >
+            <div class="flex items-start justify-between gap-3 w-full">
+              <div class="w-11 h-11 rounded-[8px] bg-[#0E1117] border border-brass/35 flex items-center justify-center text-brass shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 17l2-9 4.5 4L12 5l2.5 7L19 8l2 9H3Z" />
+                  <line x1="4" y1="20" x2="20" y2="20" />
+                </svg>
+              </div>
+              <span id="cardRating-gambit" class="mono-num text-base font-bold text-brass">1000 GBT</span>
+            </div>
+            <div>
+              <div class="text-lg sm:text-[20px] font-bold tracking-[0.06em] text-[#F3F4F6]">GAMBIT</div>
+              <div class="text-sm text-[#A1A7B3] mt-0.5">10 seconds–3 hours</div>
+            </div>
+          </button>
+
+        </div>
+      </section>
+
+      <!-- =======================================================
+           SECTION 2: TIME CONTROL & MATCH ACTIONS (Large Controls)
+      ======================================================== -->
+      <section class="studio-panel rounded-[12px] p-6 sm:p-8" aria-labelledby="timeControlHeading">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 mb-6 border-b border-white/[0.08]">
+          <div>
+            <h2 id="timeControlHeading" class="text-sm sm:text-base font-bold uppercase tracking-[0.16em] text-[#F3F4F6]">
+              TIME CONTROL & MATCH ACTIONS
+            </h2>
+            <p class="text-sm text-[#A1A7B3] mt-1">
+              Active Format: <span id="actionFormatName" class="font-semibold text-[#F3F4F6]">RAPID</span> ·
+              <span id="actionTimeControl" class="mono-num font-bold text-brass">10+0</span> ·
+              <span id="actionFormatRating" class="mono-num font-semibold text-[#F3F4F6]">1000 GBT</span>
+            </p>
+          </div>
+          <span id="selectedRangeBadge" class="mono-num text-sm font-semibold text-brass">10–30 mins</span>
+        </div>
+
+        <!-- Large Time Control Preset Buttons -->
+        <div id="timePillsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3.5"></div>
+
+        <!-- Large Custom Clock Slider (GAMBIT Format Only) -->
+        <div id="gambitCustomBox" class="hidden mt-5 p-5 rounded-[10px] bg-[#0E1117] border border-[#262C36]">
+          <div class="flex items-center justify-between mb-3.5">
+            <label for="gambitCustomSlider" class="text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] text-[#A1A7B3]">
+              Custom Clock (10 seconds – 3 hours)
+            </label>
+            <span id="gambitCustomLabel" class="mono-num text-lg sm:text-xl font-bold text-brass">
+              45m
+            </span>
+          </div>
+          <input
+            id="gambitCustomSlider"
+            type="range"
+            min="0"
+            max="15"
+            step="1"
+            value="9"
+            class="studio-slider"
+          />
+          <div class="flex justify-between mono-num text-xs text-[#6C7382] mt-3">
+            <span>10s</span>
+            <span>1m</span>
+            <span>10m</span>
+            <span>45m</span>
+            <span>90m</span>
+            <span>3h</span>
+          </div>
+        </div>
+
+        <!-- Large Primary Action Buttons Side-by-Side -->
+        <div class="mt-7 pt-6 border-t border-white/[0.08]">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
+            <button
+              type="button"
+              id="playMatchBtn"
+              class="btn-ivory min-h-[62px] py-4 px-6 text-[17px] sm:text-lg font-bold tracking-[0.10em] uppercase flex items-center justify-center gap-3 cursor-pointer"
+            >
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="6 4 20 12 6 20 6 4" />
+              </svg>
+              <span id="playMatchBtnText">PLAY MATCH</span>
+            </button>
+
+            <button
+              type="button"
+              id="playFriendBtn"
+              class="btn-gunmetal hover:border-brass/70 min-h-[62px] py-4 px-6 text-[17px] sm:text-lg font-bold tracking-[0.10em] uppercase flex items-center justify-center gap-3 cursor-pointer"
+            >
+              <svg class="w-5 h-5 text-brass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <span>PLAY A FRIEND</span>
+            </button>
+          </div>
+
+          <!-- Live Matchmaking Status Drawer -->
+          <div id="matchmakingDrawer" class="hidden mt-5 p-5 rounded-[10px] bg-[#0E1117] border border-brass/50">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-start gap-3.5">
+                <span class="live-dot w-2.5 h-2.5 rounded-full bg-brass mt-1.5 shrink-0"></span>
+                <div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-sm font-bold uppercase tracking-[0.10em] text-[#F3F4F6]">Searching Opponent</span>
+                    <span id="matchmakingTimerText" class="mono-num text-sm font-bold text-brass">00:00</span>
+                  </div>
+                  <div id="matchmakingWindowText" class="mono-num text-xs sm:text-sm text-[#A1A7B3] mt-1">
+                    RAPID 10+0 · Window 950–1050 GBT
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="cancelQueueBtn"
+                class="btn-gunmetal min-h-[44px] px-5 py-2.5 text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] cursor-pointer shrink-0"
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
+
+          <!-- Private Room Invite Drawer -->
+          <div id="friendRoomDrawer" class="hidden mt-5 p-5 rounded-[10px] bg-[#0E1117] border border-brass/50">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-[0.14em] text-[#A1A7B3]">Private Room Code</div>
+                <div class="flex items-center gap-3.5 mt-1.5">
+                  <span id="roomCodeDisplay" class="mono-num text-2xl font-bold tracking-[0.22em] text-brass">GMB492</span>
+                  <span id="roomFormatTag" class="mono-num text-sm text-[#A1A7B3]">RAPID · 10+0</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  id="copyRoomCodeBtn"
+                  class="btn-ivory min-h-[44px] px-5 py-2.5 text-sm font-semibold flex items-center gap-2 cursor-pointer"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                  <span>Copy Code</span>
+                </button>
+                <button
+                  type="button"
+                  id="closeRoomDrawerBtn"
+                  aria-label="Close room code"
+                  class="btn-gunmetal min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =======================================================
+           SECTION 3: SEPARATED FORMAT RATINGS (Full-Width 4-Col Grid)
+      ======================================================== -->
+      <section aria-labelledby="separatedRatingsHeading" class="pb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 id="separatedRatingsHeading" class="text-sm sm:text-base font-bold uppercase tracking-[0.16em] text-[#F3F4F6]">
+            FORMAT RATINGS
+          </h2>
+          <span class="mono-num text-xs uppercase tracking-[0.14em] text-[#A1A7B3]">Separated GBT Ladders</span>
+        </div>
+
+        <div id="separatedRatingsList" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5"></div>
+      </section>
+
     </div>
   </section>
 
@@ -1237,7 +1624,7 @@
       getDoc,
       setDoc
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
     // =========================================================
     // 1. PROCEDURAL CHESS SOUND ENGINE (WEB AUDIO API)
     // =========================================================
@@ -1411,6 +1798,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    try { getAnalytics(app); } catch (_) {}
     const auth = getAuth(app);
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
@@ -1514,7 +1902,7 @@
     }
 
     // =========================================================
-    // 3. FORMAT METADATA & RANK CALCULATIONS
+    // 3. FORMAT METADATA & PROGRESS CALCULATIONS
     // =========================================================
     const FORMAT_META = {
       rapid: {
@@ -1523,7 +1911,7 @@
         range: "10–30 mins",
         pills: ["10+0", "15+10", "20+0", "30+0"],
         defaultPill: "10+0",
-        iconSvg: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M9 2h6"/><path d="M12 2v3"/></svg>`
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M9 2h6"/><path d="M12 2v3"/></svg>`
       },
       blitz: {
         id: "blitz",
@@ -1531,38 +1919,31 @@
         range: "3–5 mins",
         pills: ["3+0", "3+2", "5+0", "5+3"],
         defaultPill: "3+2",
-        iconSvg: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`
       },
       bullet: {
         id: "bullet",
         label: "BULLET",
         range: "15 sec–2 mins",
-        pills: ["15s", "30s", "1+0", "2+1"],
+        pills: ["15s+0", "30s+0", "1+0", "2+1"],
         defaultPill: "1+0",
-        iconSvg: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h6"/><path d="M3 8h5"/><path d="M4 16h5"/><path d="M12 7h4.5c2.5 0 4.5 2.2 4.5 5s-2 5-4.5 5H12V7Z"/></svg>`
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h6"/><path d="M3 8h5"/><path d="M4 16h5"/><path d="M12 7h4.5c2.5 0 4.5 2.2 4.5 5s-2 5-4.5 5H12V7Z"/></svg>`
       },
       gambit: {
         id: "gambit",
         label: "GAMBIT",
         range: "10 seconds–3 hours",
-        pills: ["10s", "5+0", "45m", "3h"],
-        defaultPill: "5+0",
-        iconSvg: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l2-9 4.5 4L12 5l2.5 7L19 8l2 9H3Z"/><line x1="4" y1="20" x2="20" y2="20"/></svg>`
+        pills: ["10s", "45m", "90m", "3h"],
+        defaultPill: "45m",
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l2-9 4.5 4L12 5l2.5 7L19 8l2 9H3Z"/><line x1="4" y1="20" x2="20" y2="20"/></svg>`
       }
     };
 
     const GAMBIT_SLIDER_STEPS = [
       "10s", "20s", "30s", "1m", "3m",
       "5+0", "10+0", "15+10", "30m", "45m",
-      "1h", "1h 30m", "2h", "2h 30m", "3h"
+      "1h", "90m", "2h", "2h 30m", "2h 45m", "3h"
     ];
-
-    function getRankFromGbt(gbt) {
-      if (gbt >= 1400) return "GRANDMASTER";
-      if (gbt >= 950) return "MASTER";
-      if (gbt >= 550) return "TACTICIAN";
-      return "NOVICE";
-    }
 
     function getTierProgress(gbt) {
       const tiers = [300, 600, 1000, 1500, 2000, 2500];
@@ -1614,15 +1995,13 @@
     const calibrationSummary = document.getElementById("calibrationSummary");
     const confirmCalibrationBtn = document.getElementById("confirmCalibrationBtn");
 
-    const dashAvatarImg = document.getElementById("dashAvatarImg");
-    const dashAvatarInitials = document.getElementById("dashAvatarInitials");
-    const dashUserName = document.getElementById("dashUserName");
-    const dashRankBadge = document.getElementById("dashRankBadge");
-    const headerPeakGbt = document.getElementById("headerPeakGbt");
-    const statsPeakGbt = document.getElementById("statsPeakGbt");
-    const profileMemberSince = document.getElementById("profileMemberSince");
-    const profileActiveFormat = document.getElementById("profileActiveFormat");
-    const profileRatingTier = document.getElementById("profileRatingTier");
+    const heroAvatarImg = document.getElementById("heroAvatarImg");
+    const heroAvatarInitials = document.getElementById("heroAvatarInitials");
+    const heroUserName = document.getElementById("heroUserName");
+    const heroUserEmail = document.getElementById("heroUserEmail");
+    const heroPeakGbt = document.getElementById("heroPeakGbt");
+    const heroTotalMatches = document.getElementById("heroTotalMatches");
+    const heroWinRate = document.getElementById("heroWinRate");
     const signOutBtn = document.getElementById("signOutBtn");
 
     const formatCards = document.querySelectorAll(".format-card");
@@ -1657,7 +2036,7 @@
       rapid: "10+0",
       blitz: "3+2",
       bullet: "1+0",
-      gambit: "5+0"
+      gambit: "45m"
     };
 
     let matchmakingInterval = null;
@@ -1799,7 +2178,7 @@
         powerPreference: "high-performance",
         alpha: true
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.15;
@@ -2287,6 +2666,11 @@
         arenaGroup.scale.setScalar(0.965);
       };
 
+      // Skip 3D intro automatically if user is already authenticated
+      if (activeUser || loadSessionCache()) {
+        finishIntroVisuals();
+      }
+
       const clock = new THREE.Clock();
       let rafId = null;
 
@@ -2659,7 +3043,7 @@
       if (authMode === "signup") {
         if (!playerTag || playerTag.length < 3) {
           chessAudio.errorSound();
-          setInlineAuthError("Player Tag must be at least 3 characters.");
+          setInlineAuthError("Display Name must be at least 3 characters.");
           usernameInput.focus();
           return;
         }
@@ -2736,9 +3120,8 @@
 
         const tier = card.getAttribute("data-tier");
         const gbt = parseInt(card.getAttribute("data-gbt"), 10);
-        const rank = card.getAttribute("data-rank");
 
-        pendingCalibration = { tier, gbt, rank };
+        pendingCalibration = { tier, gbt };
         calibrationSummary.innerHTML = `Initial rating: <span class="mono-num font-bold text-brass">${gbt} GBT</span> across Rapid, Blitz, Bullet & Gambit.`;
         confirmCalibrationBtn.disabled = false;
       });
@@ -2772,22 +3155,14 @@
     });
 
     // =========================================================
-    // 10. PRO CHESS.COM-STYLE DASHBOARD RENDERING
+    // 10. PRO DASHBOARD RENDERING (PROFILE TOP, CONTROLS BELOW)
     // =========================================================
     function getInitials(name) {
-      if (!name) return "GM";
+      if (!name) return "PL";
       const parts = name.trim().split(/[\s_]+/);
       return parts.length === 1
         ? parts[0].slice(0, 2).toUpperCase()
         : (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-
-    function formatMemberDate(iso) {
-      try {
-        return new Date(iso || Date.now()).toLocaleDateString("en-US", { month: "short", year: "numeric" });
-      } catch (_) {
-        return "Nov 2026";
-      }
     }
 
     function getPeakGbt(ratings) {
@@ -2799,39 +3174,51 @@
       );
     }
 
+    function getAggregateStats(ratings) {
+      const list = [ratings.rapid, ratings.blitz, ratings.bullet, ratings.gambit];
+      let wins = 0;
+      let total = 0;
+      list.forEach((r) => {
+        wins += r.wins || 0;
+        total += (r.wins || 0) + (r.draws || 0) + (r.losses || 0);
+      });
+      const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+      return { total, winRate };
+    }
+
     function renderDashboard() {
       if (!activeUser || !activeProfile) return;
 
       const displayName = activeUser.displayName || activeProfile.displayName || (activeUser.email ? activeUser.email.split("@")[0] : "Player");
+      const email = activeUser.email || "Signed in to GAMBIT";
       const ratings = activeProfile.ratings;
       const peak = getPeakGbt(ratings);
-      const rank = getRankFromGbt(peak);
+      const { total, winRate } = getAggregateStats(ratings);
 
-      dashUserName.textContent = displayName;
-      dashRankBadge.textContent = rank;
-      headerPeakGbt.textContent = `${peak} GBT`;
-      statsPeakGbt.textContent = `${peak} GBT`;
-      profileMemberSince.textContent = formatMemberDate(activeProfile.memberSince);
-      profileRatingTier.textContent = rank;
+      heroUserName.textContent = displayName;
+      heroUserEmail.textContent = email;
+      heroPeakGbt.textContent = `${peak} GBT`;
+      heroTotalMatches.textContent = String(total);
+      heroWinRate.textContent = `${winRate}%`;
 
       if (activeUser.photoURL) {
-        dashAvatarImg.src = activeUser.photoURL;
-        dashAvatarImg.classList.remove("hidden");
-        dashAvatarInitials.classList.add("hidden");
-        dashAvatarImg.onerror = () => {
-          dashAvatarImg.classList.add("hidden");
-          dashAvatarInitials.classList.remove("hidden");
-          dashAvatarInitials.textContent = getInitials(displayName);
+        heroAvatarImg.src = activeUser.photoURL;
+        heroAvatarImg.classList.remove("hidden");
+        heroAvatarInitials.classList.add("hidden");
+        heroAvatarImg.onerror = () => {
+          heroAvatarImg.classList.add("hidden");
+          heroAvatarInitials.classList.remove("hidden");
+          heroAvatarInitials.textContent = getInitials(displayName);
         };
       } else {
-        dashAvatarImg.classList.add("hidden");
-        dashAvatarInitials.classList.remove("hidden");
-        dashAvatarInitials.textContent = getInitials(displayName);
+        heroAvatarImg.classList.add("hidden");
+        heroAvatarInitials.classList.remove("hidden");
+        heroAvatarInitials.textContent = getInitials(displayName);
       }
 
       ["rapid", "blitz", "bullet", "gambit"].forEach((key) => {
         const el = document.getElementById(`cardRating-${key}`);
-        if (el) el.textContent = `${ratings[key].gbt}`;
+        if (el) el.textContent = `${ratings[key].gbt} GBT`;
       });
 
       renderSeparatedRatings();
@@ -2846,7 +3233,6 @@
       separatedRatingsList.innerHTML = keys.map((key) => {
         const meta = FORMAT_META[key];
         const stat = ratings[key];
-        const rank = getRankFromGbt(stat.gbt);
         const { pct, next } = getTierProgress(stat.gbt);
         const isActive = key === selectedFormat;
 
@@ -2854,35 +3240,34 @@
           <button
             type="button"
             data-rating-format="${key}"
-            class="rating-row ${isActive ? "active-format" : ""} w-full text-left p-3.5 cursor-pointer"
+            class="rating-row ${isActive ? "active-format" : ""} w-full text-left p-5 sm:p-6 flex flex-col justify-between gap-4 cursor-pointer"
           >
-            <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center justify-between gap-3 w-full">
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
+                <div class="w-10 h-10 rounded-[8px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
                   ${meta.iconSvg}
                 </div>
                 <div class="min-w-0">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold tracking-[0.08em] text-[#F3F4F6]">${meta.label}</span>
-                    <span class="px-1.5 py-0.5 rounded-[3px] bg-[#0B0D11] border border-white/[0.08] text-[9px] font-semibold uppercase tracking-[0.10em] text-brass">${rank}</span>
-                  </div>
-                  <div class="text-[11px] text-[#A1A7B3] mt-0.5">${meta.range}</div>
-                </div>
-              </div>
-              <div class="text-right shrink-0">
-                <div class="mono-num text-base font-bold text-[#F3F4F6]">
-                  ${stat.gbt} <span class="text-[11px] font-semibold text-brass">GBT</span>
-                </div>
-                <div class="mono-num text-[10px] text-[#A1A7B3] mt-0.5">
-                  ${stat.wins}W · ${stat.draws}D · ${stat.losses}L
+                  <div class="text-sm sm:text-base font-bold tracking-[0.08em] text-[#F3F4F6]">${meta.label}</div>
+                  <div class="text-xs text-[#A1A7B3] mt-0.5">${meta.range}</div>
                 </div>
               </div>
             </div>
-            <div class="mt-3 flex items-center gap-2.5">
-              <div class="flex-1 h-[2px] bg-white/[0.09] overflow-hidden">
+
+            <div>
+              <div class="mono-num text-[28px] sm:text-[32px] font-bold text-[#F3F4F6] leading-none">
+                ${stat.gbt} <span class="text-sm font-semibold text-brass">GBT</span>
+              </div>
+              <div class="mono-num text-xs sm:text-sm text-[#A1A7B3] mt-2">
+                ${stat.wins}W / ${stat.draws}D / ${stat.losses}L
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex-1 h-[3px] bg-white/[0.09] rounded-full overflow-hidden">
                 <div class="h-full bg-brass transition-all duration-300" style="width: ${pct}%"></div>
               </div>
-              <span class="mono-num text-[10px] text-[#6C7382] shrink-0">${next}</span>
+              <span class="mono-num text-xs text-[#6C7382] shrink-0">${next}</span>
             </div>
           </button>
         `;
@@ -2922,7 +3307,7 @@
           <button
             type="button"
             data-time-pill="${pill}"
-            class="preset-btn ${isActive ? "active" : ""} py-2 px-3 mono-num text-xs cursor-pointer"
+            class="preset-btn ${isActive ? "active" : ""} min-h-[54px] py-3.5 px-6 mono-num text-base sm:text-[17px] cursor-pointer"
           >
             ${pill}
           </button>
@@ -2961,7 +3346,6 @@
       actionFormatName.textContent = meta.label;
       actionTimeControl.textContent = timeCtrl;
       actionFormatRating.textContent = `${rating} GBT`;
-      profileActiveFormat.textContent = meta.label;
       roomFormatTag.textContent = `${meta.label} · ${timeCtrl}`;
     }
 
@@ -2973,7 +3357,7 @@
 
     gambitCustomSlider.addEventListener("input", () => {
       const idx = parseInt(gambitCustomSlider.value, 10);
-      const val = GAMBIT_SLIDER_STEPS[idx] || "5+0";
+      const val = GAMBIT_SLIDER_STEPS[idx] || "45m";
       selectedTimeControls.gambit = val;
       gambitCustomLabel.textContent = val;
       updateTimePillHighlights();
@@ -3118,6 +3502,7 @@
       const cached = loadSessionCache();
       if (cached && cached.uid) {
         activeUser = cached;
+        if (!introFinished) finishIntroVisuals();
       }
 
       // 2. Ensure local persistence is configured
