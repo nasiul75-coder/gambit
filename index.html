@@ -153,7 +153,8 @@
       pointer-events: none;
     }
 
-    .view-active {
+    .view-active,
+    .view-layer.active {
       opacity: 1;
       transform: translateY(0);
       visibility: visible;
@@ -402,7 +403,7 @@
   <!-- =========================================================
        VIEW 1: MINIMAL PRODUCTION LOGIN SCREEN
   ========================================================== -->
-  <main id="authView" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center lg:justify-end px-4 py-8 sm:px-8 lg:px-16 overflow-y-auto">
+  <main id="authView" style="display: none;" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center lg:justify-end px-4 py-8 sm:px-8 lg:px-16 overflow-y-auto">
     <div class="glass-card w-full max-w-[400px] rounded-2xl p-6 sm:p-8 relative my-auto">
 
       <!-- Subtle Top Champagne Accent Line -->
@@ -567,7 +568,7 @@
   <!-- =========================================================
        VIEW 2: POST-LOGIN SKILL CALIBRATION (4 GBT TIERS)
   ========================================================== -->
-  <section id="calibrationView" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center px-4 py-8 sm:px-6 overflow-y-auto">
+  <section id="calibrationView" style="display: none;" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center px-4 py-8 sm:px-6 overflow-y-auto">
     <div class="glass-card w-full max-w-2xl rounded-2xl p-6 sm:p-8 relative my-auto">
       <div class="absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-champagne/65 to-transparent"></div>
 
@@ -712,7 +713,7 @@
   <!-- =========================================================
        VIEW 3: PROFESSIONAL CHESS.COM-STYLE GAMBIT DASHBOARD
   ========================================================== -->
-  <section id="dashboardView" class="view-layer view-hidden fixed inset-0 z-20 flex flex-col overflow-y-auto">
+  <section id="dashboardView" style="display: none;" class="view-layer view-hidden fixed inset-0 z-20 flex flex-col overflow-y-auto">
 
     <!-- Top Navigation & Player Profile Header Bar -->
     <header class="glass-bar sticky top-0 z-30 shrink-0">
@@ -1136,6 +1137,8 @@
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
     import {
       getAuth,
+      setPersistence,
+      browserLocalPersistence,
       GoogleAuthProvider,
       signInWithPopup,
       signInWithEmailAndPassword,
@@ -1346,6 +1349,7 @@
     }
 
     const auth = getAuth(app);
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: "select_account" });
@@ -1432,16 +1436,30 @@
       return `gambit_profile_${uid}`;
     }
 
+    function withTimeout(promise, ms = 2000) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("firestore-timeout")), ms)
+        )
+      ]);
+    }
+
+    // Check localStorage FIRST for instant routing; wrap Firestore getDoc in 2s timeout + try/catch
     async function loadUserProfile(uid) {
-      let localProfile = null;
       try {
         const raw = localStorage.getItem(profileStorageKey(uid));
-        if (raw) localProfile = JSON.parse(raw);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.calibrated && parsed.ratings) {
+            return parsed;
+          }
+        }
       } catch (_) {}
 
       try {
-        const snap = await getDoc(doc(db, "users", uid));
-        if (snap.exists()) {
+        const snap = await withTimeout(getDoc(doc(db, "users", uid)), 2000);
+        if (snap && snap.exists()) {
           const data = snap.data();
           if (data && data.calibrated && data.ratings) {
             try {
@@ -1451,24 +1469,30 @@
           }
         }
       } catch (_) {
-        // Seamless fallback to localStorage if Firestore rules restrict reads
+        // Silently fall back to localStorage / calibration if Firestore is locked or timed out
       }
 
-      return localProfile;
+      return null;
     }
 
-    async function saveUserProfile(uid, profileData) {
+    // Save synchronously to localStorage FIRST, then fire-and-forget Firestore sync in background
+    function saveUserProfileInstant(uid, profileData) {
       try {
         localStorage.setItem(profileStorageKey(uid), JSON.stringify(profileData));
       } catch (_) {}
 
       try {
-        await setDoc(doc(db, "users", uid), profileData, { merge: true });
+        withTimeout(
+          setDoc(doc(db, "users", uid), profileData, { merge: true }),
+          2000
+        ).catch(() => {});
       } catch (_) {
-        // Local persistence already succeeded; continue seamlessly
+        // Local persistence already succeeded
       }
     }
 
+    // =========================================================
+    // 4. DOM REFERENCES & STRICT VIEW STATE MACHINE
     // =========================================================
     // 4. DOM REFERENCES & APP STATE
     // =========================================================
@@ -1541,11 +1565,12 @@
     const toastContainer = document.getElementById("toastContainer");
 
     let authMode = "signin";
-    let currentScreen = "auth"; // "auth" | "calibration" | "dashboard"
-    let introDone = false;
+    let introFinished = false;
     let activeUser = null;
     let activeProfile = null;
+    let currentScreen = "intro"; // "intro" | "login" | "calibration" | "dashboard"
     let pendingCalibration = null;
+    let handlingAuthUid = null;
 
     let selectedFormat = "rapid"; // RAPID selected by default
     let selectedTimeControls = {
@@ -1558,33 +1583,55 @@
     let matchmakingInterval = null;
     let matchmakingSeconds = 0;
 
-    const sceneState = {
-      phase: "intro", // "intro" | "auth" | "calibration" | "dashboard"
-      setScreen(screen) {
-        currentScreen = screen;
-        if (introDone) {
-          this.phase = screen;
-          syncVisibleView();
-        }
-      }
+    // Hook populated by init3DScene to cleanly hide the 3D logo intro & reveal the arena
+    let finishIntroVisuals = () => {
+      introFinished = true;
+      introWordmarkOverlay.style.display = "none";
     };
 
-    function syncVisibleView() {
-      const views = {
-        auth: authView,
+    const sceneState = {
+      phase: "intro" // "intro" | "login" | "calibration" | "dashboard"
+    };
+
+    // Single authoritative screen switcher: hides all other screens with display:none
+    function showScreen(screenName) {
+      currentScreen = screenName;
+      sceneState.phase = screenName;
+
+      if (screenName !== "intro") {
+        introWordmarkOverlay.style.display = "none";
+        if (!introFinished) {
+          finishIntroVisuals();
+        }
+      } else {
+        introWordmarkOverlay.style.display = "flex";
+      }
+
+      const viewMap = {
+        login: authView,
         calibration: calibrationView,
         dashboard: dashboardView
       };
 
-      Object.entries(views).forEach(([key, el]) => {
-        const active = currentScreen === key;
-        el.classList.toggle("view-active", active);
-        el.classList.toggle("view-hidden", !active);
+      Object.entries(viewMap).forEach(([key, el]) => {
+        if (screenName === key) {
+          el.style.display = "flex";
+          el.classList.remove("view-hidden");
+          el.classList.add("view-active", "active");
+        } else {
+          el.style.display = "none";
+          el.classList.remove("view-active", "active");
+          el.classList.add("view-hidden");
+        }
       });
 
-      dashboardBackdrop.classList.toggle("active", currentScreen === "calibration" || currentScreen === "dashboard");
+      dashboardBackdrop.classList.toggle(
+        "active",
+        screenName === "calibration" || screenName === "dashboard"
+      );
 
-      const showFloatingSound = currentScreen === "auth" || currentScreen === "calibration";
+      const showFloatingSound = screenName === "login" || screenName === "calibration";
+      floatingSoundBtn.style.display = showFloatingSound ? "flex" : "none";
       floatingSoundBtn.classList.toggle("view-active", showFloatingSound);
       floatingSoundBtn.classList.toggle("view-hidden", !showFloatingSound);
     }
@@ -1598,9 +1645,13 @@
     function init3DScene() {
       const THREE = window.THREE;
       if (!THREE) {
-        introDone = true;
+        introFinished = true;
         introWordmarkOverlay.style.display = "none";
-        syncVisibleView();
+        if (activeUser) {
+          handleAuthenticatedUser(activeUser);
+        } else {
+          showScreen("login");
+        }
         return;
       }
 
@@ -2020,6 +2071,26 @@
       let wordmarkShown = false;
       let arenaReveal = 0;
 
+      // Cleanly complete/hide 3D intro and reveal arena without ever overwriting authenticated state
+      finishIntroVisuals = () => {
+        if (introFinished) return;
+        introFinished = true;
+        logoGroup.visible = false;
+        introWordmarkOverlay.style.display = "none";
+
+        const isDesktop = window.innerWidth >= 1024;
+        const isLogin = !activeUser;
+        const offsetX = isLogin ? (isDesktop ? 1.85 : 0) : 0;
+        camPos.set(isLogin ? -2.6 + offsetX * 0.4 : 0, 6.2, 10.6);
+        camLook.set(offsetX, 0.3, 0.1);
+        camera.position.copy(camPos);
+        camera.lookAt(camLook);
+
+        arenaGroup.visible = true;
+        arenaGroup.position.y = -0.35;
+        arenaGroup.scale.setScalar(0.96);
+      };
+
       const clock = new THREE.Clock();
       let rafId = null;
 
@@ -2032,7 +2103,7 @@
         pointer.sx += (pointer.x - pointer.sx) * dampPtr;
         pointer.sy += (pointer.y - pointer.sy) * dampPtr;
 
-        if (sceneState.phase === "intro") {
+        if (!introFinished && sceneState.phase === "intro") {
           introTime += dt;
 
           logoArcs.forEach((arc, i) => {
@@ -2075,23 +2146,15 @@
           camera.lookAt(camLook);
 
           if (introTime >= 2.50) {
-            logoGroup.visible = false;
-            introWordmarkOverlay.style.display = "none";
-
-            const isDesktop = window.innerWidth >= 1024;
-            const offsetX = currentScreen === "auth" ? (isDesktop ? 1.85 : 0) : 0;
-            camPos.set(currentScreen === "auth" ? -2.6 + offsetX * 0.4 : 0, 6.2, 10.6);
-            camLook.set(offsetX, 0.3, 0.1);
-            camera.position.copy(camPos);
-            camera.lookAt(camLook);
-
-            arenaGroup.visible = true;
-            arenaGroup.position.y = -0.35;
-            arenaGroup.scale.setScalar(0.96);
-
-            introDone = true;
-            sceneState.phase = currentScreen;
-            syncVisibleView();
+            finishIntroVisuals();
+            // Never overwrite an authenticated state when intro completes
+            if (activeUser) {
+              if (currentScreen !== "calibration" && currentScreen !== "dashboard") {
+                handleAuthenticatedUser(activeUser);
+              }
+            } else {
+              showScreen("login");
+            }
           }
         } else {
           if (arenaReveal < 1) {
@@ -2159,7 +2222,7 @@
             if (p >= 1) {
               activeMove.mesh.position.copy(activeMove.to);
               // Play subtle wooden piece placement sound on Login screen once audio unlocked
-              if (sceneState.phase === "auth") {
+              if (sceneState.phase === "login") {
                 chessAudio.moveSound(0.42);
               }
               activeMove = null;
@@ -2234,7 +2297,18 @@
       const code = error?.code || "";
       switch (code) {
         case "auth/unauthorized-domain":
-          showToast("Domain Not Authorized", `Add "${window.location.hostname || "this domain"}" in Firebase Console > Authentication > Authorized domains.`, "error", 6500);
+          showToast(
+            "Domain Not Authorized for Google",
+            `Add "${window.location.hostname || "this domain"}" in Firebase Console > Authentication > Settings > Authorized domains, or sign in with Email.`,
+            "error",
+            7000
+          );
+          break;
+        case "auth/popup-closed-by-user":
+          showToast("Sign-In Cancelled", "Google sign-in popup was closed.", "info");
+          break;
+        case "auth/popup-blocked":
+          showToast("Popup Blocked", "Allow popups in your browser to sign in with Google, or use Email Sign-In.", "error");
           break;
         case "auth/popup-closed-by-user":
           showToast("Sign-In Cancelled", "Google sign-in popup was closed.", "info");
@@ -2324,6 +2398,7 @@
         const res = await signInWithPopup(auth, googleProvider);
         chessAudio.checkSound();
         showToast("Signed In", `Welcome, ${res.user.displayName || "Player"}.`, "success");
+        await handleAuthenticatedUser(res.user);
       } catch (err) {
         handleAuthError(err);
       } finally {
@@ -2362,15 +2437,16 @@
       try {
         if (authMode === "signup") {
           const cred = await createUserWithEmailAndPassword(auth, email, password);
-          await updateProfile(cred.user, { displayName: username });
+          await updateProfile(cred.user, { displayName: username }).catch(() => {});
           chessAudio.checkSound();
           showToast("Account Created", `Welcome to GAMBIT, ${username}.`, "success");
-          await routeAuthenticatedUser(cred.user, username);
+          await handleAuthenticatedUser(cred.user, username);
         } else {
           const cred = await signInWithEmailAndPassword(auth, email, password);
           const name = cred.user.displayName || cred.user.email.split("@")[0];
           chessAudio.checkSound();
           showToast("Signed In", `Welcome back, ${name}.`, "success");
+          await handleAuthenticatedUser(cred.user);
         }
       } catch (err) {
         handleAuthError(err);
@@ -2378,23 +2454,34 @@
         setSubmitBusy(false);
       }
     });
+    confirmCalibrationBtn.addEventListener("click", () => {
+      if (!pendingCalibration || !activeUser) return;
 
-    forgotPasswordBtn.addEventListener("click", async () => {
-      chessAudio.tickSound();
-      const email = emailInput.value.trim();
-      if (!email) {
-        chessAudio.errorSound();
-        showToast("Email Required", "Enter your email address first.", "info");
-        emailInput.focus();
-        return;
-      }
-      try {
-        await sendPasswordResetEmail(auth, email);
-        chessAudio.checkSound();
-        showToast("Reset Sent", `Password reset email sent to ${email}.`, "success");
-      } catch (err) {
-        handleAuthError(err);
-      }
+      const gbt = pendingCalibration.gbt;
+      const nowIso = new Date().toISOString();
+      const profile = {
+        uid: activeUser.uid,
+        displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split("@")[0] : "Player"),
+        tier: pendingCalibration.tier,
+        calibrated: true,
+        memberSince: nowIso,
+        ratings: {
+          rapid: { gbt, wins: 0, draws: 0, losses: 0 },
+          blitz: { gbt, wins: 0, draws: 0, losses: 0 },
+          bullet: { gbt, wins: 0, draws: 0, losses: 0 },
+          gambit: { gbt, wins: 0, draws: 0, losses: 0 }
+        }
+      };
+
+      // Save to localStorage FIRST for instant transition, sync Firestore in background
+      saveUserProfileInstant(activeUser.uid, profile);
+      activeProfile = profile;
+
+      chessAudio.checkSound();
+      showToast("Rating Calibrated", `Initialized at ${gbt} GBT across all 4 formats.`, "success");
+
+      renderDashboard();
+      showScreen("dashboard");
     });
 
     signOutBtn.addEventListener("click", async () => {
@@ -2544,6 +2631,7 @@
       separatedRatingsList.innerHTML = keys.map((key) => {
         const meta = FORMAT_META[key];
         const stat = ratings[key];
+        const rankLabel = getRankFromGbt(stat.gbt);
         const { pct, next } = getTierProgress(stat.gbt);
         const isSelected = key === selectedFormat;
 
@@ -2561,6 +2649,7 @@
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">${meta.label}</span>
+                    <span class="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/6 text-champagne">${rankLabel}</span>
                   </div>
                   <div class="text-[11px] text-[#9ca3af] truncate">${meta.range}</div>
                 </div>
@@ -2791,36 +2880,66 @@
     // =========================================================
     // 11. AUTH STATE ROUTER (LOGIN -> CALIBRATION -> DASHBOARD)
     // =========================================================
-    async function routeAuthenticatedUser(user, fallbackName = "") {
-      activeUser = user;
-      const existing = await loadUserProfile(user.uid);
+    async function handleAuthenticatedUser(user, fallbackName = "") {
+      if (!user) return;
 
-      if (existing && existing.calibrated && existing.ratings) {
-        activeProfile = existing;
-        if (fallbackName && !activeProfile.displayName) {
-          activeProfile.displayName = fallbackName;
+      // Guard against duplicate simultaneous calls for the same authenticated user
+      if (handlingAuthUid === user.uid) return;
+      if (
+        activeUser &&
+        activeUser.uid === user.uid &&
+        (currentScreen === "calibration" || currentScreen === "dashboard")
+      ) {
+        return;
+      }
+
+      handlingAuthUid = user.uid;
+      activeUser = user;
+
+      // If 3D intro is still running, cleanly finish/hide it immediately
+      if (!introFinished) {
+        finishIntroVisuals();
+      }
+
+      try {
+        const existing = await loadUserProfile(user.uid);
+        // Ensure user did not sign out while loading
+        if (!activeUser || activeUser.uid !== user.uid) return;
+
+        if (existing && existing.calibrated && existing.ratings) {
+          activeProfile = existing;
+          if (fallbackName && !activeProfile.displayName) {
+            activeProfile.displayName = fallbackName;
+          }
+          renderDashboard();
+          showScreen("dashboard");
+        } else {
+          // First-time user: show 4-tier GBT Skill Calibration
+          activeProfile = null;
+          pendingCalibration = null;
+          skillCards.forEach((c) => c.classList.remove("selected"));
+          confirmCalibrationBtn.disabled = true;
+          calibrationSummary.textContent = "Select a skill tier above to continue";
+          showScreen("calibration");
         }
-        renderDashboard();
-        sceneState.setScreen("dashboard");
-      } else {
-        // First-time user: show 4-tier GBT Skill Calibration
-        activeProfile = null;
-        pendingCalibration = null;
-        skillCards.forEach((c) => c.classList.remove("selected"));
-        confirmCalibrationBtn.disabled = true;
-        calibrationSummary.textContent = "Select a skill tier above to continue";
-        sceneState.setScreen("calibration");
+      } finally {
+        if (handlingAuthUid === user.uid) {
+          handlingAuthUid = null;
+        }
       }
     }
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        await routeAuthenticatedUser(user);
+        await handleAuthenticatedUser(user);
       } else {
         activeUser = null;
         activeProfile = null;
+        handlingAuthUid = null;
         stopMatchmaking(false);
-        sceneState.setScreen("auth");
+        if (introFinished) {
+          showScreen("login");
+        }
       }
     });
   </script>
