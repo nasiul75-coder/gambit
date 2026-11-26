@@ -1,36 +1,30 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GAMBIT — Outsmart. Outplay. Checkmate.</title>
+  <title>GAMBIT — 3D Multiplayer Chess</title>
 
-  <!-- Google Fonts: Cinzel for luxury royal display & Plus Jakarta Sans for modern UI -->
+  <!-- Google Fonts: Montserrat (Wordmark) & Inter (UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            display: ['Cinzel', 'serif'],
-            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+            brand: ['Montserrat', 'Inter', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
           },
           colors: {
-            obsidian: '#07080c',
-            surface: '#11131a',
-            gold: {
-              DEFAULT: '#f5c451',
-              light: '#fde08d',
-              dark: '#c89328',
-            },
-            emerald: {
-              DEFAULT: '#10b981',
+            champagne: {
+              DEFAULT: '#d4af6a',
+              hover: '#dfc084',
+              dark: '#b89149',
             }
           }
         }
@@ -38,14 +32,19 @@
     };
   </script>
 
+  <!-- Three.js r128 CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
   <style>
-    /* Base Dark Obsidian Luxury Theme */
     :root {
-      --bg-obsidian: #07080c;
-      --card-bg: rgba(17, 19, 26, 0.72);
-      --gold: #f5c451;
-      --gold-glow: rgba(245, 196, 81, 0.28);
-      --emerald: #10b981;
+      --bg-top: #1d222b;
+      --bg-bottom: #2a313d;
+      --card-bg: rgba(26, 31, 40, 0.78);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #d4af6a;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -55,783 +54,546 @@
     html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--bg-obsidian);
-      color: #f3f4f6;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      overflow-x: hidden;
+      width: 100%;
       min-height: 100vh;
+      background: linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Animated Perspective Chessboard Floor */
-    .chess-grid-bg {
+    /* Full-Viewport WebGL Canvas */
+    #sceneCanvas {
       position: fixed;
       inset: 0;
-      z-index: 0;
-      overflow: hidden;
-      pointer-events: none;
-      perspective: 900px;
-    }
-
-    .chess-plane {
-      position: absolute;
-      width: 200%;
-      height: 200%;
-      left: -50%;
-      top: -10%;
-      background-image:
-        linear-gradient(45deg, rgba(245, 196, 81, 0.035) 25%, transparent 25%),
-        linear-gradient(-45deg, rgba(245, 196, 81, 0.035) 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, rgba(245, 196, 81, 0.035) 75%),
-        linear-gradient(-45deg, transparent 75%, rgba(245, 196, 81, 0.035) 75%);
-      background-size: 92px 92px;
-      background-position: 0 0, 0 46px, 46px -46px, -46px 0;
-      transform: rotateX(62deg) translateY(0);
-      animation: planeDrift 28s linear infinite;
-      mask-image: radial-gradient(ellipse 68% 60% at 50% 48%, rgba(0,0,0,0.95) 0%, transparent 78%);
-      -webkit-mask-image: radial-gradient(ellipse 68% 60% at 50% 48%, rgba(0,0,0,0.95) 0%, transparent 78%);
-    }
-
-    @keyframes planeDrift {
-      0% { transform: rotateX(62deg) translateY(0); }
-      100% { transform: rotateX(62deg) translateY(92px); }
-    }
-
-    /* Ambient Glowing Orbs */
-    .ambient-orb {
-      position: fixed;
-      border-radius: 9999px;
-      filter: blur(110px);
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.42;
-      animation: orbFloat 16s ease-in-out infinite alternate;
-    }
-
-    .orb-gold {
-      width: 440px;
-      height: 440px;
-      top: -120px;
-      left: -100px;
-      background: radial-gradient(circle, rgba(245, 196, 81, 0.32), transparent 70%);
-    }
-
-    .orb-violet {
-      width: 500px;
-      height: 500px;
-      bottom: -160px;
-      right: -120px;
-      background: radial-gradient(circle, rgba(139, 92, 246, 0.26), transparent 70%);
-      animation-delay: -6s;
-    }
-
-    .orb-emerald {
-      width: 340px;
-      height: 340px;
-      top: 42%;
-      left: 44%;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.14), transparent 70%);
-      animation-delay: -11s;
-    }
-
-    @keyframes orbFloat {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(35px, -28px) scale(1.12); }
-    }
-
-    /* Floating Translucent Chess Pieces */
-    .floating-piece {
-      position: fixed;
-      pointer-events: none;
-      user-select: none;
-      z-index: 1;
-      color: rgba(245, 196, 81, 0.08);
-      text-shadow: 0 0 28px rgba(245, 196, 81, 0.14);
-      animation: pieceDrift var(--dur, 20s) ease-in-out infinite alternate;
-      will-change: transform;
-    }
-
-    @keyframes pieceDrift {
-      0% {
-        transform: translate3d(0, 0, 0) rotate(var(--rot-start, -10deg));
-        opacity: var(--op-min, 0.05);
-      }
-      50% {
-        opacity: var(--op-max, 0.13);
-      }
-      100% {
-        transform: translate3d(var(--tx, 26px), var(--ty, -42px), 0) rotate(var(--rot-end, 14deg));
-        opacity: var(--op-min, 0.06);
-      }
-    }
-
-    /* Glassmorphic Card */
-    .glass-card {
-      background: linear-gradient(155deg, rgba(22, 25, 36, 0.84) 0%, rgba(13, 15, 22, 0.92) 100%);
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow:
-        0 25px 60px -15px rgba(0, 0, 0, 0.78),
-        0 0 0 1px rgba(245, 196, 81, 0.06) inset;
-    }
-
-    /* Gold Gradient Text */
-    .text-gold-gradient {
-      background: linear-gradient(135deg, #fff2c2 0%, #f5c451 45%, #d19422 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    /* Primary Gold Button with Shimmer */
-    .btn-gold {
-      position: relative;
-      overflow: hidden;
-      background: linear-gradient(135deg, #f8d06b 0%, #e5a92c 55%, #c78b18 100%);
-      color: #090a0f;
-      box-shadow: 0 10px 28px -8px rgba(245, 196, 81, 0.48);
-      transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
-    }
-
-    .btn-gold::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -120%;
-      width: 65%;
+      width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
-      transform: skewX(-24deg);
-      transition: left 0.65s ease;
+      display: block;
+      z-index: 0;
+      outline: none;
     }
 
-    .btn-gold:hover {
-      transform: translateY(-1.5px);
-      box-shadow: 0 14px 34px -8px rgba(245, 196, 81, 0.62);
-      filter: brightness(1.05);
+    /* Balanced Smoked Slate Glass (Lightweight 10px Blur for 60fps) */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 24px 48px -16px rgba(8, 10, 15, 0.52);
     }
 
-    .btn-gold:hover::after {
-      left: 140%;
+    .glass-bar {
+      background: rgba(24, 29, 38, 0.80);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--card-border);
     }
 
-    .btn-gold:active {
+    /* Intro Synchronized Wordmark */
+    #introWordmarkOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 25;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: clamp(13vh, 18vh, 22vh);
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.45s var(--ease-out);
+    }
+
+    .intro-wordmark {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 500;
+      font-size: clamp(1.35rem, 3vw, 2.2rem);
+      letter-spacing: 0.78em;
+      padding-left: 0.78em;
+      color: #f3f4f6;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.55s var(--ease-out), transform 0.65s var(--ease-out), letter-spacing 0.75s var(--ease-out), padding-left 0.75s var(--ease-out);
+    }
+
+    .intro-wordmark.revealed {
+      opacity: 1;
       transform: translateY(0);
+      letter-spacing: 0.52em;
+      padding-left: 0.52em;
     }
 
-    /* Google Auth Button */
-    .btn-google {
-      background: rgba(255, 255, 255, 0.045);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      transition: all 0.25s ease;
+    /* GPU-Composited View Transitions */
+    .view-layer {
+      will-change: opacity, transform;
+      transition: opacity 0.55s var(--ease-out), transform 0.6s var(--ease-out), visibility 0.55s;
     }
 
-    .btn-google:hover {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(245, 196, 81, 0.42);
-      box-shadow: 0 0 24px rgba(245, 196, 81, 0.12);
+    .view-hidden {
+      opacity: 0;
+      transform: translateY(16px);
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .view-active {
+      opacity: 1;
+      transform: translateY(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    /* Sliding Pill Tab Switcher */
+    .tab-pill {
+      transition: transform 0.36s var(--ease-out);
+    }
+
+    /* Collapsible Username Field */
+    .collapsible-field {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      margin-bottom: 0;
+      transition: grid-template-rows 0.34s var(--ease-out), opacity 0.24s ease, margin-bottom 0.34s var(--ease-out);
+    }
+
+    .collapsible-field.open {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      margin-bottom: 0.875rem;
+    }
+
+    .collapsible-inner {
+      overflow: hidden;
+    }
+
+    /* Inputs */
+    .slate-input {
+      background: rgba(17, 21, 28, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      color: #f3f4f6;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .slate-input::placeholder {
+      color: #6b7280;
+    }
+
+    .slate-input:focus {
+      outline: none;
+      background: rgba(17, 21, 28, 0.92);
+      border-color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, #dfc084 0%, #d4af6a 55%, #b89149 100%);
+      color: #161a22;
+      transition: transform 0.2s var(--ease-out), filter 0.2s ease;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.06);
       transform: translateY(-1px);
     }
 
-    /* Sliding Auth Tab Pill */
-    .tab-pill {
-      transition: transform 0.34s cubic-bezier(0.34, 1.4, 0.64, 1);
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
     }
 
-    /* Input Focus Styling */
-    .gambit-input {
-      background: rgba(8, 10, 16, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    .btn-google {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      color: #f3f4f6;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
-    .gambit-input:focus {
-      outline: none;
-      border-color: rgba(245, 196, 81, 0.65);
-      background: rgba(12, 15, 23, 0.92);
-      box-shadow: 0 0 0 3px rgba(245, 196, 81, 0.14);
+    .btn-google:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.11);
+      border-color: rgba(212, 175, 106, 0.45);
     }
 
-    /* Entrance Animations */
-    @keyframes fadeSlideUp {
-      from {
-        opacity: 0;
-        transform: translateY(22px) scale(0.985);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+    /* Lobby Mode Card Hover */
+    .mode-card {
+      transition: transform 0.25s var(--ease-out), border-color 0.22s ease, background-color 0.22s ease;
     }
 
-    .animate-enter {
-      animation: fadeSlideUp 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .animate-enter-delay {
-      opacity: 0;
-      animation: fadeSlideUp 0.78s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
-    }
-
-    /* Interactive Mini Chessboard */
-    .mini-board {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid rgba(245, 196, 81, 0.22);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 35px rgba(245, 196, 81, 0.08);
-    }
-
-    .mini-sq {
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: clamp(1rem, 1.6vw, 1.38rem);
-      position: relative;
-      transition: background-color 0.4s ease, transform 0.3s ease;
-      user-select: none;
-    }
-
-    .mini-sq.light {
-      background-color: #242938;
-    }
-
-    .mini-sq.dark {
-      background-color: #141722;
-    }
-
-    .mini-sq.highlight-from {
-      background-color: rgba(245, 196, 81, 0.22) !important;
-      box-shadow: inset 0 0 0 1px rgba(245, 196, 81, 0.4);
-    }
-
-    .mini-sq.highlight-to {
-      background-color: rgba(16, 185, 129, 0.26) !important;
-      box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.55);
-    }
-
-    .piece-white {
-      color: #f8e4aa;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 10px rgba(245, 196, 81, 0.28);
-    }
-
-    .piece-black {
-      color: #9ca3af;
-      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
-    }
-
-    /* Toast Slide Animation */
-    @keyframes toastIn {
-      from {
-        opacity: 0;
-        transform: translateX(36px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-      }
-    }
-
-    @keyframes toastOut {
-      from {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-      }
-      to {
-        opacity: 0;
-        transform: translateX(36px) scale(0.95);
-      }
-    }
-
-    .toast-enter {
-      animation: toastIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .toast-exit {
-      animation: toastOut 0.28s ease forwards;
+    .mode-card:hover {
+      transform: translateY(-3px);
+      background: rgba(34, 41, 53, 0.86);
+      border-color: rgba(212, 175, 106, 0.45);
     }
 
     /* Spinner */
     .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2.5px solid rgba(255, 255, 255, 0.25);
-      border-top-color: currentColor;
+      width: 15px;
+      height: 15px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
       border-radius: 9999px;
-      animation: spin 0.7s linear infinite;
+      animation: spin 0.65s linear infinite;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
-    /* Lobby Mode Card Hover */
-    .mode-card {
-      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.28s ease, box-shadow 0.28s ease;
+    /* Minimal Toast Transitions */
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
     }
-    .mode-card:hover {
-      transform: translateY(-5px);
-      border-color: rgba(245, 196, 81, 0.42);
-      box-shadow: 0 18px 40px -12px rgba(245, 196, 81, 0.16);
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(20px); }
     }
+
+    .toast-in { animation: toastIn 0.3s var(--ease-out) forwards; }
+    .toast-out { animation: toastOut 0.22s ease forwards; }
   </style>
 </head>
 
-<body class="antialiased selection:bg-gold/30 selection:text-gold-light">
+<body class="selection:bg-champagne/25 selection:text-white">
 
-  <!-- Animated Perspective Chessboard Background -->
-  <div class="chess-grid-bg" aria-hidden="true">
-    <div class="chess-plane"></div>
+  <!-- Full-Viewport Three.js WebGL Canvas -->
+  <canvas id="sceneCanvas" aria-label="GAMBIT 3D Chess Arena"></canvas>
+
+  <!-- Synchronized 3D Intro Wordmark (Hidden once intro completes) -->
+  <div id="introWordmarkOverlay" aria-hidden="true">
+    <div id="introWordmarkText" class="intro-wordmark">GAMBIT</div>
   </div>
 
-  <!-- Ambient Glow Orbs -->
-  <div class="ambient-orb orb-gold" aria-hidden="true"></div>
-  <div class="ambient-orb orb-violet" aria-hidden="true"></div>
-  <div class="ambient-orb orb-emerald" aria-hidden="true"></div>
-
-  <!-- Floating Translucent Chess Pieces Layer -->
-  <div id="floatingPiecesContainer" aria-hidden="true"></div>
-
-  <!-- Custom Toast Notification Container (Top-Right) -->
-  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-3 w-[calc(100vw-2rem)] max-w-sm pointer-events-none"></div>
+  <!-- Minimal Toast Container -->
+  <div id="toastContainer" class="fixed top-5 right-4 sm:right-6 z-50 flex flex-col gap-2.5 w-[calc(100vw-2rem)] max-w-sm pointer-events-none"></div>
 
   <!-- =========================================================
-       AUTH SCREEN VIEW (SPLIT-SCREEN HERO + GLASSMORPHIC CARD)
+       VIEW 1: MINIMAL PRODUCTION LOGIN SCREEN
   ========================================================== -->
-  <main id="authView" class="relative z-10 min-h-screen flex items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
-    <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+  <main id="authView" class="view-layer view-hidden relative z-10 min-h-screen flex items-center justify-center lg:justify-end px-4 py-8 sm:px-8 lg:px-16">
+    <div class="glass-card w-full max-w-[400px] rounded-2xl p-6 sm:p-8 relative">
 
-      <!-- LEFT COLUMN: DRAMATIC GAMBIT HERO SHOWCASE -->
-      <section class="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left animate-enter">
+      <!-- Subtle Top Champagne Accent Line -->
+      <div class="absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-champagne/60 to-transparent"></div>
 
-        <!-- Live Online Pill -->
-        <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-surface/80 border border-emerald/30 backdrop-blur-md shadow-lg mb-6">
-          <span class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald"></span>
-          </span>
-          <span class="text-xs sm:text-sm font-semibold tracking-wide text-emerald-300">
-            <span id="onlineCount">1,248</span> Players Online
-          </span>
-          <span class="text-xs text-gray-500">•</span>
-          <span class="text-xs text-gray-300 font-medium">Season 1 Live 🏆</span>
+      <!-- Brand Header: Exact 4-Ring G + Chess King SVG & GAMBIT Wordmark -->
+      <div class="flex flex-col items-center mb-6">
+        <div class="w-14 h-14 flex items-center justify-center mb-2.5">
+          <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Logo">
+            <!-- 4 Concentric C/G Arcs with clean radial gaps + Outer Horizontal Crossbar -->
+            <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" stroke-linejoin="miter" />
+            <path d="M 74.6 25.4 A 34.8 34.8 0 1 0 84.3 55.5" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
+            <path d="M 69.8 30.2 A 28.0 28.0 0 1 0 77.4 55.5" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
+            <path d="M 65.0 35.0 A 21.2 21.2 0 1 0 70.5 55.4" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
+            <!-- Sculpted Chess King cleanly perched on top of the horizontal bar -->
+            <g fill="#d4af6a">
+              <rect x="74.9" y="21.0" width="2.2" height="6.8" rx="0.5" />
+              <rect x="72.6" y="23.2" width="6.8" height="2.2" rx="0.5" />
+              <path d="M 71.7 39.2 L 70.1 32.2 C 69.6 29.8 71.4 27.9 73.7 27.9 L 78.3 27.9 C 80.6 27.9 82.4 29.8 81.9 32.2 L 80.3 39.2 Z" />
+              <rect x="70.8" y="40.3" width="10.4" height="2.0" rx="1.0" />
+              <path d="M 69.4 46.2 C 69.4 44.3 70.9 43.3 72.6 43.3 L 79.4 43.3 C 81.1 43.3 82.6 44.3 82.6 46.2 Z" />
+            </g>
+          </svg>
+        </div>
+        <h1 class="font-brand text-xl font-semibold tracking-[0.38em] pl-[0.38em] text-[#f3f4f6]">
+          GAMBIT
+        </h1>
+      </div>
+
+      <!-- Sliding Pill Tab Switcher -->
+      <div class="relative grid grid-cols-2 p-1 rounded-xl bg-black/25 border border-white/10 mb-5" role="tablist">
+        <div id="tabPill" class="tab-pill absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-lg bg-white/12"></div>
+        <button
+          type="button"
+          id="tabSignIn"
+          role="tab"
+          aria-selected="true"
+          class="relative z-10 py-2 text-xs sm:text-sm font-semibold rounded-lg text-[#f3f4f6] transition-colors cursor-pointer"
+        >
+          Sign In
+        </button>
+        <button
+          type="button"
+          id="tabSignUp"
+          role="tab"
+          aria-selected="false"
+          class="relative z-10 py-2 text-xs sm:text-sm font-medium rounded-lg text-[#9ca3af] transition-colors cursor-pointer"
+        >
+          Sign Up
+        </button>
+      </div>
+
+      <!-- Continue with Google Button -->
+      <button
+        type="button"
+        id="googleAuthBtn"
+        class="btn-google w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-3 text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg class="w-4 h-4 shrink-0" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span id="googleBtnText">Continue with Google</span>
+      </button>
+
+      <!-- Subtle Divider -->
+      <div class="relative flex items-center my-5">
+        <div class="flex-grow border-t border-white/10"></div>
+        <span class="px-3 text-xs text-[#9ca3af]">or</span>
+        <div class="flex-grow border-t border-white/10"></div>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="authForm" novalidate>
+
+        <!-- Username (Sign Up Only) -->
+        <div id="usernameCollapse" class="collapsible-field">
+          <div class="collapsible-inner">
+            <label for="usernameInput" class="block text-xs font-medium text-[#9ca3af] mb-1.5">
+              Username
+            </label>
+            <input
+              id="usernameInput"
+              type="text"
+              autocomplete="username"
+              maxlength="24"
+              placeholder="Choose a username"
+              class="slate-input w-full rounded-xl px-3.5 py-2.5 text-sm"
+            />
+          </div>
         </div>
 
-        <!-- Brand Emblem & Title -->
-        <div class="flex items-center gap-4 mb-3">
-          <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-gold/25 via-gold/10 to-transparent border border-gold/40 flex items-center justify-center shadow-[0_0_32px_rgba(245,196,81,0.22)]">
-            <span class="text-3xl sm:text-4xl text-gold-gradient leading-none" aria-hidden="true">♞</span>
-          </div>
-          <div class="text-left">
-            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[0.14em] text-gold-gradient leading-none">
-              GAMBIT
-            </h1>
-            <p class="text-[11px] sm:text-xs font-bold tracking-[0.3em] text-gray-400 mt-1.5 uppercase">
-              OUTSMART. OUTPLAY. CHECKMATE.
-            </p>
-          </div>
+        <!-- Email -->
+        <div class="mb-3.5">
+          <label for="emailInput" class="block text-xs font-medium text-[#9ca3af] mb-1.5">
+            Email
+          </label>
+          <input
+            id="emailInput"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="name@example.com"
+            class="slate-input w-full rounded-xl px-3.5 py-2.5 text-sm"
+          />
         </div>
 
-        <p class="text-gray-400 text-sm sm:text-base max-w-lg mt-3 leading-relaxed">
-          Step onto the grandmaster arena. Challenge rivals worldwide in real-time ranked matches, blitz duels, and private chess rooms. ♛
-        </p>
-
-        <!-- Animated Mini Tactical Chessboard Showcase -->
-        <div class="w-full max-w-[340px] sm:max-w-[370px] mt-7 mb-7 relative group">
-          <div class="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-gold/25 via-transparent to-emerald/25 blur-md opacity-70 group-hover:opacity-100 transition duration-500"></div>
-          <div class="relative bg-[#0c0e15]/95 p-3 rounded-2xl border border-white/10">
-            <div class="flex items-center justify-between text-[11px] text-gray-400 mb-2 px-1">
-              <span class="font-semibold text-gray-300 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-gold"></span> Live Showcase • Queen's Gambit
-              </span>
-              <span id="moveBadge" class="font-mono text-gold font-semibold bg-gold/10 px-2 py-0.5 rounded-md border border-gold/20">
-                1. d4 d5
-              </span>
-            </div>
-            <div id="miniChessboard" class="mini-board" aria-label="Animated Chess Showcase"></div>
-          </div>
-        </div>
-
-        <!-- Feature Highlights -->
-        <div class="grid grid-cols-3 gap-2.5 sm:gap-3.5 w-full max-w-lg">
-          <div class="rounded-xl bg-surface/70 border border-white/10 p-3 backdrop-blur-md hover:border-gold/30 transition">
-            <div class="text-xl mb-1">⚡</div>
-            <div class="text-xs sm:text-sm font-bold text-white">Blitz &amp; Bullet</div>
-            <div class="text-[11px] text-gray-400 mt-0.5">1+0 &amp; 3+2 Arenas</div>
-          </div>
-          <div class="rounded-xl bg-surface/70 border border-white/10 p-3 backdrop-blur-md hover:border-gold/30 transition">
-            <div class="text-xl mb-1">🌍</div>
-            <div class="text-xs sm:text-sm font-bold text-white">Global Ranked</div>
-            <div class="text-[11px] text-gray-400 mt-0.5">Live ELO Ladder</div>
-          </div>
-          <div class="rounded-xl bg-surface/70 border border-white/10 p-3 backdrop-blur-md hover:border-gold/30 transition">
-            <div class="text-xl mb-1">🤝</div>
-            <div class="text-xs sm:text-sm font-bold text-white">Private Rooms</div>
-            <div class="text-[11px] text-gray-400 mt-0.5">Play With Friends</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- RIGHT COLUMN: GLASSMORPHIC AUTH CARD -->
-      <section class="lg:col-span-6 flex justify-center lg:justify-end animate-enter-delay">
-        <div class="glass-card w-full max-w-md rounded-3xl p-6 sm:p-8 relative overflow-hidden">
-
-          <!-- Subtle Top Gold Accent Line -->
-          <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent opacity-80"></div>
-
-          <!-- Card Header -->
-          <div class="text-center mb-6">
-            <h2 id="authCardTitle" class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              Welcome Back 👑
-            </h2>
-            <p id="authCardSubtitle" class="text-xs sm:text-sm text-gray-400 mt-1.5">
-              Sign in to continue your road to Grandmaster
-            </p>
-          </div>
-
-          <!-- Animated Tab Switcher: Sign In | Sign Up -->
-          <div class="relative grid grid-cols-2 p-1.5 rounded-2xl bg-black/45 border border-white/10 mb-6" role="tablist">
-            <div id="tabPill" class="tab-pill absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-xl bg-gradient-to-r from-gold/25 to-gold/15 border border-gold/40 shadow-[0_0_20px_rgba(245,196,81,0.18)]"></div>
-
+        <!-- Password -->
+        <div class="mb-5">
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="passwordInput" class="block text-xs font-medium text-[#9ca3af]">
+              Password
+            </label>
             <button
               type="button"
-              id="tabSignIn"
-              role="tab"
-              aria-selected="true"
-              class="relative z-10 py-2.5 text-sm font-bold rounded-xl transition-colors text-gold-light cursor-pointer"
+              id="forgotPasswordBtn"
+              class="text-xs font-medium text-champagne hover:text-champagne-hover transition-colors cursor-pointer"
             >
-              Sign In ♟️
-            </button>
-            <button
-              type="button"
-              id="tabSignUp"
-              role="tab"
-              aria-selected="false"
-              class="relative z-10 py-2.5 text-sm font-bold rounded-xl transition-colors text-gray-400 hover:text-gray-200 cursor-pointer"
-            >
-              Sign Up ✨
+              Forgot password?
             </button>
           </div>
-
-          <!-- Continue with Google Button -->
-          <button
-            type="button"
-            id="googleAuthBtn"
-            class="btn-google w-full py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 text-sm font-semibold text-white cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <!-- Crisp Multicolor Google SVG -->
-            <svg id="googleIcon" class="w-5 h-5 shrink-0" viewBox="0 0 48 48" aria-hidden="true">
-              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-            </svg>
-            <span id="googleBtnText">Continue with Google</span>
-          </button>
-
-          <!-- Divider -->
-          <div class="relative flex items-center my-6">
-            <div class="flex-grow border-t border-white/10"></div>
-            <span class="px-3 text-[11px] font-semibold uppercase tracking-widest text-gray-500">
-              or with email
-            </span>
-            <div class="flex-grow border-t border-white/10"></div>
-          </div>
-
-          <!-- Email & Password Form -->
-          <form id="authForm" class="space-y-4" novalidate>
-
-            <!-- Sign Up Only: Grandmaster Tag / Username -->
-            <div id="usernameField" class="hidden">
-              <label for="usernameInput" class="block text-xs font-semibold text-gray-300 mb-1.5">
-                Grandmaster Tag (Username) 🏷️
-              </label>
-              <div class="relative">
-                <input
-                  id="usernameInput"
-                  type="text"
-                  autocomplete="username"
-                  placeholder="e.g. Magnus_Blitz99"
-                  maxlength="24"
-                  class="gambit-input w-full rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500"
-                />
-              </div>
-            </div>
-
-            <!-- Email Input -->
-            <div>
-              <label for="emailInput" class="block text-xs font-semibold text-gray-300 mb-1.5">
-                Email Address 📧
-              </label>
-              <input
-                id="emailInput"
-                type="email"
-                required
-                autocomplete="email"
-                placeholder="grandmaster@gambit.gg"
-                class="gambit-input w-full rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500"
-              />
-            </div>
-
-            <!-- Password Input -->
-            <div>
-              <div class="flex items-center justify-between mb-1.5">
-                <label for="passwordInput" class="block text-xs font-semibold text-gray-300">
-                  Password 🔒
-                </label>
-                <button
-                  type="button"
-                  id="forgotPasswordBtn"
-                  class="text-xs font-semibold text-gold hover:text-gold-light transition cursor-pointer"
-                >
-                  Forgot Password?
-                </button>
-              </div>
-              <div class="relative">
-                <input
-                  id="passwordInput"
-                  type="password"
-                  required
-                  autocomplete="current-password"
-                  placeholder="Enter your secret move..."
-                  class="gambit-input w-full rounded-xl pl-4 pr-12 py-3 text-sm text-white placeholder-gray-500"
-                />
-                <button
-                  type="button"
-                  id="togglePasswordBtn"
-                  aria-label="Toggle password visibility"
-                  class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-400 hover:text-gold transition cursor-pointer"
-                >
-                  <!-- Eye Open SVG -->
-                  <svg id="eyeOpenIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  <!-- Eye Closed SVG -->
-                  <svg id="eyeClosedIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Sign Up Only: Password Strength Indicator -->
-              <div id="strengthWrapper" class="hidden mt-2.5">
-                <div class="flex items-center justify-between text-[11px] mb-1">
-                  <span class="text-gray-400">Password Strength</span>
-                  <span id="strengthLabel" class="font-semibold text-gray-400">Too weak</span>
-                </div>
-                <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden flex gap-1">
-                  <div id="strengthBar" class="h-full w-0 rounded-full transition-all duration-300 bg-red-500"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button
-              type="submit"
-              id="submitAuthBtn"
-              class="btn-gold w-full py-3.5 px-4 rounded-xl font-extrabold text-sm tracking-wide flex items-center justify-center gap-2 mt-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <span id="submitBtnText">Enter the Arena ♟️</span>
-            </button>
-          </form>
-
-          <!-- Footer: Demo Mode Preview Link -->
-          <div class="mt-6 pt-5 border-t border-white/10 flex flex-col items-center gap-2 text-center">
+          <div class="relative">
+            <input
+              id="passwordInput"
+              type="password"
+              required
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              class="slate-input w-full rounded-xl pl-3.5 pr-11 py-2.5 text-sm"
+            />
             <button
               type="button"
-              id="demoModeBtn"
-              class="text-xs font-semibold text-gray-400 hover:text-gold transition inline-flex items-center gap-1.5 py-1 px-3 rounded-lg hover:bg-white/5 cursor-pointer"
+              id="togglePasswordBtn"
+              aria-label="Toggle password visibility"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[#9ca3af] hover:text-[#f3f4f6] transition-colors cursor-pointer"
             >
-              Preview Lobby (Demo Mode) 👀
+              <svg id="eyeOpenIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg id="eyeClosedIcon" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                <line x1="2" y1="2" x2="22" y2="22" />
+              </svg>
             </button>
-            <p class="text-[11px] text-gray-500">
-              Secured by Firebase Auth • Fair Play Anti-Cheat 🛡️
-            </p>
           </div>
         </div>
-      </section>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          id="submitAuthBtn"
+          class="btn-primary w-full py-2.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed"
+        >
+          <span id="submitBtnText">Sign In</span>
+        </button>
+      </form>
     </div>
   </main>
 
   <!-- =========================================================
-       LOGGED-IN VIEW: GAMBIT PLAYER LOBBY PREVIEW
+       VIEW 2: AUTHENTICATED GAMBIT LOBBY
   ========================================================== -->
-  <section id="lobbyView" class="hidden relative z-10 min-h-screen flex-col">
+  <section id="lobbyView" class="view-layer view-hidden fixed inset-0 z-20 flex flex-col justify-between pointer-events-none">
 
-    <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-30 backdrop-blur-xl bg-obsidian/80 border-b border-white/10">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
-
-        <!-- Brand Logo -->
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold/25 to-transparent border border-gold/40 flex items-center justify-center shadow-md">
-            <span class="text-xl text-gold-gradient">♞</span>
+    <!-- Minimal Top Bar -->
+    <header class="glass-bar pointer-events-auto">
+      <div class="max-w-7xl mx-auto px-4 sm:px-8 py-3 flex items-center justify-between gap-3">
+        <!-- Brand -->
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Logo">
+              <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" stroke-linejoin="miter" />
+              <path d="M 74.6 25.4 A 34.8 34.8 0 1 0 84.3 55.5" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" />
+              <path d="M 69.8 30.2 A 28.0 28.0 0 1 0 77.4 55.5" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" />
+              <path d="M 65.0 35.0 A 21.2 21.2 0 1 0 70.5 55.4" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" />
+              <g fill="#d4af6a">
+                <rect x="74.9" y="21.0" width="2.2" height="6.8" rx="0.5" />
+                <rect x="72.6" y="23.2" width="6.8" height="2.2" rx="0.5" />
+                <path d="M 71.7 39.2 L 70.1 32.2 C 69.6 29.8 71.4 27.9 73.7 27.9 L 78.3 27.9 C 80.6 27.9 82.4 29.8 81.9 32.2 L 80.3 39.2 Z" />
+                <rect x="70.8" y="40.3" width="10.4" height="2.0" rx="1.0" />
+                <path d="M 69.4 46.2 C 69.4 44.3 70.9 43.3 72.6 43.3 L 79.4 43.3 C 81.1 43.3 82.6 44.3 82.6 46.2 Z" />
+              </g>
+            </svg>
           </div>
-          <div>
-            <span class="font-display text-xl sm:text-2xl font-extrabold tracking-[0.14em] text-gold-gradient block leading-none">
-              GAMBIT
-            </span>
-            <span id="demoPill" class="hidden text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/30 px-1.5 py-0.5 rounded mt-1 inline-block">
-              Demo Mode
-            </span>
-          </div>
+          <span class="font-brand text-sm sm:text-base font-semibold tracking-[0.34em] text-[#f3f4f6]">
+            GAMBIT
+          </span>
         </div>
 
-        <!-- Right User Profile & Sign Out -->
-        <div class="flex items-center gap-3 sm:gap-4">
-          <!-- Starting ELO Badge -->
-          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gold/10 border border-gold/30 text-xs font-bold text-gold-light">
-            🏆 1200 ELO
+        <!-- Profile, ELO & Sign Out -->
+        <div class="flex items-center gap-2.5 sm:gap-3">
+          <!-- ELO 1200 Badge -->
+          <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-champagne/15 border border-champagne/30">
+            <svg class="w-3.5 h-3.5 text-champagne" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            <span class="text-xs font-semibold text-champagne tracking-wide">1200 ELO</span>
           </div>
 
-          <!-- Avatar + Name -->
-          <div class="flex items-center gap-2.5 bg-surface/90 border border-white/10 rounded-2xl pl-1.5 pr-3 py-1.5">
+          <!-- User Avatar & Display Name -->
+          <div class="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-xl bg-white/5 border border-white/10">
             <img
               id="lobbyAvatarImg"
               src=""
               alt="Player Avatar"
-              class="hidden w-8 h-8 rounded-xl object-cover border border-gold/40"
+              class="hidden w-7 h-7 rounded-lg object-cover"
             />
             <div
-              id="lobbyAvatarFallback"
-              class="w-8 h-8 rounded-xl bg-gradient-to-br from-gold to-gold-dark text-obsidian font-extrabold text-xs flex items-center justify-center"
+              id="lobbyAvatarInitials"
+              class="w-7 h-7 rounded-lg bg-champagne text-[#161a22] font-bold text-xs flex items-center justify-center"
             >
               GM
             </div>
-            <div class="text-left max-w-[120px] sm:max-w-[180px]">
-              <div id="lobbyPlayerName" class="text-xs sm:text-sm font-bold text-white truncate">
-                Grandmaster
-              </div>
-              <div id="lobbyPlayerEmail" class="text-[10px] text-gray-400 truncate">
-                player@gambit.gg
-              </div>
-            </div>
+            <span id="lobbyUserName" class="text-xs font-semibold text-[#f3f4f6] max-w-[110px] sm:max-w-[160px] truncate">
+              Player
+            </span>
           </div>
 
-          <!-- Sign Out Button -->
+          <!-- Sign Out -->
           <button
             type="button"
             id="signOutBtn"
-            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-gray-300 bg-white/5 hover:bg-red-500/15 hover:text-red-300 border border-white/10 hover:border-red-500/35 transition cursor-pointer"
+            class="btn-google inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium cursor-pointer"
           >
-            Sign Out
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span class="hidden sm:inline">Sign Out</span>
           </button>
         </div>
       </div>
     </header>
 
-    <!-- Main Lobby Content -->
-    <div class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 animate-enter">
+    <!-- Bottom Mode Selector Cards -->
+    <footer class="pointer-events-auto w-full max-w-6xl mx-auto px-4 sm:px-8 pb-6 sm:pb-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
 
-      <!-- Welcome Banner -->
-      <div class="glass-card rounded-3xl p-6 sm:p-10 mb-8 relative overflow-hidden">
-        <div class="absolute right-6 top-1/2 -translate-y-1/2 text-[9rem] text-gold/5 select-none pointer-events-none hidden md:block">
-          ♛
-        </div>
-
-        <div class="relative z-10 max-w-2xl">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald/15 border border-emerald/30 text-emerald-300 text-xs font-bold mb-4">
-            <span class="w-2 h-2 rounded-full bg-emerald animate-pulse"></span>
-            Arena Ready • Matchmaking Connected
-          </div>
-          <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Ready to make your first move, <span id="welcomeName" class="text-gold-gradient">Player</span>? ♟️
-          </h2>
-          <p class="text-sm sm:text-base text-gray-400 mt-3 leading-relaxed">
-            Your GAMBIT profile is active with a starting rating of <strong class="text-gold-light">🏆 1200 ELO</strong>. Choose a battle mode below to launch your next match!
-          </p>
-
-          <!-- Mobile ELO Pill -->
-          <div class="sm:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gold/10 border border-gold/30 text-xs font-bold text-gold-light mt-4">
-            🏆 1200 ELO • Unranked Novice
-          </div>
-        </div>
-      </div>
-
-      <!-- Interactive Mode Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-        <!-- Card 1: Quick Match -->
+        <!-- Blitz 3+2 -->
         <button
           type="button"
-          data-mode="Quick Match"
-          class="mode-btn mode-card glass-card text-left rounded-3xl p-6 flex flex-col justify-between cursor-pointer group"
+          data-mode="Blitz 3+2"
+          class="mode-card glass-card text-left rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer group"
         >
-          <div>
-            <div class="w-14 h-14 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
-              ⚡
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-champagne/15 border border-champagne/30 flex items-center justify-center text-champagne shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
             </div>
-            <h3 class="text-xl font-bold text-white flex items-center justify-between">
-              Quick Match
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-gold/15 text-gold-light">3+2 Blitz</span>
-            </h3>
-            <p class="text-sm text-gray-400 mt-2 leading-relaxed">
-              Get instantly paired with a live opponent near your ELO rating for a high-intensity ranked clash.
-            </p>
+            <div>
+              <div class="text-sm font-semibold text-[#f3f4f6]">Blitz 3+2</div>
+              <div class="text-xs text-[#9ca3af] mt-0.5">3 min + 2 sec</div>
+            </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-gold">
-            <span>Find Opponent</span>
-            <span class="group-hover:translate-x-1 transition-transform">→</span>
-          </div>
+          <svg class="w-4 h-4 text-[#9ca3af] group-hover:text-champagne group-hover:translate-x-0.5 transition-all shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
         </button>
 
-        <!-- Card 2: Create Private Room -->
+        <!-- Rapid 10+0 -->
         <button
           type="button"
-          data-mode="Create Private Room"
-          class="mode-btn mode-card glass-card text-left rounded-3xl p-6 flex flex-col justify-between cursor-pointer group"
+          data-mode="Rapid 10+0"
+          class="mode-card glass-card text-left rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer group"
         >
-          <div>
-            <div class="w-14 h-14 rounded-2xl bg-emerald/15 border border-emerald/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
-              🤝
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/12 flex items-center justify-center text-[#f3f4f6] group-hover:text-champagne transition-colors shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12 7 12 12 15.5 14" />
+              </svg>
             </div>
-            <h3 class="text-xl font-bold text-white flex items-center justify-between">
-              Create Private Room
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald/15 text-emerald-300">Invite Link</span>
-            </h3>
-            <p class="text-sm text-gray-400 mt-2 leading-relaxed">
-              Generate a custom room code, pick your time control, and challenge your friends directly.
-            </p>
+            <div>
+              <div class="text-sm font-semibold text-[#f3f4f6]">Rapid 10+0</div>
+              <div class="text-xs text-[#9ca3af] mt-0.5">10 min classical</div>
+            </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-300">
-            <span>Host Room</span>
-            <span class="group-hover:translate-x-1 transition-transform">→</span>
-          </div>
+          <svg class="w-4 h-4 text-[#9ca3af] group-hover:text-champagne group-hover:translate-x-0.5 transition-all shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
         </button>
 
-        <!-- Card 3: Practice vs AI -->
+        <!-- Private Room -->
         <button
           type="button"
-          data-mode="Practice vs AI"
-          class="mode-btn mode-card glass-card text-left rounded-3xl p-6 flex flex-col justify-between cursor-pointer group"
+          data-mode="Private Room"
+          class="mode-card glass-card text-left rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer group"
         >
-          <div>
-            <div class="w-14 h-14 rounded-2xl bg-violet-500/15 border border-violet-400/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
-              🤖
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/12 flex items-center justify-center text-[#f3f4f6] group-hover:text-champagne transition-colors shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
             </div>
-            <h3 class="text-xl font-bold text-white flex items-center justify-between">
-              Practice vs AI
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-violet-500/15 text-violet-300">6 Levels</span>
-            </h3>
-            <p class="text-sm text-gray-400 mt-2 leading-relaxed">
-              Sharpen your openings, test new gambits, and analyze blunders offline against our chess engine.
-            </p>
+            <div>
+              <div class="text-sm font-semibold text-[#f3f4f6]">Private Room</div>
+              <div class="text-xs text-[#9ca3af] mt-0.5">Play with a friend</div>
+            </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-violet-300">
-            <span>Start Training</span>
-            <span class="group-hover:translate-x-1 transition-transform">→</span>
-          </div>
+          <svg class="w-4 h-4 text-[#9ca3af] group-hover:text-champagne group-hover:translate-x-0.5 transition-all shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
         </button>
 
       </div>
-    </div>
+    </footer>
   </section>
 
   <!-- =========================================================
-       FIREBASE v10 MODULAR SDK + APPLICATION LOGIC
+       ZERO-LAG 3D ENGINE + FIREBASE v10 AUTHENTICATION
   ========================================================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -848,7 +610,9 @@
       signOut
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // Exact Firebase Configuration
+    // =========================================================
+    // 1. FIREBASE v10 INITIALIZATION
+    // =========================================================
     const firebaseConfig = {
       apiKey: "AIzaSyCX9xcZSbGKsHqWSTAcrgsU4N-qOeU-SRo",
       authDomain: "gambit-bbfc9.firebaseapp.com",
@@ -859,34 +623,31 @@
       measurementId: "G-WNLL810JW2"
     };
 
-    // Initialize Firebase App
     const app = initializeApp(firebaseConfig);
-
-    // Wrap Analytics in try/catch so ad-blockers or sandboxed previews never crash the app
     try {
       getAnalytics(app);
-    } catch (analyticsErr) {
-      console.info("Firebase Analytics skipped in this environment:", analyticsErr?.message);
+    } catch (_) {
+      // Analytics optional in restricted environments
     }
 
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: "select_account" });
 
-    // ---------------------------------------------------------
-    // DOM REFERENCES
-    // ---------------------------------------------------------
+    // =========================================================
+    // 2. DOM REFERENCES & APP STATE
+    // =========================================================
     const authView = document.getElementById("authView");
     const lobbyView = document.getElementById("lobbyView");
+    const introWordmarkOverlay = document.getElementById("introWordmarkOverlay");
+    const introWordmarkText = document.getElementById("introWordmarkText");
 
     const tabSignIn = document.getElementById("tabSignIn");
     const tabSignUp = document.getElementById("tabSignUp");
     const tabPill = document.getElementById("tabPill");
-    const authCardTitle = document.getElementById("authCardTitle");
-    const authCardSubtitle = document.getElementById("authCardSubtitle");
 
     const authForm = document.getElementById("authForm");
-    const usernameField = document.getElementById("usernameField");
+    const usernameCollapse = document.getElementById("usernameCollapse");
     const usernameInput = document.getElementById("usernameInput");
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
@@ -894,250 +655,880 @@
     const togglePasswordBtn = document.getElementById("togglePasswordBtn");
     const eyeOpenIcon = document.getElementById("eyeOpenIcon");
     const eyeClosedIcon = document.getElementById("eyeClosedIcon");
-    const strengthWrapper = document.getElementById("strengthWrapper");
-    const strengthBar = document.getElementById("strengthBar");
-    const strengthLabel = document.getElementById("strengthLabel");
 
-    const submitAuthBtn = document.getElementById("submitAuthBtn");
-    const submitBtnText = document.getElementById("submitBtnText");
     const googleAuthBtn = document.getElementById("googleAuthBtn");
     const googleBtnText = document.getElementById("googleBtnText");
-    const demoModeBtn = document.getElementById("demoModeBtn");
+    const submitAuthBtn = document.getElementById("submitAuthBtn");
+    const submitBtnText = document.getElementById("submitBtnText");
 
-    // Lobby Elements
     const lobbyAvatarImg = document.getElementById("lobbyAvatarImg");
-    const lobbyAvatarFallback = document.getElementById("lobbyAvatarFallback");
-    const lobbyPlayerName = document.getElementById("lobbyPlayerName");
-    const lobbyPlayerEmail = document.getElementById("lobbyPlayerEmail");
-    const welcomeName = document.getElementById("welcomeName");
-    const demoPill = document.getElementById("demoPill");
+    const lobbyAvatarInitials = document.getElementById("lobbyAvatarInitials");
+    const lobbyUserName = document.getElementById("lobbyUserName");
     const signOutBtn = document.getElementById("signOutBtn");
     const toastContainer = document.getElementById("toastContainer");
 
-    // Application State
-    let authMode = "signin"; // "signin" | "signup"
-    let isDemoMode = false;
+    let authMode = "signin";
+    let currentScreen = "auth"; // "auth" | "lobby"
+    let introDone = false;
 
-    // ---------------------------------------------------------
-    // CUSTOM TOAST NOTIFICATION SYSTEM (NO alert() EVER)
-    // ---------------------------------------------------------
-    function showToast(title, message = "", type = "info", duration = 4500) {
-      const styles = {
-        success: {
-          border: "border-emerald/45",
-          bg: "bg-[#0d1916]/95",
-          icon: "✅",
-          titleColor: "text-emerald-300"
-        },
-        error: {
-          border: "border-red-500/45",
-          bg: "bg-[#1b1014]/95",
-          icon: "⚠️",
-          titleColor: "text-red-300"
-        },
-        info: {
-          border: "border-gold/45",
-          bg: "bg-[#171510]/95",
-          icon: "♟️",
-          titleColor: "text-gold-light"
+    const sceneState = {
+      phase: "intro", // "intro" | "auth" | "lobby"
+      setScreen(screen) {
+        currentScreen = screen;
+        if (introDone) {
+          this.phase = screen;
+          syncVisibleView();
         }
-      };
+      }
+    };
 
-      const cfg = styles[type] || styles.info;
-      const toast = document.createElement("div");
-      toast.className = `pointer-events-auto toast-enter rounded-2xl border ${cfg.border} ${cfg.bg} backdrop-blur-xl p-4 shadow-2xl flex items-start gap-3`;
-
-      toast.innerHTML = `
-        <span class="text-lg leading-none mt-0.5 shrink-0">${cfg.icon}</span>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-bold ${cfg.titleColor}">${title}</div>
-          ${message ? `<div class="text-xs text-gray-300 mt-1 leading-relaxed">${message}</div>` : ""}
-        </div>
-        <button type="button" aria-label="Dismiss notification" class="text-gray-500 hover:text-white text-sm leading-none p-1 cursor-pointer">✕</button>
-      `;
-
-      const closeToast = () => {
-        toast.classList.remove("toast-enter");
-        toast.classList.add("toast-exit");
-        setTimeout(() => toast.remove(), 280);
-      };
-
-      toast.querySelector("button").addEventListener("click", closeToast);
-      toastContainer.appendChild(toast);
-
-      if (duration > 0) {
-        setTimeout(() => {
-          if (toast.isConnected) closeToast();
-        }, duration);
+    function syncVisibleView() {
+      if (currentScreen === "lobby") {
+        authView.classList.remove("view-active");
+        authView.classList.add("view-hidden");
+        lobbyView.classList.remove("view-hidden");
+        lobbyView.classList.add("view-active");
+      } else {
+        lobbyView.classList.remove("view-active");
+        lobbyView.classList.add("view-hidden");
+        authView.classList.remove("view-hidden");
+        authView.classList.add("view-active");
       }
     }
 
-    // Friendly Firebase Error Translator
-    function handleFirebaseError(error) {
-      console.error("Firebase Auth Error:", error);
-      const code = error?.code || "";
+    // =========================================================
+    // 3. ZERO-LAG THREE.JS ENGINE (ANTI-MERGE INTRO + INSTANCED ARENA)
+    // =========================================================
+    function init3DScene() {
+      const THREE = window.THREE;
+      if (!THREE) {
+        introDone = true;
+        introWordmarkOverlay.style.display = "none";
+        syncVisibleView();
+        return;
+      }
 
+      const canvas = document.getElementById("sceneCanvas");
+
+      // High-performance renderer with pixel ratio capped at 1.5
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        powerPreference: "high-performance",
+        alpha: true
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.08;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x232934, 0.022);
+
+      const camera = new THREE.PerspectiveCamera(
+        38,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        90
+      );
+
+      // ---------------------------------------------------------
+      // BALANCED WARM-IVORY STUDIO LIGHTING (3 LIGHTS TOTAL)
+      // ---------------------------------------------------------
+      const hemiLight = new THREE.HemisphereLight(0xf6f1e7, 0x262d38, 1.15);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0xfff1dc, 1.55);
+      dirLight.position.set(6.5, 13.0, 8.0);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 1024;
+      dirLight.shadow.mapSize.height = 1024;
+      dirLight.shadow.camera.near = 2;
+      dirLight.shadow.camera.far = 32;
+      dirLight.shadow.camera.left = -7.5;
+      dirLight.shadow.camera.right = 7.5;
+      dirLight.shadow.camera.top = 7.5;
+      dirLight.shadow.camera.bottom = -7.5;
+      dirLight.shadow.bias = -0.0005;
+      scene.add(dirLight);
+
+      const rimLight = new THREE.PointLight(0xd4af6a, 1.05, 24, 1.6);
+      rimLight.position.set(-5.5, 5.2, -5.5);
+      scene.add(rimLight);
+
+      // =========================================================
+      // STAGE 1: CLEAN, NON-MERGING 3D GAMBIT LOGO GROUP
+      // =========================================================
+      const logoGroup = new THREE.Group();
+      logoGroup.position.set(0, 0.35, 0);
+      scene.add(logoGroup);
+
+      const logoArcMat = new THREE.MeshStandardMaterial({
+        color: 0xf0ede6,
+        roughness: 0.25,
+        metalness: 0.52,
+        transparent: true,
+        opacity: 1
+      });
+
+      const logoKingMat = new THREE.MeshStandardMaterial({
+        color: 0xd4af6a,
+        roughness: 0.22,
+        metalness: 0.80,
+        transparent: true,
+        opacity: 1
+      });
+
+      // Exact 4 concentric arcs with wide 0.18 radial gaps (ZERO merging)
+      function buildLogoArc(innerR, outerR, startAngle, endAngle, withCrossbar = false) {
+        const shape = new THREE.Shape();
+        const segs = 40;
+
+        shape.moveTo(Math.cos(startAngle) * outerR, Math.sin(startAngle) * outerR);
+        for (let i = 1; i <= segs; i++) {
+          const a = startAngle + (endAngle - startAngle) * (i / segs);
+          shape.lineTo(Math.cos(a) * outerR, Math.sin(a) * outerR);
+        }
+
+        if (withCrossbar) {
+          const halfH = (outerR - innerR) * 0.5;
+          shape.lineTo(outerR, halfH);
+          shape.lineTo(0.0, halfH);
+          shape.lineTo(0.0, -halfH);
+          shape.lineTo(innerR, -halfH);
+        } else {
+          shape.lineTo(Math.cos(endAngle) * innerR, Math.sin(endAngle) * innerR);
+        }
+
+        const innerEnd = withCrossbar ? (Math.PI * 2 - 0.04) : endAngle;
+        for (let i = segs; i >= 0; i--) {
+          const a = startAngle + (innerEnd - startAngle) * (i / segs);
+          shape.lineTo(Math.cos(a) * innerR, Math.sin(a) * innerR);
+        }
+        shape.closePath();
+
+        const geo = new THREE.ExtrudeGeometry(shape, {
+          depth: 0.22,
+          bevelEnabled: true,
+          bevelThickness: 0.025,
+          bevelSize: 0.02,
+          bevelSegments: 2,
+          curveSegments: 24
+        });
+        geo.translate(0, 0, -0.11);
+        return new THREE.Mesh(geo, logoArcMat);
+      }
+
+      const arcConfigs = [
+        { innerR: 1.76, outerR: 1.90, start: 0.86, end: Math.PI * 2, bar: true },
+        { innerR: 1.44, outerR: 1.58, start: 0.86, end: Math.PI * 2 - 0.16, bar: false },
+        { innerR: 1.12, outerR: 1.26, start: 0.86, end: Math.PI * 2 - 0.20, bar: false },
+        { innerR: 0.80, outerR: 0.94, start: 0.86, end: Math.PI * 2 - 0.26, bar: false }
+      ];
+
+      const logoArcs = arcConfigs.map((c) => {
+        const mesh = buildLogoArc(c.innerR, c.outerR, c.start, c.end, c.bar);
+        logoGroup.add(mesh);
+        return mesh;
+      });
+
+      // Sculpted 3D Chess King standing cleanly ON TOP of the horizontal bar
+      const logoKing = new THREE.Group();
+      const kingProfile = [
+        [0.0, 0.0],
+        [0.25, 0.0],
+        [0.26, 0.05],
+        [0.22, 0.11],
+        [0.16, 0.14],
+        [0.19, 0.18],
+        [0.19, 0.22],
+        [0.14, 0.26],
+        [0.19, 0.46],
+        [0.24, 0.60],
+        [0.22, 0.68],
+        [0.14, 0.73],
+        [0.0, 0.74]
+      ].map(([x, y]) => new THREE.Vector2(x, y));
+
+      const logoKingBody = new THREE.Mesh(new THREE.LatheGeometry(kingProfile, 22), logoKingMat);
+      const logoCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.24, 0.075), logoKingMat);
+      logoCrossV.position.y = 0.86;
+      const logoCrossH = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.07, 0.075), logoKingMat);
+      logoCrossH.position.y = 0.89;
+      logoKing.add(logoKingBody, logoCrossV, logoCrossH);
+
+      const KING_REST_X = 1.22;
+      const KING_REST_Y = 0.08;
+      logoKing.position.set(KING_REST_X, KING_REST_Y, 0);
+      logoGroup.add(logoKing);
+
+      // =========================================================
+      // STAGE 2: ZERO-LAG INSTANCED 3D CHESS ARENA (HIDDEN DURING INTRO)
+      // =========================================================
+      const arenaGroup = new THREE.Group();
+      arenaGroup.visible = false;
+      scene.add(arenaGroup);
+
+      const SQUARE_SIZE = 1.0;
+      const BOARD_SPAN = SQUARE_SIZE * 8;
+
+      // Shared Studio Materials
+      const frameMat = new THREE.MeshStandardMaterial({
+        color: 0x2a313d,
+        roughness: 0.45,
+        metalness: 0.22
+      });
+
+      const goldMat = new THREE.MeshStandardMaterial({
+        color: 0xc8a96e,
+        roughness: 0.26,
+        metalness: 0.82
+      });
+
+      const lightSqMat = new THREE.MeshStandardMaterial({
+        color: 0xd6cfc2,
+        roughness: 0.34,
+        metalness: 0.08
+      });
+
+      const darkSqMat = new THREE.MeshStandardMaterial({
+        color: 0x3a4250,
+        roughness: 0.32,
+        metalness: 0.20
+      });
+
+      const ivoryPieceMat = new THREE.MeshStandardMaterial({
+        color: 0xebe6dc,
+        roughness: 0.22,
+        metalness: 0.14
+      });
+
+      const bronzePieceMat = new THREE.MeshStandardMaterial({
+        color: 0x2b303a,
+        roughness: 0.24,
+        metalness: 0.52
+      });
+
+      // Architectural Board Base & Brushed Champagne-Gold Outer Frame
+      const boardBase = new THREE.Mesh(
+        new THREE.BoxGeometry(BOARD_SPAN + 0.92, 0.34, BOARD_SPAN + 0.92),
+        frameMat
+      );
+      boardBase.position.y = -0.21;
+      boardBase.receiveShadow = true;
+      arenaGroup.add(boardBase);
+
+      const goldOuterFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(BOARD_SPAN + 0.98, 0.045, BOARD_SPAN + 0.98),
+        goldMat
+      );
+      goldOuterFrame.position.y = -0.05;
+      arenaGroup.add(goldOuterFrame);
+
+      const goldInnerTrim = new THREE.Mesh(
+        new THREE.BoxGeometry(BOARD_SPAN + 0.16, 0.05, BOARD_SPAN + 0.16),
+        goldMat
+      );
+      goldInnerTrim.position.y = -0.015;
+      arenaGroup.add(goldInnerTrim);
+
+      // 64 Squares using TWO InstancedMesh Objects (2 Draw Calls Total!)
+      const squareGeo = new THREE.BoxGeometry(SQUARE_SIZE - 0.02, 0.08, SQUARE_SIZE - 0.02);
+      const lightInstances = new THREE.InstancedMesh(squareGeo, lightSqMat, 32);
+      const darkInstances = new THREE.InstancedMesh(squareGeo, darkSqMat, 32);
+      lightInstances.receiveShadow = true;
+      darkInstances.receiveShadow = true;
+
+      const dummy = new THREE.Object3D();
+      let li = 0;
+      let di = 0;
+
+      function gridToWorld(file, rank) {
+        return new THREE.Vector3(
+          (file - 3.5) * SQUARE_SIZE,
+          0.04,
+          (3.5 - rank) * SQUARE_SIZE
+        );
+      }
+
+      for (let f = 0; f < 8; f++) {
+        for (let r = 0; r < 8; r++) {
+          const p = gridToWorld(f, r);
+          dummy.position.set(p.x, 0.0, p.z);
+          dummy.updateMatrix();
+          if ((f + r) % 2 === 1) {
+            lightInstances.setMatrixAt(li++, dummy.matrix);
+          } else {
+            darkInstances.setMatrixAt(di++, dummy.matrix);
+          }
+        }
+      }
+      lightInstances.instanceMatrix.needsUpdate = true;
+      darkInstances.instanceMatrix.needsUpdate = true;
+      arenaGroup.add(lightInstances, darkInstances);
+
+      // ---------------------------------------------------------
+      // SHARED LEAN PIECE GEOMETRIES (BUILT ONCE, REUSED ACROSS BOARD)
+      // ---------------------------------------------------------
+      function makeLathe(pts) {
+        return new THREE.LatheGeometry(
+          pts.map(([x, y]) => new THREE.Vector2(x, y)),
+          20
+        );
+      }
+
+      const SHARED_GEO = {
+        pawnBody: makeLathe([
+          [0, 0], [0.30, 0], [0.31, 0.07], [0.24, 0.14],
+          [0.15, 0.34], [0.11, 0.54], [0.17, 0.60], [0.11, 0.66], [0, 0.69]
+        ]),
+        pawnHead: new THREE.SphereGeometry(0.155, 18, 16),
+        pawnCollar: new THREE.TorusGeometry(0.23, 0.017, 8, 20),
+
+        rookBody: makeLathe([
+          [0, 0], [0.34, 0], [0.35, 0.08], [0.27, 0.16],
+          [0.18, 0.64], [0.25, 0.72], [0.26, 0.90], [0.17, 0.90], [0.17, 0.80], [0, 0.80]
+        ]),
+        rookCollar: new THREE.TorusGeometry(0.26, 0.018, 8, 20),
+
+        bishopBody: makeLathe([
+          [0, 0], [0.33, 0], [0.34, 0.08], [0.26, 0.16],
+          [0.15, 0.56], [0.13, 0.76], [0.20, 0.82], [0.15, 0.88],
+          [0.19, 1.04], [0.14, 1.20], [0.05, 1.29], [0, 1.31]
+        ]),
+        bishopOrb: new THREE.SphereGeometry(0.055, 14, 12),
+        bishopCollar: new THREE.TorusGeometry(0.25, 0.018, 8, 20),
+
+        knightBase: makeLathe([
+          [0, 0], [0.34, 0], [0.35, 0.08], [0.27, 0.16], [0.21, 0.32], [0, 0.32]
+        ]),
+        knightHead: (() => {
+          const s = new THREE.Shape();
+          s.moveTo(-0.17, 0.0);
+          s.lineTo(0.18, 0.0);
+          s.quadraticCurveTo(0.20, 0.32, 0.12, 0.49);
+          s.quadraticCurveTo(0.24, 0.59, 0.22, 0.68);
+          s.lineTo(0.09, 0.78);
+          s.lineTo(0.02, 0.92);
+          s.lineTo(-0.07, 0.82);
+          s.quadraticCurveTo(-0.22, 0.70, -0.23, 0.41);
+          s.quadraticCurveTo(-0.23, 0.18, -0.17, 0.0);
+          const g = new THREE.ExtrudeGeometry(s, {
+            depth: 0.16,
+            bevelEnabled: true,
+            bevelThickness: 0.03,
+            bevelSize: 0.025,
+            bevelSegments: 2,
+            curveSegments: 20
+          });
+          g.translate(0, 0.30, -0.08);
+          return g;
+        })(),
+        knightCollar: new THREE.TorusGeometry(0.26, 0.018, 8, 20),
+
+        queenBody: makeLathe([
+          [0, 0], [0.36, 0], [0.37, 0.09], [0.28, 0.18],
+          [0.16, 0.72], [0.14, 1.00], [0.22, 1.08], [0.16, 1.14],
+          [0.24, 1.36], [0.18, 1.40], [0, 1.36]
+        ]),
+        queenCrown: new THREE.SphereGeometry(0.072, 14, 12),
+        queenCollar: new THREE.TorusGeometry(0.28, 0.019, 8, 20),
+
+        kingBody: makeLathe([
+          [0, 0], [0.38, 0], [0.39, 0.09], [0.30, 0.18],
+          [0.17, 0.76], [0.15, 1.08], [0.24, 1.16], [0.17, 1.22],
+          [0.25, 1.44], [0.20, 1.49], [0, 1.47]
+        ]),
+        kingCrossV: new THREE.BoxGeometry(0.058, 0.24, 0.058),
+        kingCrossH: new THREE.BoxGeometry(0.17, 0.055, 0.058),
+        kingCollar: new THREE.TorusGeometry(0.29, 0.019, 8, 20)
+      };
+
+      function createPieceMesh(type, side) {
+        const mat = side === "white" ? ivoryPieceMat : bronzePieceMat;
+        const g = new THREE.Group();
+
+        const addCollar = (geo, y) => {
+          const c = new THREE.Mesh(geo, goldMat);
+          c.rotation.x = Math.PI / 2;
+          c.position.y = y;
+          g.add(c);
+        };
+
+        if (type === "P") {
+          const body = new THREE.Mesh(SHARED_GEO.pawnBody, mat);
+          const head = new THREE.Mesh(SHARED_GEO.pawnHead, mat);
+          head.position.y = 0.79;
+          body.castShadow = head.castShadow = true;
+          g.add(body, head);
+          addCollar(SHARED_GEO.pawnCollar, 0.15);
+        } else if (type === "R") {
+          const body = new THREE.Mesh(SHARED_GEO.rookBody, mat);
+          body.castShadow = true;
+          g.add(body);
+          addCollar(SHARED_GEO.rookCollar, 0.17);
+        } else if (type === "B") {
+          const body = new THREE.Mesh(SHARED_GEO.bishopBody, mat);
+          const orb = new THREE.Mesh(SHARED_GEO.bishopOrb, goldMat);
+          orb.position.y = 1.35;
+          body.castShadow = true;
+          g.add(body, orb);
+          addCollar(SHARED_GEO.bishopCollar, 0.17);
+        } else if (type === "N") {
+          const base = new THREE.Mesh(SHARED_GEO.knightBase, mat);
+          const head = new THREE.Mesh(SHARED_GEO.knightHead, mat);
+          head.rotation.y = side === "white" ? Math.PI / 2 : -Math.PI / 2;
+          base.castShadow = head.castShadow = true;
+          g.add(base, head);
+          addCollar(SHARED_GEO.knightCollar, 0.17);
+        } else if (type === "Q") {
+          const body = new THREE.Mesh(SHARED_GEO.queenBody, mat);
+          const crown = new THREE.Mesh(SHARED_GEO.queenCrown, goldMat);
+          crown.position.y = 1.46;
+          body.castShadow = true;
+          g.add(body, crown);
+          addCollar(SHARED_GEO.queenCollar, 0.19);
+        } else if (type === "K") {
+          const body = new THREE.Mesh(SHARED_GEO.kingBody, mat);
+          const cv = new THREE.Mesh(SHARED_GEO.kingCrossV, goldMat);
+          cv.position.y = 1.61;
+          const ch = new THREE.Mesh(SHARED_GEO.kingCrossH, goldMat);
+          ch.position.y = 1.65;
+          body.castShadow = true;
+          g.add(body, cv, ch);
+          addCollar(SHARED_GEO.kingCollar, 0.19);
+        }
+
+        return g;
+      }
+
+      // Curated Queen's Gambit Position
+      const piecesMap = new Map();
+      const layout = [
+        { id: "wK",  t: "K", s: "white", f: 6, r: 0 },
+        { id: "wQ",  t: "Q", s: "white", f: 3, r: 1 },
+        { id: "wR1", t: "R", s: "white", f: 0, r: 0 },
+        { id: "wR2", t: "R", s: "white", f: 5, r: 0 },
+        { id: "wB1", t: "B", s: "white", f: 2, r: 0 },
+        { id: "wB2", t: "B", s: "white", f: 3, r: 2 },
+        { id: "wN1", t: "N", s: "white", f: 2, r: 2 },
+        { id: "wN2", t: "N", s: "white", f: 5, r: 2 },
+        { id: "wP1", t: "P", s: "white", f: 2, r: 3 },
+        { id: "wP2", t: "P", s: "white", f: 3, r: 3 },
+        { id: "wP3", t: "P", s: "white", f: 4, r: 2 },
+        { id: "wP4", t: "P", s: "white", f: 6, r: 1 },
+        { id: "wP5", t: "P", s: "white", f: 7, r: 1 },
+
+        { id: "bK",  t: "K", s: "black", f: 6, r: 7 },
+        { id: "bQ",  t: "Q", s: "black", f: 3, r: 7 },
+        { id: "bR1", t: "R", s: "black", f: 0, r: 7 },
+        { id: "bR2", t: "R", s: "black", f: 5, r: 7 },
+        { id: "bB1", t: "B", s: "black", f: 4, r: 6 },
+        { id: "bB2", t: "B", s: "black", f: 2, r: 7 },
+        { id: "bN1", t: "N", s: "black", f: 5, r: 5 },
+        { id: "bN2", t: "N", s: "black", f: 1, r: 6 },
+        { id: "bP1", t: "P", s: "black", f: 3, r: 4 },
+        { id: "bP2", t: "P", s: "black", f: 4, r: 5 },
+        { id: "bP3", t: "P", s: "black", f: 2, r: 5 },
+        { id: "bP4", t: "P", s: "black", f: 6, r: 6 },
+        { id: "bP5", t: "P", s: "black", f: 7, r: 6 }
+      ];
+
+      layout.forEach((p) => {
+        const mesh = createPieceMesh(p.t, p.s);
+        mesh.position.copy(gridToWorld(p.f, p.r));
+        arenaGroup.add(mesh);
+        piecesMap.set(p.id, { mesh });
+      });
+
+      // Gentle Automated Chess Exhibition Moves
+      const moveQueue = [
+        { id: "wN2", f: 4, r: 4 },
+        { id: "bQ",  f: 2, r: 6 },
+        { id: "wB1", f: 5, r: 3 },
+        { id: "bN1", f: 3, r: 6 },
+        { id: "wB1", f: 2, r: 0 },
+        { id: "bN1", f: 5, r: 5 },
+        { id: "wN2", f: 5, r: 2 },
+        { id: "bQ",  f: 3, r: 7 }
+      ];
+      let moveIdx = 0;
+      let moveDelay = 2.0;
+      let activeMove = null;
+
+      // Ultra-Lightweight Ambient Dust Particles (26 particles max)
+      const dustCount = 26;
+      const dustPos = new Float32Array(dustCount * 3);
+      for (let i = 0; i < dustCount; i++) {
+        dustPos[i * 3] = (Math.random() - 0.5) * 14;
+        dustPos[i * 3 + 1] = 0.5 + Math.random() * 6.5;
+        dustPos[i * 3 + 2] = (Math.random() - 0.5) * 14;
+      }
+      const dustGeo = new THREE.BufferGeometry();
+      dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+      const dustMat = new THREE.PointsMaterial({
+        color: 0xd4af6a,
+        size: 0.055,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false
+      });
+      const dustPoints = new THREE.Points(dustGeo, dustMat);
+      arenaGroup.add(dustPoints);
+
+      // ---------------------------------------------------------
+      // POINTER PARALLAX & RESIZE
+      // ---------------------------------------------------------
+      const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
+      window.addEventListener("pointermove", (e) => {
+        pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+        pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
+      }, { passive: true });
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // ---------------------------------------------------------
+      // EASING & STRICT ANTI-MERGE TIMELINE
+      // ---------------------------------------------------------
+      const clamp01 = (v) => Math.max(0, Math.min(1, v));
+      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+      const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
+      const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+      // Initial Intro Camera Pose (Framed exclusively on 3D Logo)
+      const camPos = new THREE.Vector3(-1.8, 0.8, 8.2);
+      const camLook = new THREE.Vector3(0, 0.25, 0);
+      const targetPos = new THREE.Vector3();
+      const targetLook = new THREE.Vector3();
+      camera.position.copy(camPos);
+      camera.lookAt(camLook);
+
+      let introTime = 0;
+      let wordmarkShown = false;
+      let arenaReveal = 0;
+
+      // ---------------------------------------------------------
+      // VISIBILITY PAUSE + 60FPS ANIMATION LOOP
+      // ---------------------------------------------------------
+      const clock = new THREE.Clock();
+      let rafId = null;
+
+      function animate() {
+        rafId = requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        const elapsed = clock.getElapsedTime();
+
+        const dampPtr = 1 - Math.exp(-4.5 * dt);
+        pointer.sx += (pointer.x - pointer.sx) * dampPtr;
+        pointer.sy += (pointer.y - pointer.sy) * dampPtr;
+
+        if (sceneState.phase === "intro") {
+          introTime += dt;
+
+          // 0.00s - 1.05s: 4 concentric 3D arcs smoothly align (with preserved radial gaps)
+          logoArcs.forEach((arc, i) => {
+            const p = easeOutExpo(clamp01((introTime - i * 0.08) / 0.88));
+            const s = 0.72 + 0.28 * p;
+            arc.scale.set(s, s, 0.4 + 0.6 * p);
+            arc.rotation.z = (1 - p) * (-0.42 - i * 0.1);
+            arc.position.z = (1 - p) * (-1.1 - i * 0.18);
+          });
+
+          // 0.60s - 1.38s: 3D Chess King glides cleanly onto horizontal crossbar
+          const kingP = easeOutCubic(clamp01((introTime - 0.60) / 0.78));
+          logoKing.visible = introTime >= 0.58;
+          logoKing.position.set(
+            KING_REST_X,
+            KING_REST_Y + (1 - kingP) * 1.9,
+            0
+          );
+          logoKing.rotation.y = (1 - kingP) * Math.PI * 0.9;
+
+          // 0.95s: Reveal clean GAMBIT wordmark below 3D logo
+          if (introTime >= 0.95 && !wordmarkShown) {
+            wordmarkShown = true;
+            introWordmarkText.classList.add("revealed");
+          }
+
+          // Subtle studio rotation of 3D mark
+          logoGroup.rotation.y = Math.sin(introTime * 0.9) * 0.08 + pointer.sx * 0.1;
+
+          // 1.90s - 2.48s: Clean fade & glide out of 3D Logo BEFORE board ever appears
+          if (introTime >= 1.90) {
+            const outP = easeInOutCubic(clamp01((introTime - 1.90) / 0.58));
+            const sOut = 1 - outP * 0.14;
+            logoGroup.scale.set(sOut, sOut, sOut);
+            logoGroup.position.y = 0.35 + outP * 0.9;
+            logoArcMat.opacity = 1 - outP;
+            logoKingMat.opacity = 1 - outP;
+            introWordmarkOverlay.style.opacity = String(1 - outP);
+          }
+
+          // Intro camera glide
+          const camP = easeOutCubic(clamp01(introTime / 1.25));
+          targetPos.set(-1.8 * (1 - camP) + pointer.sx * 0.25, 0.8 * (1 - camP) + 0.35, 8.2 - 1.0 * camP);
+          targetLook.set(0, 0.25, 0);
+          const camDamp = 1 - Math.exp(-5.0 * dt);
+          camPos.lerp(targetPos, camDamp);
+          camLook.lerp(targetLook, camDamp);
+          camera.position.copy(camPos);
+          camera.lookAt(camLook);
+
+          // 2.50s: Hard separation — completely hide logoGroup, then reveal 3D Chess Arena + UI
+          if (introTime >= 2.50) {
+            logoGroup.visible = false;
+            introWordmarkOverlay.style.display = "none";
+
+            // Snap camera smoothly to Arena start pose so there is zero logo/board merge
+            const isDesktop = window.innerWidth >= 1024;
+            const offsetX = currentScreen === "lobby" ? 0 : (isDesktop ? 1.85 : 0);
+            camPos.set(currentScreen === "lobby" ? 0 : -2.6 + offsetX * 0.4, 6.2, 10.6);
+            camLook.set(offsetX, 0.3, 0.1);
+            camera.position.copy(camPos);
+            camera.lookAt(camLook);
+
+            arenaGroup.visible = true;
+            arenaGroup.position.y = -0.35;
+            arenaGroup.scale.setScalar(0.96);
+
+            introDone = true;
+            sceneState.phase = currentScreen;
+            syncVisibleView();
+          }
+        } else {
+          // ARENA PHASE ("auth" or "lobby")
+          if (arenaReveal < 1) {
+            arenaReveal = Math.min(1, arenaReveal + dt * 1.65);
+            const rEase = easeOutCubic(arenaReveal);
+            arenaGroup.position.y = -0.35 * (1 - rEase);
+            arenaGroup.scale.setScalar(0.96 + 0.04 * rEase);
+          }
+
+          const isDesktop = window.innerWidth >= 1024;
+          if (sceneState.phase === "lobby") {
+            targetPos.set(
+              pointer.sx * 0.75,
+              7.2 - pointer.sy * 0.35,
+              8.2 + Math.sin(elapsed * 0.22) * 0.14
+            );
+            targetLook.set(0, 0.2, 0.3);
+          } else {
+            const offsetX = isDesktop ? 1.85 : 0.0;
+            targetPos.set(
+              -2.6 + offsetX * 0.4 + pointer.sx * 0.7,
+              5.4 - pointer.sy * 0.32,
+              9.8 + Math.cos(elapsed * 0.2) * 0.14
+            );
+            targetLook.set(offsetX, 0.3, 0.1);
+          }
+
+          const dampCam = 1 - Math.exp(-3.4 * dt);
+          camPos.lerp(targetPos, dampCam);
+          camLook.lerp(targetLook, dampCam);
+          camera.position.copy(camPos);
+          camera.lookAt(camLook);
+
+          // Gentle Automated Parabolic Piece Moves
+          if (!activeMove) {
+            moveDelay -= dt;
+            if (moveDelay <= 0) {
+              const spec = moveQueue[moveIdx];
+              const entry = piecesMap.get(spec.id);
+              if (entry) {
+                activeMove = {
+                  mesh: entry.mesh,
+                  from: entry.mesh.position.clone(),
+                  to: gridToWorld(spec.f, spec.r),
+                  t: 0,
+                  dur: 1.3
+                };
+              }
+              moveIdx = (moveIdx + 1) % moveQueue.length;
+            }
+          } else {
+            activeMove.t += dt / activeMove.dur;
+            const p = Math.min(activeMove.t, 1);
+            const eased = easeInOutCubic(p);
+            activeMove.mesh.position.lerpVectors(activeMove.from, activeMove.to, eased);
+            activeMove.mesh.position.y = activeMove.from.y + Math.sin(p * Math.PI) * 1.05;
+            if (p >= 1) {
+              activeMove.mesh.position.copy(activeMove.to);
+              activeMove = null;
+              moveDelay = 2.8;
+            }
+          }
+
+          // Slow ambient rotation of subtle dust
+          dustPoints.rotation.y = elapsed * 0.025;
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      // Pause WebGL completely when tab is hidden
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          if (rafId !== null) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          }
+        } else if (rafId === null) {
+          clock.getDelta();
+          animate();
+        }
+      });
+
+      animate();
+    }
+
+    window.addEventListener("load", init3DScene);
+
+    // =========================================================
+    // 4. MINIMAL SVG TOAST NOTIFICATIONS
+    // =========================================================
+    const TOAST_ICONS = {
+      success: `<svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>`,
+      error: `<svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>`,
+      info: `<svg class="w-4 h-4 text-champagne shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>`
+    };
+
+    function showToast(title, message = "", type = "info", duration = 4200) {
+      const el = document.createElement("div");
+      el.className = "pointer-events-auto toast-in glass-card rounded-xl px-4 py-3 flex items-start gap-3";
+      el.innerHTML = `
+        ${TOAST_ICONS[type] || TOAST_ICONS.info}
+        <div class="flex-1 min-w-0">
+          <div class="text-xs font-semibold text-[#f3f4f6]">${title}</div>
+          ${message ? `<div class="text-[11px] text-[#9ca3af] mt-0.5 leading-relaxed">${message}</div>` : ""}
+        </div>
+        <button type="button" aria-label="Close" class="text-[#9ca3af] hover:text-[#f3f4f6] p-0.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      `;
+
+      const close = () => {
+        el.classList.remove("toast-in");
+        el.classList.add("toast-out");
+        setTimeout(() => el.remove(), 220);
+      };
+
+      el.querySelector("button").addEventListener("click", close);
+      toastContainer.appendChild(el);
+      if (duration > 0) {
+        setTimeout(() => { if (el.isConnected) close(); }, duration);
+      }
+    }
+
+    function handleAuthError(error) {
+      const code = error?.code || "";
       switch (code) {
         case "auth/unauthorized-domain":
-          showToast(
-            "Domain Not Authorized Yet 🌐",
-            `Add "${window.location.hostname || "this domain"}" in Firebase Console → Authentication → Settings → Authorized domains. You can also test using Demo Mode below!`,
-            "error",
-            7500
-          );
+          showToast("Domain Not Authorized", `Add "${window.location.hostname || "this domain"}" in Firebase Console > Authentication > Authorized domains.`, "error", 6500);
           break;
         case "auth/popup-closed-by-user":
-          showToast("Popup Closed", "Google sign-in was cancelled. Try again whenever you're ready! ♟️", "info");
+          showToast("Sign-In Cancelled", "Google sign-in popup was closed.", "info");
           break;
         case "auth/popup-blocked":
-          showToast("Popup Blocked 🔒", "Please allow browser popups to sign in with Google.", "error");
+          showToast("Popup Blocked", "Allow popups in your browser to sign in with Google.", "error");
           break;
         case "auth/invalid-credential":
         case "auth/wrong-password":
         case "auth/user-not-found":
-          showToast("Invalid Credentials 🔑", "Double-check your email and password, or create a new account.", "error");
+          showToast("Invalid Credentials", "Check your email and password and try again.", "error");
           break;
         case "auth/email-already-in-use":
-          showToast("Email Already Registered ✨", "An account with this email already exists. Switch to Sign In!", "info");
+          showToast("Account Exists", "This email is already registered. Switch to Sign In.", "info");
           break;
         case "auth/weak-password":
-          showToast("Weak Password 🛡️", "Please choose a password with at least 6 characters.", "error");
+          showToast("Weak Password", "Password must be at least 6 characters.", "error");
           break;
         case "auth/invalid-email":
-          showToast("Invalid Email 📧", "Please enter a valid email address.", "error");
-          break;
-        case "auth/operation-not-allowed":
-          showToast(
-            "Provider Not Enabled ⚙️",
-            "Enable Email/Password and Google in Firebase Console → Authentication → Sign-in method.",
-            "error",
-            6500
-          );
+          showToast("Invalid Email", "Enter a valid email address.", "error");
           break;
         case "auth/too-many-requests":
-          showToast("Too Many Attempts ⏳", "Please wait a moment before trying again.", "error");
+          showToast("Too Many Attempts", "Please wait a moment and try again.", "error");
           break;
         default:
-          showToast("Authentication Error", error?.message || "Something went wrong. Please try again.", "error");
+          showToast("Authentication Error", error?.message || "Unable to sign in.", "error");
       }
     }
 
-    // ---------------------------------------------------------
-    // TAB SWITCHER (SIGN IN / SIGN UP)
-    // ---------------------------------------------------------
+    // =========================================================
+    // 5. AUTH TAB & FORM CONTROLS
+    // =========================================================
     function setAuthMode(mode) {
       authMode = mode;
       const isSignUp = mode === "signup";
 
-      // Slide Pill
       tabPill.style.transform = isSignUp ? "translateX(100%)" : "translateX(0%)";
-
-      // Update Tab Text Colors & ARIA
       tabSignIn.setAttribute("aria-selected", String(!isSignUp));
       tabSignUp.setAttribute("aria-selected", String(isSignUp));
-      tabSignIn.classList.toggle("text-gold-light", !isSignUp);
-      tabSignIn.classList.toggle("text-gray-400", isSignUp);
-      tabSignUp.classList.toggle("text-gold-light", isSignUp);
-      tabSignUp.classList.toggle("text-gray-400", !isSignUp);
 
-      // Toggle Form Fields
-      usernameField.classList.toggle("hidden", !isSignUp);
-      strengthWrapper.classList.toggle("hidden", !isSignUp);
+      tabSignIn.classList.toggle("text-[#f3f4f6]", !isSignUp);
+      tabSignIn.classList.toggle("font-semibold", !isSignUp);
+      tabSignIn.classList.toggle("text-[#9ca3af]", isSignUp);
+
+      tabSignUp.classList.toggle("text-[#f3f4f6]", isSignUp);
+      tabSignUp.classList.toggle("font-semibold", isSignUp);
+      tabSignUp.classList.toggle("text-[#9ca3af]", !isSignUp);
+
+      usernameCollapse.classList.toggle("open", isSignUp);
       forgotPasswordBtn.classList.toggle("hidden", isSignUp);
-
-      // Update Copy
-      if (isSignUp) {
-        authCardTitle.textContent = "Claim Your Board ✨";
-        authCardSubtitle.textContent = "Create your GAMBIT account & start at 1200 ELO";
-        submitBtnText.textContent = "Create Account ♛";
-        passwordInput.setAttribute("autocomplete", "new-password");
-      } else {
-        authCardTitle.textContent = "Welcome Back 👑";
-        authCardSubtitle.textContent = "Sign in to continue your road to Grandmaster";
-        submitBtnText.textContent = "Enter the Arena ♟️";
-        passwordInput.setAttribute("autocomplete", "current-password");
-      }
+      submitBtnText.textContent = isSignUp ? "Create Account" : "Sign In";
+      passwordInput.setAttribute("autocomplete", isSignUp ? "new-password" : "current-password");
     }
 
     tabSignIn.addEventListener("click", () => setAuthMode("signin"));
     tabSignUp.addEventListener("click", () => setAuthMode("signup"));
 
-    // ---------------------------------------------------------
-    // PASSWORD VISIBILITY & STRENGTH METER
-    // ---------------------------------------------------------
     togglePasswordBtn.addEventListener("click", () => {
-      const isPassword = passwordInput.type === "password";
-      passwordInput.type = isPassword ? "text" : "password";
-      eyeOpenIcon.classList.toggle("hidden", isPassword);
-      eyeClosedIcon.classList.toggle("hidden", !isPassword);
+      const hidden = passwordInput.type === "password";
+      passwordInput.type = hidden ? "text" : "password";
+      eyeOpenIcon.classList.toggle("hidden", hidden);
+      eyeClosedIcon.classList.toggle("hidden", !hidden);
     });
 
-    passwordInput.addEventListener("input", () => {
-      if (authMode !== "signup") return;
-      const val = passwordInput.value;
-      let score = 0;
-      if (val.length >= 6) score++;
-      if (val.length >= 10) score++;
-      if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
-      if (/[0-9]/.test(val)) score++;
-      if (/[^A-Za-z0-9]/.test(val)) score++;
+    function setGoogleBusy(busy) {
+      googleAuthBtn.disabled = busy;
+      googleBtnText.innerHTML = busy
+        ? `<span class="inline-flex items-center gap-2"><span class="spinner"></span> Connecting...</span>`
+        : "Continue with Google";
+    }
 
-      const levels = [
-        { width: "0%", color: "bg-red-500", text: "Enter password", textClass: "text-gray-400" },
-        { width: "25%", color: "bg-red-500", text: "Weak 🛡️", textClass: "text-red-400" },
-        { width: "50%", color: "bg-amber-400", text: "Fair ⚔️", textClass: "text-amber-300" },
-        { width: "75%", color: "bg-gold", text: "Strong ♞", textClass: "text-gold-light" },
-        { width: "100%", color: "bg-emerald", text: "Grandmaster 👑", textClass: "text-emerald-300" }
-      ];
-
-      const idx = val.length === 0 ? 0 : Math.min(4, Math.max(1, Math.ceil((score / 5) * 4)));
-      const level = levels[idx];
-      strengthBar.style.width = level.width;
-      strengthBar.className = `h-full rounded-full transition-all duration-300 ${level.color}`;
-      strengthLabel.textContent = level.text;
-      strengthLabel.className = `font-semibold ${level.textClass}`;
-    });
-
-    // ---------------------------------------------------------
-    // LOADING BUTTON HELPERS
-    // ---------------------------------------------------------
-    function setGoogleLoading(loading) {
-      googleAuthBtn.disabled = loading;
-      if (loading) {
-        googleBtnText.innerHTML = `<span class="inline-flex items-center gap-2"><span class="spinner"></span> Connecting to Google...</span>`;
+    function setSubmitBusy(busy) {
+      submitAuthBtn.disabled = busy;
+      if (busy) {
+        submitBtnText.innerHTML = `<span class="inline-flex items-center gap-2"><span class="spinner"></span> ${authMode === "signup" ? "Creating Account..." : "Signing In..."}</span>`;
       } else {
-        googleBtnText.textContent = "Continue with Google";
+        submitBtnText.textContent = authMode === "signup" ? "Create Account" : "Sign In";
       }
     }
 
-    function setSubmitLoading(loading) {
-      submitAuthBtn.disabled = loading;
-      if (loading) {
-        submitBtnText.innerHTML = `<span class="inline-flex items-center gap-2"><span class="spinner border-obsidian/30 border-t-obsidian"></span> ${authMode === "signup" ? "Creating Profile..." : "Signing In..."}</span>`;
-      } else {
-        submitBtnText.textContent = authMode === "signup" ? "Create Account ♛" : "Enter the Arena ♟️";
-      }
-    }
-
-    // ---------------------------------------------------------
-    // FIREBASE AUTH HANDLERS
-    // ---------------------------------------------------------
-
-    // 1. Google Sign-In
+    // =========================================================
+    // 6. FIREBASE AUTH ACTIONS
+    // =========================================================
     googleAuthBtn.addEventListener("click", async () => {
-      setGoogleLoading(true);
+      setGoogleBusy(true);
       try {
-        const result = await signInWithPopup(auth, googleProvider);
-        const name = result.user.displayName || "Grandmaster";
-        showToast("Welcome to GAMBIT! 👑", `Signed in as ${name}`, "success");
+        const res = await signInWithPopup(auth, googleProvider);
+        showToast("Signed In", `Welcome, ${res.user.displayName || "Player"}.`, "success");
       } catch (err) {
-        handleFirebaseError(err);
+        handleAuthError(err);
       } finally {
-        setGoogleLoading(false);
+        setGoogleBusy(false);
       }
     });
 
-    // 2. Email & Password Sign-In / Sign-Up
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = emailInput.value.trim();
@@ -1145,278 +1536,114 @@
       const username = usernameInput.value.trim();
 
       if (!email || !password) {
-        showToast("Missing Details 📝", "Please fill in both your email and password.", "error");
+        showToast("Missing Fields", "Enter your email and password.", "error");
         return;
       }
 
       if (authMode === "signup") {
         if (!username || username.length < 3) {
-          showToast("Choose a Grandmaster Tag 🏷️", "Your username must be at least 3 characters long.", "error");
+          showToast("Invalid Username", "Username must be at least 3 characters.", "error");
           usernameInput.focus();
           return;
         }
         if (password.length < 6) {
-          showToast("Password Too Short 🔒", "Password must be at least 6 characters long.", "error");
+          showToast("Password Too Short", "Password must be at least 6 characters.", "error");
           passwordInput.focus();
           return;
         }
       }
 
-      setSubmitLoading(true);
+      setSubmitBusy(true);
       try {
         if (authMode === "signup") {
           const cred = await createUserWithEmailAndPassword(auth, email, password);
           await updateProfile(cred.user, { displayName: username });
-          showToast("Account Created! 🎉", `Welcome to the arena, ${username}!`, "success");
-          // Refresh Lobby UI with updated displayName
-          renderLobby({
-            displayName: username,
-            email: cred.user.email,
-            photoURL: cred.user.photoURL
-          }, false);
+          showToast("Account Created", `Welcome to GAMBIT, ${username}.`, "success");
+          populateLobby({ displayName: username, email: cred.user.email, photoURL: cred.user.photoURL });
+          sceneState.setScreen("lobby");
         } else {
           const cred = await signInWithEmailAndPassword(auth, email, password);
           const name = cred.user.displayName || cred.user.email.split("@")[0];
-          showToast("Checkmate Ready! ♟️", `Welcome back, ${name}`, "success");
+          showToast("Signed In", `Welcome back, ${name}.`, "success");
         }
       } catch (err) {
-        handleFirebaseError(err);
+        handleAuthError(err);
       } finally {
-        setSubmitLoading(false);
+        setSubmitBusy(false);
       }
     });
 
-    // 3. Forgot Password
     forgotPasswordBtn.addEventListener("click", async () => {
       const email = emailInput.value.trim();
       if (!email) {
-        showToast("Enter Your Email First 📧", "Type your email address above, then click Forgot Password.", "info");
+        showToast("Email Required", "Enter your email address first.", "info");
         emailInput.focus();
         return;
       }
       try {
         await sendPasswordResetEmail(auth, email);
-        showToast("Reset Link Sent ✉️", `Check ${email} for instructions to reset your password.`, "success");
+        showToast("Reset Sent", `Password reset email sent to ${email}.`, "success");
       } catch (err) {
-        handleFirebaseError(err);
+        handleAuthError(err);
       }
     });
 
-    // 4. Demo Mode Preview
-    demoModeBtn.addEventListener("click", () => {
-      isDemoMode = true;
-      renderLobby({
-        displayName: "GM_Aarav",
-        email: "demo@gambit.gg",
-        photoURL: null
-      }, true);
-      showToast("Demo Lobby Active 👀", "Exploring GAMBIT Lobby in preview mode!", "info");
-    });
-
-    // 5. Sign Out
     signOutBtn.addEventListener("click", async () => {
-      if (isDemoMode) {
-        isDemoMode = false;
-        showAuthView();
-        showToast("Exited Demo Mode 👋", "Sign in with Google or Email to save your ELO.", "info");
-        return;
-      }
       try {
         await signOut(auth);
-        showToast("Signed Out 👋", "See you back on the board soon!", "info");
+        showToast("Signed Out", "You have signed out of GAMBIT.", "info");
       } catch (err) {
-        handleFirebaseError(err);
+        handleAuthError(err);
       }
     });
 
-    // ---------------------------------------------------------
-    // VIEW TRANSITIONS (AUTH <-> LOBBY)
-    // ---------------------------------------------------------
+    // =========================================================
+    // 7. AUTH STATE & LOBBY HYDRATION
+    // =========================================================
     function getInitials(name) {
       if (!name) return "GM";
-      const parts = name.trim().split(/\s+/);
-      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-      return (parts[0][0] + parts[1][0]).toUpperCase();
+      const parts = name.trim().split(/[\s_]+/);
+      return parts.length === 1
+        ? parts[0].slice(0, 2).toUpperCase()
+        : (parts[0][0] + parts[1][0]).toUpperCase();
     }
 
-    function renderLobby(user, demo = false) {
-      const displayName = user.displayName || (user.email ? user.email.split("@")[0] : "Grandmaster");
-      const email = user.email || "player@gambit.gg";
-
-      lobbyPlayerName.textContent = displayName;
-      lobbyPlayerEmail.textContent = email;
-      welcomeName.textContent = displayName;
-      demoPill.classList.toggle("hidden", !demo);
+    function populateLobby(user) {
+      const name = user.displayName || (user.email ? user.email.split("@")[0] : "Player");
+      lobbyUserName.textContent = name;
 
       if (user.photoURL) {
         lobbyAvatarImg.src = user.photoURL;
         lobbyAvatarImg.classList.remove("hidden");
-        lobbyAvatarFallback.classList.add("hidden");
+        lobbyAvatarInitials.classList.add("hidden");
         lobbyAvatarImg.onerror = () => {
           lobbyAvatarImg.classList.add("hidden");
-          lobbyAvatarFallback.classList.remove("hidden");
-          lobbyAvatarFallback.textContent = getInitials(displayName);
+          lobbyAvatarInitials.classList.remove("hidden");
+          lobbyAvatarInitials.textContent = getInitials(name);
         };
       } else {
         lobbyAvatarImg.classList.add("hidden");
-        lobbyAvatarFallback.classList.remove("hidden");
-        lobbyAvatarFallback.textContent = getInitials(displayName);
+        lobbyAvatarInitials.classList.remove("hidden");
+        lobbyAvatarInitials.textContent = getInitials(name);
       }
-
-      authView.classList.add("hidden");
-      lobbyView.classList.remove("hidden");
-      lobbyView.classList.add("flex");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function showAuthView() {
-      lobbyView.classList.add("hidden");
-      lobbyView.classList.remove("flex");
-      authView.classList.remove("hidden");
-    }
-
-    // Listen to Firebase Auth State
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        isDemoMode = false;
-        renderLobby(user, false);
-      } else if (!isDemoMode) {
-        showAuthView();
+        populateLobby(user);
+        sceneState.setScreen("lobby");
+      } else {
+        sceneState.setScreen("auth");
       }
     });
 
-    // Lobby Mode Cards Interaction
-    document.querySelectorAll(".mode-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const mode = btn.getAttribute("data-mode");
-        showToast(`${mode} — Coming in Step 2! 🚀`, "Next we'll build the live multiplayer chessboard & matchmaking engine.", "info");
+    // Lobby Mode Selection
+    document.querySelectorAll(".mode-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const mode = card.getAttribute("data-mode");
+        showToast(mode, "Matchmaking ready to connect.", "info");
       });
     });
-
-    // ---------------------------------------------------------
-    // VISUAL POLISH: FLOATING PIECES & ANIMATED MINI CHESSBOARD
-    // ---------------------------------------------------------
-    function initFloatingPieces() {
-      const container = document.getElementById("floatingPiecesContainer");
-      const pieces = ["♔", "♕", "♖", "♗", "♘", "♙", "♛", "♞"];
-      const positions = [
-        { top: "8%", left: "6%", size: "4.2rem", dur: "18s", tx: "28px", ty: "-34px" },
-        { top: "18%", left: "86%", size: "5rem", dur: "23s", tx: "-32px", ty: "26px" },
-        { top: "68%", left: "8%", size: "5.2rem", dur: "21s", tx: "24px", ty: "-45px" },
-        { top: "78%", left: "88%", size: "4.6rem", dur: "19s", tx: "-26px", ty: "-38px" },
-        { top: "44%", left: "48%", size: "3.6rem", dur: "25s", tx: "18px", ty: "32px" },
-        { top: "86%", left: "42%", size: "4rem", dur: "22s", tx: "-22px", ty: "-28px" },
-        { top: "10%", left: "52%", size: "3.2rem", dur: "20s", tx: "30px", ty: "22px" }
-      ];
-
-      positions.forEach((pos, idx) => {
-        const el = document.createElement("div");
-        el.className = "floating-piece";
-        el.textContent = pieces[idx % pieces.length];
-        el.style.top = pos.top;
-        el.style.left = pos.left;
-        el.style.fontSize = pos.size;
-        el.style.setProperty("--dur", pos.dur);
-        el.style.setProperty("--tx", pos.tx);
-        el.style.setProperty("--ty", pos.ty);
-        el.style.setProperty("--rot-start", `${(idx % 2 === 0 ? -1 : 1) * (8 + idx * 2)}deg`);
-        el.style.setProperty("--rot-end", `${(idx % 2 === 0 ? 1 : -1) * (10 + idx * 2)}deg`);
-        container.appendChild(el);
-      });
-    }
-
-    // Animated Queen's Gambit Sequence on Mini Chessboard
-    function initMiniChessboard() {
-      const boardEl = document.getElementById("miniChessboard");
-      const moveBadge = document.getElementById("moveBadge");
-      if (!boardEl) return;
-
-      const initialPieces = [
-        ["♜","♞","♝","♛","♚","♝","♞","♜"],
-        ["♟","♟","♟","♟","♟","♟","♟","♟"],
-        ["","","","","","","",""],
-        ["","","","","","","",""],
-        ["","","","","","","",""],
-        ["","","","","","","",""],
-        ["♙","♙","♙","♙","♙","♙","♙","♙"],
-        ["♖","♘","♗","♕","♔","♗","♘","♖"]
-      ];
-
-      const whiteSet = new Set(["♔","♕","♖","♗","♘","♙"]);
-
-      const sequence = [
-        { label: "1. d4", from: [6, 3], to: [4, 3] },
-        { label: "1... d5", from: [1, 3], to: [3, 3] },
-        { label: "2. c4", from: [6, 2], to: [4, 2] },
-        { label: "2... dxc4", from: [3, 3], to: [4, 2] },
-        { label: "3. Nf3", from: [7, 6], to: [5, 5] },
-        { label: "3... Nf6", from: [0, 6], to: [2, 5] }
-      ];
-
-      let board = initialPieces.map((row) => [...row]);
-      let step = 0;
-
-      function drawBoard(highlightFrom = null, highlightTo = null) {
-        boardEl.innerHTML = "";
-        for (let r = 0; r < 8; r++) {
-          for (let c = 0; c < 8; c++) {
-            const sq = document.createElement("div");
-            const isLight = (r + c) % 2 === 0;
-            sq.className = `mini-sq ${isLight ? "light" : "dark"}`;
-
-            if (highlightFrom && highlightFrom[0] === r && highlightFrom[1] === c) {
-              sq.classList.add("highlight-from");
-            }
-            if (highlightTo && highlightTo[0] === r && highlightTo[1] === c) {
-              sq.classList.add("highlight-to");
-            }
-
-            const piece = board[r][c];
-            if (piece) {
-              const span = document.createElement("span");
-              span.textContent = piece;
-              span.className = whiteSet.has(piece) ? "piece-white" : "piece-black";
-              sq.appendChild(span);
-            }
-            boardEl.appendChild(sq);
-          }
-        }
-      }
-
-      drawBoard();
-
-      setInterval(() => {
-        if (step >= sequence.length) {
-          board = initialPieces.map((row) => [...row]);
-          step = 0;
-          moveBadge.textContent = "New Game ♟️";
-          drawBoard();
-          return;
-        }
-        const move = sequence[step];
-        const piece = board[move.from[0]][move.from[1]];
-        board[move.from[0]][move.from[1]] = "";
-        board[move.to[0]][move.to[1]] = piece;
-        moveBadge.textContent = move.label;
-        drawBoard(move.from, move.to);
-        step++;
-      }, 1850);
-    }
-
-    // Subtle Live Online Counter Tick
-    function initOnlineCounter() {
-      const el = document.getElementById("onlineCount");
-      let count = 1248;
-      setInterval(() => {
-        count += Math.floor(Math.random() * 7) - 3;
-        el.textContent = count.toLocaleString();
-      }, 4500);
-    }
-
-    // Boot Visuals
-    initFloatingPieces();
-    initMiniChessboard();
-    initOnlineCounter();
   </script>
 </body>
 </html>
