@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GAMBIT — 3D Multiplayer Chess</title>
+  <title>GAMBIT — 3D Multiplayer Chess Platform</title>
 
-  <!-- Google Fonts: Montserrat (Wordmark) & Inter (UI) -->
+  <!-- Google Fonts: Cinzel (Display Headings), Montserrat (Wordmark) & Inter (UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +17,7 @@
       theme: {
         extend: {
           fontFamily: {
+            display: ['Cinzel', 'Georgia', 'serif'],
             brand: ['Montserrat', 'Inter', 'sans-serif'],
             sans: ['Inter', 'system-ui', 'sans-serif'],
           },
@@ -39,8 +40,9 @@
     :root {
       --bg-top: #1d222b;
       --bg-bottom: #2a313d;
-      --card-bg: rgba(26, 31, 40, 0.78);
-      --card-border: rgba(255, 255, 255, 0.12);
+      --card-bg: rgba(25, 30, 39, 0.80);
+      --card-elevated: rgba(31, 38, 50, 0.86);
+      --card-border: rgba(255, 255, 255, 0.11);
       --text-primary: #f3f4f6;
       --text-muted: #9ca3af;
       --accent: #d4af6a;
@@ -74,17 +76,32 @@
       outline: none;
     }
 
+    /* Subtle Dimmer Overlay for Dashboard Readability */
+    #dashboardBackdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      background: radial-gradient(circle at 50% 30%, rgba(22, 27, 35, 0.38) 0%, rgba(19, 23, 30, 0.72) 100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.55s var(--ease-out);
+    }
+
+    #dashboardBackdrop.active {
+      opacity: 1;
+    }
+
     /* Balanced Smoked Slate Glass (Lightweight 10px Blur for 60fps) */
     .glass-card {
       background: var(--card-bg);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid var(--card-border);
-      box-shadow: 0 24px 48px -16px rgba(8, 10, 15, 0.52);
+      box-shadow: 0 22px 46px -16px rgba(8, 10, 15, 0.54);
     }
 
     .glass-bar {
-      background: rgba(24, 29, 38, 0.80);
+      background: rgba(22, 27, 35, 0.84);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--card-border);
@@ -94,7 +111,7 @@
     #introWordmarkOverlay {
       position: fixed;
       inset: 0;
-      z-index: 25;
+      z-index: 30;
       display: flex;
       align-items: flex-end;
       justify-content: center;
@@ -126,12 +143,12 @@
     /* GPU-Composited View Transitions */
     .view-layer {
       will-change: opacity, transform;
-      transition: opacity 0.55s var(--ease-out), transform 0.6s var(--ease-out), visibility 0.55s;
+      transition: opacity 0.5s var(--ease-out), transform 0.55s var(--ease-out), visibility 0.5s;
     }
 
     .view-hidden {
       opacity: 0;
-      transform: translateY(16px);
+      transform: translateY(14px);
       visibility: hidden;
       pointer-events: none;
     }
@@ -169,7 +186,7 @@
 
     /* Inputs */
     .slate-input {
-      background: rgba(17, 21, 28, 0.72);
+      background: rgba(16, 20, 27, 0.76);
       border: 1px solid rgba(255, 255, 255, 0.11);
       color: #f3f4f6;
       transition: border-color 0.2s ease, background-color 0.2s ease;
@@ -181,50 +198,133 @@
 
     .slate-input:focus {
       outline: none;
-      background: rgba(17, 21, 28, 0.92);
+      background: rgba(16, 20, 27, 0.94);
       border-color: var(--accent);
     }
 
-    /* Buttons */
+    /* Primary Champagne Button */
     .btn-primary {
       background: linear-gradient(135deg, #dfc084 0%, #d4af6a 55%, #b89149 100%);
-      color: #161a22;
-      transition: transform 0.2s var(--ease-out), filter 0.2s ease;
+      color: #151921;
+      transition: transform 0.2s var(--ease-out), filter 0.2s ease, box-shadow 0.2s ease;
     }
 
     .btn-primary:hover:not(:disabled) {
       filter: brightness(1.06);
       transform: translateY(-1px);
+      box-shadow: 0 10px 24px -10px rgba(212, 175, 106, 0.45);
     }
 
     .btn-primary:active:not(:disabled) {
       transform: translateY(0);
     }
 
-    .btn-google {
+    /* Secondary Slate Button */
+    .btn-slate {
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.13);
       color: #f3f4f6;
-      transition: background-color 0.2s ease, border-color 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-out);
     }
 
-    .btn-google:hover:not(:disabled) {
+    .btn-slate:hover:not(:disabled) {
       background: rgba(255, 255, 255, 0.11);
+      border-color: rgba(212, 175, 106, 0.48);
+    }
+
+    /* Interactive Skill & Format Cards */
+    .interactive-card {
+      background: rgba(28, 34, 45, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      transition: transform 0.22s var(--ease-out), border-color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .interactive-card:hover {
+      transform: translateY(-2px);
+      background: rgba(34, 41, 54, 0.86);
+      border-color: rgba(212, 175, 106, 0.42);
+    }
+
+    .interactive-card.selected {
+      background: linear-gradient(155deg, rgba(212, 175, 106, 0.14) 0%, rgba(30, 36, 48, 0.90) 65%);
+      border-color: #d4af6a;
+      box-shadow: 0 0 0 1px rgba(212, 175, 106, 0.32), 0 14px 28px -12px rgba(0, 0, 0, 0.55);
+    }
+
+    /* Rating Rows (Chess.com-style separated list) */
+    .rating-row {
+      background: rgba(20, 25, 33, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-out);
+    }
+
+    .rating-row:hover {
+      background: rgba(30, 37, 49, 0.85);
+      border-color: rgba(212, 175, 106, 0.35);
+    }
+
+    .rating-row.active-format {
+      background: rgba(212, 175, 106, 0.10);
+      border-color: rgba(212, 175, 106, 0.55);
+    }
+
+    /* Time Control Pills */
+    .time-pill {
+      background: rgba(16, 20, 27, 0.68);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      color: #d1d5db;
+      transition: all 0.18s ease;
+    }
+
+    .time-pill:hover {
       border-color: rgba(212, 175, 106, 0.45);
+      color: #f9fafb;
     }
 
-    /* Lobby Mode Card Hover */
-    .mode-card {
-      transition: transform 0.25s var(--ease-out), border-color 0.22s ease, background-color 0.22s ease;
+    .time-pill.active {
+      background: #d4af6a;
+      border-color: #d4af6a;
+      color: #151921;
+      font-weight: 600;
     }
 
-    .mode-card:hover {
-      transform: translateY(-3px);
-      background: rgba(34, 41, 53, 0.86);
-      border-color: rgba(212, 175, 106, 0.45);
+    /* Tabular Figures for Ratings & Timers */
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
     }
 
-    /* Spinner */
+    /* Custom Range Slider for GAMBIT Format */
+    input[type="range"].gambit-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.14);
+      outline: none;
+    }
+
+    input[type="range"].gambit-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 9999px;
+      background: #d4af6a;
+      border: 2px solid #161b23;
+      cursor: pointer;
+    }
+
+    input[type="range"].gambit-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 9999px;
+      background: #d4af6a;
+      border: 2px solid #161b23;
+      cursor: pointer;
+    }
+
+    /* Spinner & Pulse */
     .spinner {
       width: 15px;
       height: 15px;
@@ -238,7 +338,16 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Minimal Toast Transitions */
+    @keyframes radarPulse {
+      0% { transform: scale(0.85); opacity: 0.75; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    .radar-ring {
+      animation: radarPulse 1.5s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+    }
+
+    /* Toast Transitions */
     @keyframes toastIn {
       from { opacity: 0; transform: translateX(20px); }
       to   { opacity: 1; transform: translateX(0); }
@@ -259,19 +368,42 @@
   <!-- Full-Viewport Three.js WebGL Canvas -->
   <canvas id="sceneCanvas" aria-label="GAMBIT 3D Chess Arena"></canvas>
 
+  <!-- Subtle Readability Backdrop for Calibration & Dashboard -->
+  <div id="dashboardBackdrop" aria-hidden="true"></div>
+
   <!-- Synchronized 3D Intro Wordmark (Hidden once intro completes) -->
   <div id="introWordmarkOverlay" aria-hidden="true">
     <div id="introWordmarkText" class="intro-wordmark">GAMBIT</div>
   </div>
 
-  <!-- Minimal Toast Container -->
-  <div id="toastContainer" class="fixed top-5 right-4 sm:right-6 z-50 flex flex-col gap-2.5 w-[calc(100vw-2rem)] max-w-sm pointer-events-none"></div>
+  <!-- Floating Sound Toggle (Visible on Login & Calibration Views) -->
+  <button
+    type="button"
+    id="floatingSoundBtn"
+    aria-label="Toggle chess sound effects"
+    title="Toggle sound"
+    class="view-layer view-hidden fixed top-5 right-5 z-40 glass-card w-10 h-10 rounded-xl flex items-center justify-center text-[#f3f4f6] hover:border-champagne/50 hover:text-champagne transition-colors cursor-pointer"
+  >
+    <svg class="sound-on-icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+    </svg>
+    <svg class="sound-off-icon w-4 h-4 hidden text-[#9ca3af]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <line x1="23" y1="9" x2="17" y2="15" />
+      <line x1="17" y1="9" x2="23" y2="15" />
+    </svg>
+  </button>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-18 sm:top-20 right-4 sm:right-6 z-50 flex flex-col gap-2.5 w-[calc(100vw-2rem)] max-w-sm pointer-events-none"></div>
 
   <!-- =========================================================
        VIEW 1: MINIMAL PRODUCTION LOGIN SCREEN
   ========================================================== -->
-  <main id="authView" class="view-layer view-hidden relative z-10 min-h-screen flex items-center justify-center lg:justify-end px-4 py-8 sm:px-8 lg:px-16">
-    <div class="glass-card w-full max-w-[400px] rounded-2xl p-6 sm:p-8 relative">
+  <main id="authView" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center lg:justify-end px-4 py-8 sm:px-8 lg:px-16 overflow-y-auto">
+    <div class="glass-card w-full max-w-[400px] rounded-2xl p-6 sm:p-8 relative my-auto">
 
       <!-- Subtle Top Champagne Accent Line -->
       <div class="absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-champagne/60 to-transparent"></div>
@@ -280,12 +412,10 @@
       <div class="flex flex-col items-center mb-6">
         <div class="w-14 h-14 flex items-center justify-center mb-2.5">
           <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Logo">
-            <!-- 4 Concentric C/G Arcs with clean radial gaps + Outer Horizontal Crossbar -->
             <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" stroke-linejoin="miter" />
             <path d="M 74.6 25.4 A 34.8 34.8 0 1 0 84.3 55.5" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
             <path d="M 69.8 30.2 A 28.0 28.0 0 1 0 77.4 55.5" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
             <path d="M 65.0 35.0 A 21.2 21.2 0 1 0 70.5 55.4" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
-            <!-- Sculpted Chess King cleanly perched on top of the horizontal bar -->
             <g fill="#d4af6a">
               <rect x="74.9" y="21.0" width="2.2" height="6.8" rx="0.5" />
               <rect x="72.6" y="23.2" width="6.8" height="2.2" rx="0.5" />
@@ -327,13 +457,13 @@
       <button
         type="button"
         id="googleAuthBtn"
-        class="btn-google w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-3 text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        class="btn-slate w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-3 text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg class="w-4 h-4 shrink-0" viewBox="0 0 48 48" aria-hidden="true">
           <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
           <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
           <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         </svg>
         <span id="googleBtnText">Continue with Google</span>
       </button>
@@ -347,7 +477,6 @@
 
       <!-- Auth Form -->
       <form id="authForm" novalidate>
-
         <!-- Username (Sign Up Only) -->
         <div id="usernameCollapse" class="collapsible-field">
           <div class="collapsible-inner">
@@ -436,15 +565,161 @@
   </main>
 
   <!-- =========================================================
-       VIEW 2: AUTHENTICATED GAMBIT LOBBY
+       VIEW 2: POST-LOGIN SKILL CALIBRATION (4 GBT TIERS)
   ========================================================== -->
-  <section id="lobbyView" class="view-layer view-hidden fixed inset-0 z-20 flex flex-col justify-between pointer-events-none">
+  <section id="calibrationView" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center px-4 py-8 sm:px-6 overflow-y-auto">
+    <div class="glass-card w-full max-w-2xl rounded-2xl p-6 sm:p-8 relative my-auto">
+      <div class="absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-champagne/65 to-transparent"></div>
 
-    <!-- Minimal Top Bar -->
-    <header class="glass-bar pointer-events-auto">
-      <div class="max-w-7xl mx-auto px-4 sm:px-8 py-3 flex items-center justify-between gap-3">
-        <!-- Brand -->
-        <div class="flex items-center gap-2.5">
+      <!-- Calibration Heading -->
+      <div class="text-center mb-6 sm:mb-7">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne/12 border border-champagne/30 text-[11px] font-semibold tracking-[0.18em] uppercase text-champagne mb-3">
+          Initial Rating Placement
+        </div>
+        <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-wider text-[#f3f4f6]">
+          CALIBRATE YOUR RATING
+        </h2>
+        <p class="text-xs sm:text-sm text-[#9ca3af] mt-2 max-w-md mx-auto">
+          Select your current chess experience to initialize your starting GBT rating across all formats.
+        </p>
+      </div>
+
+      <!-- 4 Interactive Skill Cards -->
+      <div id="skillGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
+
+        <!-- Option 1: Beginner (300 GBT) -->
+        <button
+          type="button"
+          data-tier="beginner"
+          data-gbt="300"
+          data-rank="Novice"
+          class="skill-card interactive-card text-left rounded-xl p-4 sm:p-5 flex items-center gap-4 cursor-pointer group"
+        >
+          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-champagne shrink-0">
+            <!-- Custom Pawn SVG -->
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="7" r="3" />
+              <path d="M9.5 11h5l-1 4.5 2.5 3.5H8l2.5-3.5-1-4.5Z" />
+              <line x1="6.5" y1="21" x2="17.5" y2="21" />
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">I AM A BEGINNER</div>
+            <div class="text-[11px] text-[#9ca3af] mt-0.5">Learning rules & piece movement</div>
+            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-champagne/15 border border-champagne/30 text-xs font-semibold text-champagne tabular-nums">
+              300 GBT <span class="text-[10px] font-normal text-champagne/80">(ELO)</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Option 2: Intermediate (600 GBT) -->
+        <button
+          type="button"
+          data-tier="intermediate"
+          data-gbt="600"
+          data-rank="Tactician"
+          class="skill-card interactive-card text-left rounded-xl p-4 sm:p-5 flex items-center gap-4 cursor-pointer group"
+        >
+          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-champagne shrink-0">
+            <!-- Custom Knight SVG -->
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17 19H7l1.2-3.2c.6-1.6 1.8-2.4 2.5-3.3-1.2.2-2.4.8-3.7 1.2L5.5 11l3-4.5L9.5 4l2.5 1.5c3 .5 5.2 2.9 5.2 6.5 0 2.5-.8 4.8-.2 7Z" />
+              <line x1="6" y1="21" x2="18" y2="21" />
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">I KNOW HOW TO PLAY</div>
+            <div class="text-[11px] text-[#9ca3af] mt-0.5">Comfortable with tactics & openings</div>
+            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-champagne/15 border border-champagne/30 text-xs font-semibold text-champagne tabular-nums">
+              600 GBT <span class="text-[10px] font-normal text-champagne/80">(ELO)</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Option 3: Pro (1000 GBT) -->
+        <button
+          type="button"
+          data-tier="pro"
+          data-gbt="1000"
+          data-rank="Master"
+          class="skill-card interactive-card text-left rounded-xl p-4 sm:p-5 flex items-center gap-4 cursor-pointer group"
+        >
+          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-champagne shrink-0">
+            <!-- Custom Rook SVG -->
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 4h3v2.5h2V4h2v2.5h2V4h3v4.5l-1.5 1.5v6.5l1.5 2.5H6l1.5-2.5V10L6 8.5V4Z" />
+              <line x1="5.5" y1="21" x2="18.5" y2="21" />
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">I AM PRO</div>
+            <div class="text-[11px] text-[#9ca3af] mt-0.5">Strong positional & endgame play</div>
+            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-champagne/15 border border-champagne/30 text-xs font-semibold text-champagne tabular-nums">
+              1000 GBT <span class="text-[10px] font-normal text-champagne/80">(ELO)</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Option 4: Professional (1499 GBT) -->
+        <button
+          type="button"
+          data-tier="professional"
+          data-gbt="1499"
+          data-rank="Grandmaster"
+          class="skill-card interactive-card text-left rounded-xl p-4 sm:p-5 flex items-center gap-4 cursor-pointer group"
+        >
+          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-champagne shrink-0">
+            <!-- Custom King SVG -->
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="2.5" x2="12" y2="7" />
+              <line x1="9.75" y1="4.75" x2="14.25" y2="4.75" />
+              <path d="M7.5 10.5c0-1.9 2-3.2 4.5-3.2s4.5 1.3 4.5 3.2c0 1.4-1 2.9-1.8 4.2l1.8 4.3h-9l1.8-4.3c-.8-1.3-1.8-2.8-1.8-4.2Z" />
+              <line x1="6" y1="21" x2="18" y2="21" />
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">I AM A PROFESSIONAL</div>
+            <div class="text-[11px] text-[#9ca3af] mt-0.5">Tournament-level calculation & theory</div>
+            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-champagne/15 border border-champagne/30 text-xs font-semibold text-champagne tabular-nums">
+              1499 GBT <span class="text-[10px] font-normal text-champagne/80">(ELO)</span>
+            </div>
+          </div>
+        </button>
+
+      </div>
+
+      <!-- Confirm Calibration CTA -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/10">
+        <div id="calibrationSummary" class="text-xs text-[#9ca3af]">
+          Select a skill tier above to continue
+        </div>
+        <button
+          type="button"
+          id="confirmCalibrationBtn"
+          disabled
+          class="btn-primary w-full sm:w-auto px-6 py-3 rounded-xl font-semibold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <span id="confirmCalibrationText">ENTER GAMBIT ARENA</span>
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       VIEW 3: PROFESSIONAL CHESS.COM-STYLE GAMBIT DASHBOARD
+  ========================================================== -->
+  <section id="dashboardView" class="view-layer view-hidden fixed inset-0 z-20 flex flex-col overflow-y-auto">
+
+    <!-- Top Navigation & Player Profile Header Bar -->
+    <header class="glass-bar sticky top-0 z-30 shrink-0">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+
+        <!-- Left: Brand Logo & Wordmark -->
+        <div class="flex items-center gap-2.5 shrink-0">
           <div class="w-9 h-9 flex items-center justify-center">
             <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Logo">
               <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" stroke-linejoin="miter" />
@@ -465,40 +740,70 @@
           </span>
         </div>
 
-        <!-- Profile, ELO & Sign Out -->
-        <div class="flex items-center gap-2.5 sm:gap-3">
-          <!-- ELO 1200 Badge -->
-          <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-champagne/15 border border-champagne/30">
+        <!-- Right: Professional Player Profile Strip + Controls -->
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+
+          <!-- Peak GBT Rating Pill -->
+          <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-champagne/14 border border-champagne/30 shrink-0">
             <svg class="w-3.5 h-3.5 text-champagne" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
-            <span class="text-xs font-semibold text-champagne tracking-wide">1200 ELO</span>
+            <span id="headerPeakGbt" class="text-xs font-semibold text-champagne tabular-nums">1000 GBT</span>
           </div>
 
-          <!-- User Avatar & Display Name -->
-          <div class="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-xl bg-white/5 border border-white/10">
+          <!-- Profile Strip -->
+          <div class="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-xl bg-white/5 border border-white/10 min-w-0">
             <img
-              id="lobbyAvatarImg"
+              id="dashAvatarImg"
               src=""
               alt="Player Avatar"
-              class="hidden w-7 h-7 rounded-lg object-cover"
+              class="hidden w-8 h-8 rounded-lg object-cover border border-champagne/50 shrink-0"
             />
             <div
-              id="lobbyAvatarInitials"
-              class="w-7 h-7 rounded-lg bg-champagne text-[#161a22] font-bold text-xs flex items-center justify-center"
+              id="dashAvatarInitials"
+              class="w-8 h-8 rounded-lg bg-[#1d222b] border border-champagne/65 text-champagne font-bold text-xs flex items-center justify-center shrink-0"
             >
               GM
             </div>
-            <span id="lobbyUserName" class="text-xs font-semibold text-[#f3f4f6] max-w-[110px] sm:max-w-[160px] truncate">
-              Player
-            </span>
+            <div class="min-w-0 leading-tight">
+              <div id="dashUserName" class="text-xs font-semibold text-[#f3f4f6] max-w-[100px] sm:max-w-[155px] truncate">
+                Player
+              </div>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span id="dashRankBadge" class="text-[10px] font-semibold uppercase tracking-wider text-champagne">
+                  Master
+                </span>
+              </div>
+            </div>
           </div>
 
-          <!-- Sign Out -->
+          <!-- Header Sound Toggle -->
+          <button
+            type="button"
+            id="headerSoundBtn"
+            aria-label="Toggle chess sound effects"
+            title="Toggle sound"
+            class="btn-slate w-9 h-9 rounded-xl flex items-center justify-center shrink-0 cursor-pointer"
+          >
+            <svg class="sound-on-icon w-4 h-4 text-[#f3f4f6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+            <svg class="sound-off-icon w-4 h-4 hidden text-[#9ca3af]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <line x1="23" y1="9" x2="17" y2="15" />
+              <line x1="17" y1="9" x2="23" y2="15" />
+            </svg>
+          </button>
+
+          <!-- Sign Out Button -->
           <button
             type="button"
             id="signOutBtn"
-            class="btn-google inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium cursor-pointer"
+            aria-label="Sign out"
+            title="Sign out"
+            class="btn-slate inline-flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-medium shrink-0 cursor-pointer"
           >
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -511,89 +816,320 @@
       </div>
     </header>
 
-    <!-- Bottom Mode Selector Cards -->
-    <footer class="pointer-events-auto w-full max-w-6xl mx-auto px-4 sm:px-8 pb-6 sm:pb-8">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+    <!-- Main 2-Column Responsive Dashboard Workspace -->
+    <div class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
 
-        <!-- Blitz 3+2 -->
-        <button
-          type="button"
-          data-mode="Blitz 3+2"
-          class="mode-card glass-card text-left rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer group"
-        >
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-champagne/15 border border-champagne/30 flex items-center justify-center text-champagne shrink-0">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
+        <!-- =======================================================
+             LEFT COLUMN (7 cols): FORMAT SELECTOR & PLAY ARENA
+        ======================================================== -->
+        <div class="lg:col-span-7 flex flex-col gap-5">
+
+          <!-- Format Selection Panel -->
+          <div class="glass-card rounded-2xl p-5 sm:p-6 relative">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div>
+                <h2 class="font-display text-lg sm:text-xl font-semibold tracking-wider text-[#f3f4f6]">
+                  PLAY ARENA
+                </h2>
+                <p class="text-xs text-[#9ca3af] mt-0.5">Choose a time format to queue for a rated GBT match</p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/12 border border-emerald-400/25 text-[11px] font-medium text-emerald-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                Rated Matchmaking
+              </span>
             </div>
-            <div>
-              <div class="text-sm font-semibold text-[#f3f4f6]">Blitz 3+2</div>
-              <div class="text-xs text-[#9ca3af] mt-0.5">3 min + 2 sec</div>
+
+            <!-- 4 Selectable Format Cards -->
+            <div id="formatCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+              <!-- 1. RAPID (10 - 30 mins) — Default Selected -->
+              <button
+                type="button"
+                data-format="rapid"
+                class="format-card interactive-card selected text-left rounded-xl p-4 cursor-pointer"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
+                      <!-- Stopwatch SVG -->
+                      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="13" r="8" />
+                        <path d="M12 9v4l2.5 1.5" />
+                        <path d="M9 2h6" />
+                        <path d="M12 2v3" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="text-sm font-semibold tracking-wide text-[#f3f4f6]">RAPID</div>
+                      <div class="text-[11px] text-[#9ca3af]">10 - 30 mins</div>
+                    </div>
+                  </div>
+                  <span id="cardRating-rapid" class="text-xs font-bold text-champagne tabular-nums">1000</span>
+                </div>
+              </button>
+
+              <!-- 2. BLITZ (3 - 5 mins) -->
+              <button
+                type="button"
+                data-format="blitz"
+                class="format-card interactive-card text-left rounded-xl p-4 cursor-pointer"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
+                      <!-- Lightning Bolt SVG -->
+                      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="text-sm font-semibold tracking-wide text-[#f3f4f6]">BLITZ</div>
+                      <div class="text-[11px] text-[#9ca3af]">3 - 5 mins</div>
+                    </div>
+                  </div>
+                  <span id="cardRating-blitz" class="text-xs font-bold text-champagne tabular-nums">1000</span>
+                </div>
+              </button>
+
+              <!-- 3. BULLET (15 sec - 2 mins) -->
+              <button
+                type="button"
+                data-format="bullet"
+                class="format-card interactive-card text-left rounded-xl p-4 cursor-pointer"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-rose-500/15 border border-rose-400/30 flex items-center justify-center text-rose-300 shrink-0">
+                      <!-- Bullet Speed SVG -->
+                      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h6" />
+                        <path d="M3 8h5" />
+                        <path d="M4 16h5" />
+                        <path d="M12 7h4.5c2.5 0 4.5 2.2 4.5 5s-2 5-4.5 5H12V7Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="text-sm font-semibold tracking-wide text-[#f3f4f6]">BULLET</div>
+                      <div class="text-[11px] text-[#9ca3af]">15 sec - 2 mins</div>
+                    </div>
+                  </div>
+                  <span id="cardRating-bullet" class="text-xs font-bold text-champagne tabular-nums">1000</span>
+                </div>
+              </button>
+
+              <!-- 4. GAMBIT (10 seconds - 3 hours) -->
+              <button
+                type="button"
+                data-format="gambit"
+                class="format-card interactive-card text-left rounded-xl p-4 cursor-pointer"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-champagne/18 border border-champagne/40 flex items-center justify-center text-champagne shrink-0">
+                      <!-- Signature Crown/King SVG -->
+                      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 17l2-9 4.5 4L12 5l2.5 7L19 8l2 9H3Z" />
+                        <line x1="4" y1="20" x2="20" y2="20" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-sm font-semibold tracking-wide text-[#f3f4f6]">GAMBIT</span>
+                        <span class="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-champagne/20 text-champagne">Signature</span>
+                      </div>
+                      <div class="text-[11px] text-[#9ca3af]">10 seconds - 3 hours</div>
+                    </div>
+                  </div>
+                  <span id="cardRating-gambit" class="text-xs font-bold text-champagne tabular-nums">1000</span>
+                </div>
+              </button>
+
+            </div>
+
+            <!-- Time Control Selector Pills -->
+            <div class="mt-5 pt-4 border-t border-white/10">
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Time Control</span>
+                <span id="selectedRangeBadge" class="text-[11px] text-champagne font-medium">10 - 30 mins</span>
+              </div>
+              <div id="timePillsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+
+              <!-- Custom Duration Slider (Shown exclusively for GAMBIT format) -->
+              <div id="gambitCustomBox" class="hidden mt-4 p-3.5 rounded-xl bg-black/25 border border-white/10">
+                <div class="flex items-center justify-between mb-2">
+                  <label for="gambitCustomSlider" class="text-xs font-medium text-[#d1d5db]">
+                    Custom GAMBIT Clock (10s - 3h)
+                  </label>
+                  <span id="gambitCustomLabel" class="text-xs font-semibold text-champagne tabular-nums">
+                    15 min
+                  </span>
+                </div>
+                <input
+                  id="gambitCustomSlider"
+                  type="range"
+                  min="0"
+                  max="11"
+                  step="1"
+                  value="5"
+                  class="gambit-slider"
+                />
+                <div class="flex justify-between text-[10px] text-[#9ca3af] mt-1.5 tabular-nums">
+                  <span>10 sec</span>
+                  <span>1 min</span>
+                  <span>10 min</span>
+                  <span>1 hr</span>
+                  <span>3 hrs</span>
+                </div>
+              </div>
             </div>
           </div>
-          <svg class="w-4 h-4 text-[#9ca3af] group-hover:text-champagne group-hover:translate-x-0.5 transition-all shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
 
-        <!-- Rapid 10+0 -->
-        <button
-          type="button"
-          data-mode="Rapid 10+0"
-          class="mode-card glass-card text-left rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer group"
-        >
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/12 flex items-center justify-center text-[#f3f4f6] group-hover:text-champagne transition-colors shrink-0">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <polyline points="12 7 12 12 15.5 14" />
-              </svg>
+          <!-- Active Match Action Panel -->
+          <div class="glass-card rounded-2xl p-5 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-white/10">
+              <div class="flex items-center gap-3">
+                <div id="actionFormatIcon" class="w-11 h-11 rounded-xl bg-champagne/15 border border-champagne/35 flex items-center justify-center text-champagne shrink-0"></div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span id="actionFormatName" class="font-display text-base sm:text-lg font-semibold tracking-wider text-[#f3f4f6]">RAPID</span>
+                    <span class="text-xs text-[#9ca3af]">•</span>
+                    <span id="actionTimeControl" class="text-xs sm:text-sm font-semibold text-champagne tabular-nums">10 min</span>
+                  </div>
+                  <div class="text-xs text-[#9ca3af] mt-0.5">
+                    Current Format Rating: <span id="actionFormatRating" class="text-[#f3f4f6] font-semibold tabular-nums">1000 GBT</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Matchmaking Live Status Pill -->
+              <div id="matchmakingStatus" class="hidden items-center gap-2.5 px-3 py-1.5 rounded-xl bg-champagne/15 border border-champagne/35">
+                <span class="relative flex h-2.5 w-2.5">
+                  <span class="radar-ring absolute inline-flex h-full w-full rounded-full bg-champagne"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-champagne"></span>
+                </span>
+                <span id="matchmakingTimerText" class="text-xs font-semibold text-champagne tabular-nums">Searching 0:00</span>
+              </div>
             </div>
-            <div>
-              <div class="text-sm font-semibold text-[#f3f4f6]">Rapid 10+0</div>
-              <div class="text-xs text-[#9ca3af] mt-0.5">10 min classical</div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                id="playMatchBtn"
+                class="btn-primary py-3.5 px-5 rounded-xl font-semibold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2.5 cursor-pointer"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <polygon points="6 4 20 12 6 20 6 4" />
+                </svg>
+                <span id="playMatchBtnText">PLAY MATCH</span>
+              </button>
+
+              <button
+                type="button"
+                id="playFriendBtn"
+                class="btn-slate py-3.5 px-5 rounded-xl font-semibold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2.5 cursor-pointer"
+              >
+                <svg class="w-4 h-4 text-champagne" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span>PLAY A FRIEND</span>
+              </button>
+            </div>
+
+            <!-- Private Room Invite Drawer (Appears on PLAY A FRIEND) -->
+            <div id="friendRoomDrawer" class="hidden mt-4 p-4 rounded-xl bg-black/30 border border-champagne/35">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div class="text-[11px] uppercase tracking-wider text-[#9ca3af] font-medium">Private Room Code</div>
+                  <div class="flex items-center gap-2.5 mt-1">
+                    <span id="roomCodeDisplay" class="font-brand text-lg font-semibold tracking-[0.26em] text-champagne tabular-nums">GMB-000</span>
+                    <span class="text-[11px] text-[#9ca3af]" id="roomFormatTag">RAPID • 10 min</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    id="copyRoomCodeBtn"
+                    class="btn-primary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>Copy Code</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="closeRoomDrawerBtn"
+                    aria-label="Close room code"
+                    class="btn-slate p-2 rounded-lg cursor-pointer"
+                  >
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          <svg class="w-4 h-4 text-[#9ca3af] group-hover:text-champagne group-hover:translate-x-0.5 transition-all shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
 
-        <!-- Private Room -->
-        <button
-          type="button"
-          data-mode="Private Room"
-          class="mode-card glass-card text-left rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer group"
-        >
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/12 flex items-center justify-center text-[#f3f4f6] group-hover:text-champagne transition-colors shrink-0">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
+        </div>
+
+        <!-- =======================================================
+             RIGHT COLUMN (5 cols): CHESS.COM-STYLE SEPARATED RATINGS
+        ======================================================== -->
+        <aside class="lg:col-span-5 flex flex-col gap-5">
+          <div class="glass-card rounded-2xl p-5 sm:p-6">
+
+            <!-- Ratings Header -->
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+              <div>
+                <h2 class="font-display text-lg font-semibold tracking-wider text-[#f3f4f6]">
+                  RATINGS
+                </h2>
+                <p class="text-[11px] text-[#9ca3af] mt-0.5">Separated GBT ratings by time control</p>
+              </div>
+              <div class="text-right">
+                <div class="text-[10px] uppercase tracking-wider text-[#9ca3af]">Peak Rating</div>
+                <div id="statsPeakGbt" class="text-base font-bold text-champagne tabular-nums">1000 GBT</div>
+              </div>
             </div>
-            <div>
-              <div class="text-sm font-semibold text-[#f3f4f6]">Private Room</div>
-              <div class="text-xs text-[#9ca3af] mt-0.5">Play with a friend</div>
+
+            <!-- 4 Distinct Separated Rating Rows -->
+            <div id="separatedRatingsList" class="flex flex-col gap-2.5">
+              <!-- Populated dynamically and kept synced with active format -->
             </div>
+
+            <!-- Clean Profile Summary Footer -->
+            <div class="mt-5 pt-4 border-t border-white/10 grid grid-cols-3 gap-2 text-center">
+              <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
+                <div class="text-[10px] uppercase tracking-wider text-[#9ca3af]">Member Since</div>
+                <div id="profileMemberSince" class="text-xs font-semibold text-[#f3f4f6] mt-1">Nov 2026</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
+                <div class="text-[10px] uppercase tracking-wider text-[#9ca3af]">Active Format</div>
+                <div id="profileActiveFormat" class="text-xs font-semibold text-champagne mt-1">RAPID</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
+                <div class="text-[10px] uppercase tracking-wider text-[#9ca3af]">Rating Tier</div>
+                <div id="profileRatingTier" class="text-xs font-semibold text-[#f3f4f6] mt-1">Master</div>
+              </div>
+            </div>
+
           </div>
-          <svg class="w-4 h-4 text-[#9ca3af] group-hover:text-champagne group-hover:translate-x-0.5 transition-all shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
+        </aside>
 
       </div>
-    </footer>
+    </div>
   </section>
 
   <!-- =========================================================
-       ZERO-LAG 3D ENGINE + FIREBASE v10 AUTHENTICATION
+       AUDIO ENGINE + ZERO-LAG 3D SCENE + FIREBASE v10 + DASHBOARD
   ========================================================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -609,9 +1145,188 @@
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // =========================================================
-    // 1. FIREBASE v10 INITIALIZATION
+    // 1. PROCEDURAL CHESS SOUND ENGINE (WEB AUDIO API)
+    // =========================================================
+    const chessAudio = (() => {
+      let ctx = null;
+      let enabled = true;
+      let unlocked = false;
+      let noiseBuffer = null;
+
+      function ensureContext() {
+        if (!ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return null;
+          ctx = new AudioCtx();
+          // Pre-generate a short reusable white noise buffer for tactile wooden clacks
+          const sr = ctx.sampleRate;
+          const length = Math.floor(sr * 0.12);
+          noiseBuffer = ctx.createBuffer(1, length, sr);
+          const data = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < length; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * 0.018));
+          }
+        }
+        if (ctx.state === "suspended") {
+          ctx.resume().catch(() => {});
+        }
+        return ctx;
+      }
+
+      function unlock() {
+        if (unlocked) return;
+        const c = ensureContext();
+        if (c) {
+          unlocked = true;
+        }
+      }
+
+      window.addEventListener("pointerdown", unlock, { passive: true });
+      window.addEventListener("keydown", unlock, { passive: true });
+
+      function canPlay() {
+        return enabled && unlocked;
+      }
+
+      // Authentic wooden chess piece clack (filtered transient + warm 180Hz->90Hz woody body)
+      function playWoodImpact(c, startTime, gainScale = 1.0, freqStart = 185, freqEnd = 88) {
+        // 1) Tactile click transient
+        const noise = c.createBufferSource();
+        noise.buffer = noiseBuffer;
+        const bandpass = c.createBiquadFilter();
+        bandpass.type = "bandpass";
+        bandpass.frequency.setValueAtTime(1150, startTime);
+        bandpass.Q.setValueAtTime(1.6, startTime);
+
+        const nGain = c.createGain();
+        nGain.gain.setValueAtTime(0.28 * gainScale, startTime);
+        nGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.048);
+
+        noise.connect(bandpass);
+        bandpass.connect(nGain);
+        nGain.connect(c.destination);
+        noise.start(startTime);
+        noise.stop(startTime + 0.06);
+
+        // 2) Warm resonant wooden board thud
+        const osc = c.createOscillator();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freqStart, startTime);
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, startTime + 0.065);
+
+        const lowpass = c.createBiquadFilter();
+        lowpass.type = "lowpass";
+        lowpass.frequency.setValueAtTime(420, startTime);
+
+        const oGain = c.createGain();
+        oGain.gain.setValueAtTime(0.32 * gainScale, startTime);
+        oGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.085);
+
+        osc.connect(lowpass);
+        lowpass.connect(oGain);
+        oGain.connect(c.destination);
+        osc.start(startTime);
+        osc.stop(startTime + 0.095);
+      }
+
+      return {
+        isEnabled: () => enabled,
+        setEnabled(val) {
+          enabled = Boolean(val);
+          syncSoundButtons();
+          if (enabled) {
+            unlock();
+            this.tickSound();
+          }
+        },
+        toggle() {
+          this.setEnabled(!enabled);
+        },
+        moveSound(volume = 0.85) {
+          if (!canPlay()) return;
+          const c = ensureContext();
+          if (!c) return;
+          playWoodImpact(c, c.currentTime, volume, 180, 90);
+        },
+        captureSound() {
+          if (!canPlay()) return;
+          const c = ensureContext();
+          if (!c) return;
+          const now = c.currentTime;
+          // Richer double-impact wooden strike
+          playWoodImpact(c, now, 0.9, 210, 105);
+          playWoodImpact(c, now + 0.042, 1.15, 165, 76);
+        },
+        checkSound() {
+          if (!canPlay()) return;
+          const c = ensureContext();
+          if (!c) return;
+          const now = c.currentTime;
+          // Refined royal harmonic bell chime (D5 + A5)
+          const freqs = [587.33, 880.0];
+          freqs.forEach((f, idx) => {
+            const osc = c.createOscillator();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(f, now + idx * 0.06);
+
+            const g = c.createGain();
+            g.gain.setValueAtTime(0.0001, now + idx * 0.06);
+            g.gain.linearRampToValueAtTime(idx === 0 ? 0.11 : 0.085, now + idx * 0.06 + 0.015);
+            g.gain.exponentialRampToValueAtTime(0.0008, now + idx * 0.06 + 0.55);
+
+            osc.connect(g);
+            g.connect(c.destination);
+            osc.start(now + idx * 0.06);
+            osc.stop(now + idx * 0.06 + 0.58);
+          });
+        },
+        tickSound() {
+          if (!canPlay()) return;
+          const c = ensureContext();
+          if (!c) return;
+          const now = c.currentTime;
+          const osc = c.createOscillator();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(240, now + 0.025);
+
+          const g = c.createGain();
+          g.gain.setValueAtTime(0.07, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+          osc.connect(g);
+          g.connect(c.destination);
+          osc.start(now);
+          osc.stop(now + 0.035);
+        },
+        errorSound() {
+          if (!canPlay()) return;
+          const c = ensureContext();
+          if (!c) return;
+          const now = c.currentTime;
+          // Soft low muted wood knock
+          playWoodImpact(c, now, 0.55, 118, 62);
+          playWoodImpact(c, now + 0.09, 0.45, 96, 54);
+        }
+      };
+    })();
+
+    function syncSoundButtons() {
+      const isOn = chessAudio.isEnabled();
+      document.querySelectorAll(".sound-on-icon").forEach((el) => el.classList.toggle("hidden", !isOn));
+      document.querySelectorAll(".sound-off-icon").forEach((el) => el.classList.toggle("hidden", isOn));
+    }
+
+    // =========================================================
+    // 2. FIREBASE v10 INITIALIZATION (AUTH + FIRESTORE)
     // =========================================================
     const firebaseConfig = {
       apiKey: "AIzaSyCX9xcZSbGKsHqWSTAcrgsU4N-qOeU-SRo",
@@ -631,14 +1346,139 @@
     }
 
     const auth = getAuth(app);
+    const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: "select_account" });
 
     // =========================================================
-    // 2. DOM REFERENCES & APP STATE
+    // 3. FORMAT DEFINITIONS & PROFILE PERSISTENCE
+    // =========================================================
+    const FORMAT_META = {
+      rapid: {
+        id: "rapid",
+        label: "RAPID",
+        range: "10 - 30 mins",
+        pills: ["10 min", "15 | 10", "20 min", "30 min"],
+        defaultPill: "10 min",
+        accentText: "text-emerald-300",
+        accentBg: "bg-emerald-500/15 border-emerald-400/30",
+        barColor: "bg-emerald-400",
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M9 2h6"/><path d="M12 2v3"/></svg>`
+      },
+      blitz: {
+        id: "blitz",
+        label: "BLITZ",
+        range: "3 - 5 mins",
+        pills: ["3 min", "3 | 2", "5 min", "5 | 3"],
+        defaultPill: "3 | 2",
+        accentText: "text-amber-300",
+        accentBg: "bg-amber-500/15 border-amber-400/30",
+        barColor: "bg-amber-400",
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`
+      },
+      bullet: {
+        id: "bullet",
+        label: "BULLET",
+        range: "15 sec - 2 mins",
+        pills: ["15 sec", "1 min", "1 | 1", "2 | 1"],
+        defaultPill: "1 min",
+        accentText: "text-rose-300",
+        accentBg: "bg-rose-500/15 border-rose-400/30",
+        barColor: "bg-rose-400",
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h6"/><path d="M3 8h5"/><path d="M4 16h5"/><path d="M12 7h4.5c2.5 0 4.5 2.2 4.5 5s-2 5-4.5 5H12V7Z"/></svg>`
+      },
+      gambit: {
+        id: "gambit",
+        label: "GAMBIT",
+        range: "10 seconds - 3 hours",
+        pills: ["10 sec", "10 min", "1 hr", "3 hrs"],
+        defaultPill: "10 min",
+        accentText: "text-champagne",
+        accentBg: "bg-champagne/18 border-champagne/40",
+        barColor: "bg-champagne",
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l2-9 4.5 4L12 5l2.5 7L19 8l2 9H3Z"/><line x1="4" y1="20" x2="20" y2="20"/></svg>`
+      }
+    };
+
+    const GAMBIT_CUSTOM_STEPS = [
+      "10 sec", "30 sec", "1 min", "3 min", "5 min",
+      "15 min", "30 min", "45 min", "1 hr", "1.5 hrs", "2 hrs", "3 hrs"
+    ];
+
+    function getRankFromGbt(gbt) {
+      if (gbt >= 1400) return "Grandmaster";
+      if (gbt >= 950) return "Master";
+      if (gbt >= 550) return "Tactician";
+      return "Novice";
+    }
+
+    function getTierProgress(gbt) {
+      const milestones = [300, 600, 1000, 1500, 2000, 2500];
+      let prev = 0;
+      let next = 2500;
+      for (const m of milestones) {
+        if (gbt < m) {
+          next = m;
+          break;
+        }
+        prev = m;
+      }
+      if (gbt >= 2500) return { pct: 100, next: 2500 };
+      const pct = Math.max(8, Math.min(100, Math.round(((gbt - prev) / (next - prev)) * 100)));
+      return { pct, next };
+    }
+
+    function profileStorageKey(uid) {
+      return `gambit_profile_${uid}`;
+    }
+
+    async function loadUserProfile(uid) {
+      let localProfile = null;
+      try {
+        const raw = localStorage.getItem(profileStorageKey(uid));
+        if (raw) localProfile = JSON.parse(raw);
+      } catch (_) {}
+
+      try {
+        const snap = await getDoc(doc(db, "users", uid));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data && data.calibrated && data.ratings) {
+            try {
+              localStorage.setItem(profileStorageKey(uid), JSON.stringify(data));
+            } catch (_) {}
+            return data;
+          }
+        }
+      } catch (_) {
+        // Seamless fallback to localStorage if Firestore rules restrict reads
+      }
+
+      return localProfile;
+    }
+
+    async function saveUserProfile(uid, profileData) {
+      try {
+        localStorage.setItem(profileStorageKey(uid), JSON.stringify(profileData));
+      } catch (_) {}
+
+      try {
+        await setDoc(doc(db, "users", uid), profileData, { merge: true });
+      } catch (_) {
+        // Local persistence already succeeded; continue seamlessly
+      }
+    }
+
+    // =========================================================
+    // 4. DOM REFERENCES & APP STATE
     // =========================================================
     const authView = document.getElementById("authView");
-    const lobbyView = document.getElementById("lobbyView");
+    const calibrationView = document.getElementById("calibrationView");
+    const dashboardView = document.getElementById("dashboardView");
+    const dashboardBackdrop = document.getElementById("dashboardBackdrop");
+    const floatingSoundBtn = document.getElementById("floatingSoundBtn");
+    const headerSoundBtn = document.getElementById("headerSoundBtn");
+
     const introWordmarkOverlay = document.getElementById("introWordmarkOverlay");
     const introWordmarkText = document.getElementById("introWordmarkText");
 
@@ -655,24 +1495,71 @@
     const togglePasswordBtn = document.getElementById("togglePasswordBtn");
     const eyeOpenIcon = document.getElementById("eyeOpenIcon");
     const eyeClosedIcon = document.getElementById("eyeClosedIcon");
-
     const googleAuthBtn = document.getElementById("googleAuthBtn");
     const googleBtnText = document.getElementById("googleBtnText");
     const submitAuthBtn = document.getElementById("submitAuthBtn");
     const submitBtnText = document.getElementById("submitBtnText");
 
-    const lobbyAvatarImg = document.getElementById("lobbyAvatarImg");
-    const lobbyAvatarInitials = document.getElementById("lobbyAvatarInitials");
-    const lobbyUserName = document.getElementById("lobbyUserName");
+    const skillCards = document.querySelectorAll(".skill-card");
+    const calibrationSummary = document.getElementById("calibrationSummary");
+    const confirmCalibrationBtn = document.getElementById("confirmCalibrationBtn");
+    const confirmCalibrationText = document.getElementById("confirmCalibrationText");
+
+    const dashAvatarImg = document.getElementById("dashAvatarImg");
+    const dashAvatarInitials = document.getElementById("dashAvatarInitials");
+    const dashUserName = document.getElementById("dashUserName");
+    const dashRankBadge = document.getElementById("dashRankBadge");
+    const headerPeakGbt = document.getElementById("headerPeakGbt");
+    const statsPeakGbt = document.getElementById("statsPeakGbt");
+    const profileMemberSince = document.getElementById("profileMemberSince");
+    const profileActiveFormat = document.getElementById("profileActiveFormat");
+    const profileRatingTier = document.getElementById("profileRatingTier");
     const signOutBtn = document.getElementById("signOutBtn");
+
+    const formatCards = document.querySelectorAll(".format-card");
+    const timePillsContainer = document.getElementById("timePillsContainer");
+    const selectedRangeBadge = document.getElementById("selectedRangeBadge");
+    const gambitCustomBox = document.getElementById("gambitCustomBox");
+    const gambitCustomSlider = document.getElementById("gambitCustomSlider");
+    const gambitCustomLabel = document.getElementById("gambitCustomLabel");
+    const actionFormatIcon = document.getElementById("actionFormatIcon");
+    const actionFormatName = document.getElementById("actionFormatName");
+    const actionTimeControl = document.getElementById("actionTimeControl");
+    const actionFormatRating = document.getElementById("actionFormatRating");
+    const separatedRatingsList = document.getElementById("separatedRatingsList");
+
+    const playMatchBtn = document.getElementById("playMatchBtn");
+    const playMatchBtnText = document.getElementById("playMatchBtnText");
+    const playFriendBtn = document.getElementById("playFriendBtn");
+    const matchmakingStatus = document.getElementById("matchmakingStatus");
+    const matchmakingTimerText = document.getElementById("matchmakingTimerText");
+    const friendRoomDrawer = document.getElementById("friendRoomDrawer");
+    const roomCodeDisplay = document.getElementById("roomCodeDisplay");
+    const roomFormatTag = document.getElementById("roomFormatTag");
+    const copyRoomCodeBtn = document.getElementById("copyRoomCodeBtn");
+    const closeRoomDrawerBtn = document.getElementById("closeRoomDrawerBtn");
     const toastContainer = document.getElementById("toastContainer");
 
     let authMode = "signin";
-    let currentScreen = "auth"; // "auth" | "lobby"
+    let currentScreen = "auth"; // "auth" | "calibration" | "dashboard"
     let introDone = false;
+    let activeUser = null;
+    let activeProfile = null;
+    let pendingCalibration = null;
+
+    let selectedFormat = "rapid"; // RAPID selected by default
+    let selectedTimeControls = {
+      rapid: "10 min",
+      blitz: "3 | 2",
+      bullet: "1 min",
+      gambit: "10 min"
+    };
+
+    let matchmakingInterval = null;
+    let matchmakingSeconds = 0;
 
     const sceneState = {
-      phase: "intro", // "intro" | "auth" | "lobby"
+      phase: "intro", // "intro" | "auth" | "calibration" | "dashboard"
       setScreen(screen) {
         currentScreen = screen;
         if (introDone) {
@@ -683,21 +1570,30 @@
     };
 
     function syncVisibleView() {
-      if (currentScreen === "lobby") {
-        authView.classList.remove("view-active");
-        authView.classList.add("view-hidden");
-        lobbyView.classList.remove("view-hidden");
-        lobbyView.classList.add("view-active");
-      } else {
-        lobbyView.classList.remove("view-active");
-        lobbyView.classList.add("view-hidden");
-        authView.classList.remove("view-hidden");
-        authView.classList.add("view-active");
-      }
+      const views = {
+        auth: authView,
+        calibration: calibrationView,
+        dashboard: dashboardView
+      };
+
+      Object.entries(views).forEach(([key, el]) => {
+        const active = currentScreen === key;
+        el.classList.toggle("view-active", active);
+        el.classList.toggle("view-hidden", !active);
+      });
+
+      dashboardBackdrop.classList.toggle("active", currentScreen === "calibration" || currentScreen === "dashboard");
+
+      const showFloatingSound = currentScreen === "auth" || currentScreen === "calibration";
+      floatingSoundBtn.classList.toggle("view-active", showFloatingSound);
+      floatingSoundBtn.classList.toggle("view-hidden", !showFloatingSound);
     }
 
+    floatingSoundBtn.addEventListener("click", () => chessAudio.toggle());
+    headerSoundBtn.addEventListener("click", () => chessAudio.toggle());
+
     // =========================================================
-    // 3. ZERO-LAG THREE.JS ENGINE (ANTI-MERGE INTRO + INSTANCED ARENA)
+    // 5. ZERO-LAG THREE.JS ENGINE (ANTI-MERGE INTRO + INSTANCED ARENA)
     // =========================================================
     function init3DScene() {
       const THREE = window.THREE;
@@ -710,7 +1606,6 @@
 
       const canvas = document.getElementById("sceneCanvas");
 
-      // High-performance renderer with pixel ratio capped at 1.5
       const renderer = new THREE.WebGLRenderer({
         canvas,
         antialias: true,
@@ -735,9 +1630,7 @@
         90
       );
 
-      // ---------------------------------------------------------
-      // BALANCED WARM-IVORY STUDIO LIGHTING (3 LIGHTS TOTAL)
-      // ---------------------------------------------------------
+      // Balanced Warm-Ivory Studio Lighting (3 Lights Total)
       const hemiLight = new THREE.HemisphereLight(0xf6f1e7, 0x262d38, 1.15);
       scene.add(hemiLight);
 
@@ -759,9 +1652,9 @@
       rimLight.position.set(-5.5, 5.2, -5.5);
       scene.add(rimLight);
 
-      // =========================================================
-      // STAGE 1: CLEAN, NON-MERGING 3D GAMBIT LOGO GROUP
-      // =========================================================
+      // ---------------------------------------------------------
+      // STAGE 1: NON-MERGING 3D GAMBIT LOGO GROUP
+      // ---------------------------------------------------------
       const logoGroup = new THREE.Group();
       logoGroup.position.set(0, 0.35, 0);
       scene.add(logoGroup);
@@ -782,10 +1675,9 @@
         opacity: 1
       });
 
-      // Exact 4 concentric arcs with wide 0.18 radial gaps (ZERO merging)
       function buildLogoArc(innerR, outerR, startAngle, endAngle, withCrossbar = false) {
         const shape = new THREE.Shape();
-        const segs = 40;
+        const segs = 38;
 
         shape.moveTo(Math.cos(startAngle) * outerR, Math.sin(startAngle) * outerR);
         for (let i = 1; i <= segs; i++) {
@@ -816,7 +1708,7 @@
           bevelThickness: 0.025,
           bevelSize: 0.02,
           bevelSegments: 2,
-          curveSegments: 24
+          curveSegments: 22
         });
         geo.translate(0, 0, -0.11);
         return new THREE.Mesh(geo, logoArcMat);
@@ -835,25 +1727,14 @@
         return mesh;
       });
 
-      // Sculpted 3D Chess King standing cleanly ON TOP of the horizontal bar
       const logoKing = new THREE.Group();
       const kingProfile = [
-        [0.0, 0.0],
-        [0.25, 0.0],
-        [0.26, 0.05],
-        [0.22, 0.11],
-        [0.16, 0.14],
-        [0.19, 0.18],
-        [0.19, 0.22],
-        [0.14, 0.26],
-        [0.19, 0.46],
-        [0.24, 0.60],
-        [0.22, 0.68],
-        [0.14, 0.73],
-        [0.0, 0.74]
+        [0.0, 0.0], [0.25, 0.0], [0.26, 0.05], [0.22, 0.11],
+        [0.16, 0.14], [0.19, 0.18], [0.19, 0.22], [0.14, 0.26],
+        [0.19, 0.46], [0.24, 0.60], [0.22, 0.68], [0.14, 0.73], [0.0, 0.74]
       ].map(([x, y]) => new THREE.Vector2(x, y));
 
-      const logoKingBody = new THREE.Mesh(new THREE.LatheGeometry(kingProfile, 22), logoKingMat);
+      const logoKingBody = new THREE.Mesh(new THREE.LatheGeometry(kingProfile, 20), logoKingMat);
       const logoCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.24, 0.075), logoKingMat);
       logoCrossV.position.y = 0.86;
       const logoCrossH = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.07, 0.075), logoKingMat);
@@ -865,9 +1746,9 @@
       logoKing.position.set(KING_REST_X, KING_REST_Y, 0);
       logoGroup.add(logoKing);
 
-      // =========================================================
-      // STAGE 2: ZERO-LAG INSTANCED 3D CHESS ARENA (HIDDEN DURING INTRO)
-      // =========================================================
+      // ---------------------------------------------------------
+      // STAGE 2: ZERO-LAG INSTANCED 3D CHESS ARENA
+      // ---------------------------------------------------------
       const arenaGroup = new THREE.Group();
       arenaGroup.visible = false;
       scene.add(arenaGroup);
@@ -875,67 +1756,27 @@
       const SQUARE_SIZE = 1.0;
       const BOARD_SPAN = SQUARE_SIZE * 8;
 
-      // Shared Studio Materials
-      const frameMat = new THREE.MeshStandardMaterial({
-        color: 0x2a313d,
-        roughness: 0.45,
-        metalness: 0.22
-      });
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x2a313d, roughness: 0.45, metalness: 0.22 });
+      const goldMat = new THREE.MeshStandardMaterial({ color: 0xc8a96e, roughness: 0.26, metalness: 0.82 });
+      const lightSqMat = new THREE.MeshStandardMaterial({ color: 0xd6cfc2, roughness: 0.34, metalness: 0.08 });
+      const darkSqMat = new THREE.MeshStandardMaterial({ color: 0x3a4250, roughness: 0.32, metalness: 0.20 });
+      const ivoryPieceMat = new THREE.MeshStandardMaterial({ color: 0xebe6dc, roughness: 0.22, metalness: 0.14 });
+      const bronzePieceMat = new THREE.MeshStandardMaterial({ color: 0x2b303a, roughness: 0.24, metalness: 0.52 });
 
-      const goldMat = new THREE.MeshStandardMaterial({
-        color: 0xc8a96e,
-        roughness: 0.26,
-        metalness: 0.82
-      });
-
-      const lightSqMat = new THREE.MeshStandardMaterial({
-        color: 0xd6cfc2,
-        roughness: 0.34,
-        metalness: 0.08
-      });
-
-      const darkSqMat = new THREE.MeshStandardMaterial({
-        color: 0x3a4250,
-        roughness: 0.32,
-        metalness: 0.20
-      });
-
-      const ivoryPieceMat = new THREE.MeshStandardMaterial({
-        color: 0xebe6dc,
-        roughness: 0.22,
-        metalness: 0.14
-      });
-
-      const bronzePieceMat = new THREE.MeshStandardMaterial({
-        color: 0x2b303a,
-        roughness: 0.24,
-        metalness: 0.52
-      });
-
-      // Architectural Board Base & Brushed Champagne-Gold Outer Frame
-      const boardBase = new THREE.Mesh(
-        new THREE.BoxGeometry(BOARD_SPAN + 0.92, 0.34, BOARD_SPAN + 0.92),
-        frameMat
-      );
+      const boardBase = new THREE.Mesh(new THREE.BoxGeometry(BOARD_SPAN + 0.92, 0.34, BOARD_SPAN + 0.92), frameMat);
       boardBase.position.y = -0.21;
       boardBase.receiveShadow = true;
       arenaGroup.add(boardBase);
 
-      const goldOuterFrame = new THREE.Mesh(
-        new THREE.BoxGeometry(BOARD_SPAN + 0.98, 0.045, BOARD_SPAN + 0.98),
-        goldMat
-      );
+      const goldOuterFrame = new THREE.Mesh(new THREE.BoxGeometry(BOARD_SPAN + 0.98, 0.045, BOARD_SPAN + 0.98), goldMat);
       goldOuterFrame.position.y = -0.05;
       arenaGroup.add(goldOuterFrame);
 
-      const goldInnerTrim = new THREE.Mesh(
-        new THREE.BoxGeometry(BOARD_SPAN + 0.16, 0.05, BOARD_SPAN + 0.16),
-        goldMat
-      );
+      const goldInnerTrim = new THREE.Mesh(new THREE.BoxGeometry(BOARD_SPAN + 0.16, 0.05, BOARD_SPAN + 0.16), goldMat);
       goldInnerTrim.position.y = -0.015;
       arenaGroup.add(goldInnerTrim);
 
-      // 64 Squares using TWO InstancedMesh Objects (2 Draw Calls Total!)
+      // 64 Squares via 2 InstancedMesh objects (2 Draw Calls Total)
       const squareGeo = new THREE.BoxGeometry(SQUARE_SIZE - 0.02, 0.08, SQUARE_SIZE - 0.02);
       const lightInstances = new THREE.InstancedMesh(squareGeo, lightSqMat, 32);
       const darkInstances = new THREE.InstancedMesh(squareGeo, darkSqMat, 32);
@@ -970,41 +1811,23 @@
       darkInstances.instanceMatrix.needsUpdate = true;
       arenaGroup.add(lightInstances, darkInstances);
 
-      // ---------------------------------------------------------
-      // SHARED LEAN PIECE GEOMETRIES (BUILT ONCE, REUSED ACROSS BOARD)
-      // ---------------------------------------------------------
       function makeLathe(pts) {
-        return new THREE.LatheGeometry(
-          pts.map(([x, y]) => new THREE.Vector2(x, y)),
-          20
-        );
+        return new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), 18);
       }
 
       const SHARED_GEO = {
-        pawnBody: makeLathe([
-          [0, 0], [0.30, 0], [0.31, 0.07], [0.24, 0.14],
-          [0.15, 0.34], [0.11, 0.54], [0.17, 0.60], [0.11, 0.66], [0, 0.69]
-        ]),
-        pawnHead: new THREE.SphereGeometry(0.155, 18, 16),
-        pawnCollar: new THREE.TorusGeometry(0.23, 0.017, 8, 20),
+        pawnBody: makeLathe([[0, 0], [0.30, 0], [0.31, 0.07], [0.24, 0.14], [0.15, 0.34], [0.11, 0.54], [0.17, 0.60], [0.11, 0.66], [0, 0.69]]),
+        pawnHead: new THREE.SphereGeometry(0.155, 16, 14),
+        pawnCollar: new THREE.TorusGeometry(0.23, 0.017, 8, 18),
 
-        rookBody: makeLathe([
-          [0, 0], [0.34, 0], [0.35, 0.08], [0.27, 0.16],
-          [0.18, 0.64], [0.25, 0.72], [0.26, 0.90], [0.17, 0.90], [0.17, 0.80], [0, 0.80]
-        ]),
-        rookCollar: new THREE.TorusGeometry(0.26, 0.018, 8, 20),
+        rookBody: makeLathe([[0, 0], [0.34, 0], [0.35, 0.08], [0.27, 0.16], [0.18, 0.64], [0.25, 0.72], [0.26, 0.90], [0.17, 0.90], [0.17, 0.80], [0, 0.80]]),
+        rookCollar: new THREE.TorusGeometry(0.26, 0.018, 8, 18),
 
-        bishopBody: makeLathe([
-          [0, 0], [0.33, 0], [0.34, 0.08], [0.26, 0.16],
-          [0.15, 0.56], [0.13, 0.76], [0.20, 0.82], [0.15, 0.88],
-          [0.19, 1.04], [0.14, 1.20], [0.05, 1.29], [0, 1.31]
-        ]),
-        bishopOrb: new THREE.SphereGeometry(0.055, 14, 12),
-        bishopCollar: new THREE.TorusGeometry(0.25, 0.018, 8, 20),
+        bishopBody: makeLathe([[0, 0], [0.33, 0], [0.34, 0.08], [0.26, 0.16], [0.15, 0.56], [0.13, 0.76], [0.20, 0.82], [0.15, 0.88], [0.19, 1.04], [0.14, 1.20], [0.05, 1.29], [0, 1.31]]),
+        bishopOrb: new THREE.SphereGeometry(0.055, 12, 10),
+        bishopCollar: new THREE.TorusGeometry(0.25, 0.018, 8, 18),
 
-        knightBase: makeLathe([
-          [0, 0], [0.34, 0], [0.35, 0.08], [0.27, 0.16], [0.21, 0.32], [0, 0.32]
-        ]),
+        knightBase: makeLathe([[0, 0], [0.34, 0], [0.35, 0.08], [0.27, 0.16], [0.21, 0.32], [0, 0.32]]),
         knightHead: (() => {
           const s = new THREE.Shape();
           s.moveTo(-0.17, 0.0);
@@ -1022,29 +1845,21 @@
             bevelThickness: 0.03,
             bevelSize: 0.025,
             bevelSegments: 2,
-            curveSegments: 20
+            curveSegments: 18
           });
           g.translate(0, 0.30, -0.08);
           return g;
         })(),
-        knightCollar: new THREE.TorusGeometry(0.26, 0.018, 8, 20),
+        knightCollar: new THREE.TorusGeometry(0.26, 0.018, 8, 18),
 
-        queenBody: makeLathe([
-          [0, 0], [0.36, 0], [0.37, 0.09], [0.28, 0.18],
-          [0.16, 0.72], [0.14, 1.00], [0.22, 1.08], [0.16, 1.14],
-          [0.24, 1.36], [0.18, 1.40], [0, 1.36]
-        ]),
-        queenCrown: new THREE.SphereGeometry(0.072, 14, 12),
-        queenCollar: new THREE.TorusGeometry(0.28, 0.019, 8, 20),
+        queenBody: makeLathe([[0, 0], [0.36, 0], [0.37, 0.09], [0.28, 0.18], [0.16, 0.72], [0.14, 1.00], [0.22, 1.08], [0.16, 1.14], [0.24, 1.36], [0.18, 1.40], [0, 1.36]]),
+        queenCrown: new THREE.SphereGeometry(0.072, 12, 10),
+        queenCollar: new THREE.TorusGeometry(0.28, 0.019, 8, 18),
 
-        kingBody: makeLathe([
-          [0, 0], [0.38, 0], [0.39, 0.09], [0.30, 0.18],
-          [0.17, 0.76], [0.15, 1.08], [0.24, 1.16], [0.17, 1.22],
-          [0.25, 1.44], [0.20, 1.49], [0, 1.47]
-        ]),
+        kingBody: makeLathe([[0, 0], [0.38, 0], [0.39, 0.09], [0.30, 0.18], [0.17, 0.76], [0.15, 1.08], [0.24, 1.16], [0.17, 1.22], [0.25, 1.44], [0.20, 1.49], [0, 1.47]]),
         kingCrossV: new THREE.BoxGeometry(0.058, 0.24, 0.058),
         kingCrossH: new THREE.BoxGeometry(0.17, 0.055, 0.058),
-        kingCollar: new THREE.TorusGeometry(0.29, 0.019, 8, 20)
+        kingCollar: new THREE.TorusGeometry(0.29, 0.019, 8, 18)
       };
 
       function createPieceMesh(type, side) {
@@ -1105,7 +1920,6 @@
         return g;
       }
 
-      // Curated Queen's Gambit Position
       const piecesMap = new Map();
       const layout = [
         { id: "wK",  t: "K", s: "white", f: 6, r: 0 },
@@ -1144,7 +1958,6 @@
         piecesMap.set(p.id, { mesh });
       });
 
-      // Gentle Automated Chess Exhibition Moves
       const moveQueue = [
         { id: "wN2", f: 4, r: 4 },
         { id: "bQ",  f: 2, r: 6 },
@@ -1159,8 +1972,8 @@
       let moveDelay = 2.0;
       let activeMove = null;
 
-      // Ultra-Lightweight Ambient Dust Particles (26 particles max)
-      const dustCount = 26;
+      // Max 24 Dust Particles for 60fps
+      const dustCount = 24;
       const dustPos = new Float32Array(dustCount * 3);
       for (let i = 0; i < dustCount; i++) {
         dustPos[i * 3] = (Math.random() - 0.5) * 14;
@@ -1173,15 +1986,12 @@
         color: 0xd4af6a,
         size: 0.055,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.34,
         depthWrite: false
       });
       const dustPoints = new THREE.Points(dustGeo, dustMat);
       arenaGroup.add(dustPoints);
 
-      // ---------------------------------------------------------
-      // POINTER PARALLAX & RESIZE
-      // ---------------------------------------------------------
       const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
       window.addEventListener("pointermove", (e) => {
         pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -1194,15 +2004,11 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
 
-      // ---------------------------------------------------------
-      // EASING & STRICT ANTI-MERGE TIMELINE
-      // ---------------------------------------------------------
       const clamp01 = (v) => Math.max(0, Math.min(1, v));
       const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
       const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
       const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-      // Initial Intro Camera Pose (Framed exclusively on 3D Logo)
       const camPos = new THREE.Vector3(-1.8, 0.8, 8.2);
       const camLook = new THREE.Vector3(0, 0.25, 0);
       const targetPos = new THREE.Vector3();
@@ -1214,9 +2020,6 @@
       let wordmarkShown = false;
       let arenaReveal = 0;
 
-      // ---------------------------------------------------------
-      // VISIBILITY PAUSE + 60FPS ANIMATION LOOP
-      // ---------------------------------------------------------
       const clock = new THREE.Clock();
       let rafId = null;
 
@@ -1232,7 +2035,6 @@
         if (sceneState.phase === "intro") {
           introTime += dt;
 
-          // 0.00s - 1.05s: 4 concentric 3D arcs smoothly align (with preserved radial gaps)
           logoArcs.forEach((arc, i) => {
             const p = easeOutExpo(clamp01((introTime - i * 0.08) / 0.88));
             const s = 0.72 + 0.28 * p;
@@ -1241,26 +2043,18 @@
             arc.position.z = (1 - p) * (-1.1 - i * 0.18);
           });
 
-          // 0.60s - 1.38s: 3D Chess King glides cleanly onto horizontal crossbar
           const kingP = easeOutCubic(clamp01((introTime - 0.60) / 0.78));
           logoKing.visible = introTime >= 0.58;
-          logoKing.position.set(
-            KING_REST_X,
-            KING_REST_Y + (1 - kingP) * 1.9,
-            0
-          );
+          logoKing.position.set(KING_REST_X, KING_REST_Y + (1 - kingP) * 1.9, 0);
           logoKing.rotation.y = (1 - kingP) * Math.PI * 0.9;
 
-          // 0.95s: Reveal clean GAMBIT wordmark below 3D logo
           if (introTime >= 0.95 && !wordmarkShown) {
             wordmarkShown = true;
             introWordmarkText.classList.add("revealed");
           }
 
-          // Subtle studio rotation of 3D mark
           logoGroup.rotation.y = Math.sin(introTime * 0.9) * 0.08 + pointer.sx * 0.1;
 
-          // 1.90s - 2.48s: Clean fade & glide out of 3D Logo BEFORE board ever appears
           if (introTime >= 1.90) {
             const outP = easeInOutCubic(clamp01((introTime - 1.90) / 0.58));
             const sOut = 1 - outP * 0.14;
@@ -1271,7 +2065,6 @@
             introWordmarkOverlay.style.opacity = String(1 - outP);
           }
 
-          // Intro camera glide
           const camP = easeOutCubic(clamp01(introTime / 1.25));
           targetPos.set(-1.8 * (1 - camP) + pointer.sx * 0.25, 0.8 * (1 - camP) + 0.35, 8.2 - 1.0 * camP);
           targetLook.set(0, 0.25, 0);
@@ -1281,15 +2074,13 @@
           camera.position.copy(camPos);
           camera.lookAt(camLook);
 
-          // 2.50s: Hard separation — completely hide logoGroup, then reveal 3D Chess Arena + UI
           if (introTime >= 2.50) {
             logoGroup.visible = false;
             introWordmarkOverlay.style.display = "none";
 
-            // Snap camera smoothly to Arena start pose so there is zero logo/board merge
             const isDesktop = window.innerWidth >= 1024;
-            const offsetX = currentScreen === "lobby" ? 0 : (isDesktop ? 1.85 : 0);
-            camPos.set(currentScreen === "lobby" ? 0 : -2.6 + offsetX * 0.4, 6.2, 10.6);
+            const offsetX = currentScreen === "auth" ? (isDesktop ? 1.85 : 0) : 0;
+            camPos.set(currentScreen === "auth" ? -2.6 + offsetX * 0.4 : 0, 6.2, 10.6);
             camLook.set(offsetX, 0.3, 0.1);
             camera.position.copy(camPos);
             camera.lookAt(camLook);
@@ -1303,7 +2094,6 @@
             syncVisibleView();
           }
         } else {
-          // ARENA PHASE ("auth" or "lobby")
           if (arenaReveal < 1) {
             arenaReveal = Math.min(1, arenaReveal + dt * 1.65);
             const rEase = easeOutCubic(arenaReveal);
@@ -1312,13 +2102,21 @@
           }
 
           const isDesktop = window.innerWidth >= 1024;
-          if (sceneState.phase === "lobby") {
+          if (sceneState.phase === "dashboard") {
+            const orbitAngle = elapsed * 0.08;
             targetPos.set(
-              pointer.sx * 0.75,
-              7.2 - pointer.sy * 0.35,
-              8.2 + Math.sin(elapsed * 0.22) * 0.14
+              Math.sin(orbitAngle) * 2.2 + pointer.sx * 0.55,
+              7.6 - pointer.sy * 0.28,
+              9.0 + Math.cos(orbitAngle) * 0.7
             );
-            targetLook.set(0, 0.2, 0.3);
+            targetLook.set(0, 0.15, 0.2);
+          } else if (sceneState.phase === "calibration") {
+            targetPos.set(
+              pointer.sx * 0.65,
+              6.6 - pointer.sy * 0.3,
+              9.2 + Math.sin(elapsed * 0.25) * 0.2
+            );
+            targetLook.set(0, 0.25, 0);
           } else {
             const offsetX = isDesktop ? 1.85 : 0.0;
             targetPos.set(
@@ -1347,7 +2145,7 @@
                   from: entry.mesh.position.clone(),
                   to: gridToWorld(spec.f, spec.r),
                   t: 0,
-                  dur: 1.3
+                  dur: 1.25
                 };
               }
               moveIdx = (moveIdx + 1) % moveQueue.length;
@@ -1360,19 +2158,21 @@
             activeMove.mesh.position.y = activeMove.from.y + Math.sin(p * Math.PI) * 1.05;
             if (p >= 1) {
               activeMove.mesh.position.copy(activeMove.to);
+              // Play subtle wooden piece placement sound on Login screen once audio unlocked
+              if (sceneState.phase === "auth") {
+                chessAudio.moveSound(0.42);
+              }
               activeMove = null;
-              moveDelay = 2.8;
+              moveDelay = 2.9;
             }
           }
 
-          // Slow ambient rotation of subtle dust
           dustPoints.rotation.y = elapsed * 0.025;
         }
 
         renderer.render(scene, camera);
       }
 
-      // Pause WebGL completely when tab is hidden
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
           if (rafId !== null) {
@@ -1391,7 +2191,7 @@
     window.addEventListener("load", init3DScene);
 
     // =========================================================
-    // 4. MINIMAL SVG TOAST NOTIFICATIONS
+    // 6. MINIMAL SVG TOAST NOTIFICATIONS
     // =========================================================
     const TOAST_ICONS = {
       success: `<svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>`,
@@ -1430,6 +2230,7 @@
     }
 
     function handleAuthError(error) {
+      chessAudio.errorSound();
       const code = error?.code || "";
       switch (code) {
         case "auth/unauthorized-domain":
@@ -1464,9 +2265,10 @@
     }
 
     // =========================================================
-    // 5. AUTH TAB & FORM CONTROLS
+    // 7. AUTH TAB & FORM CONTROLS
     // =========================================================
     function setAuthMode(mode) {
+      if (authMode !== mode) chessAudio.tickSound();
       authMode = mode;
       const isSignUp = mode === "signup";
 
@@ -1492,6 +2294,7 @@
     tabSignUp.addEventListener("click", () => setAuthMode("signup"));
 
     togglePasswordBtn.addEventListener("click", () => {
+      chessAudio.tickSound();
       const hidden = passwordInput.type === "password";
       passwordInput.type = hidden ? "text" : "password";
       eyeOpenIcon.classList.toggle("hidden", hidden);
@@ -1514,13 +2317,12 @@
       }
     }
 
-    // =========================================================
-    // 6. FIREBASE AUTH ACTIONS
-    // =========================================================
     googleAuthBtn.addEventListener("click", async () => {
+      chessAudio.tickSound();
       setGoogleBusy(true);
       try {
         const res = await signInWithPopup(auth, googleProvider);
+        chessAudio.checkSound();
         showToast("Signed In", `Welcome, ${res.user.displayName || "Player"}.`, "success");
       } catch (err) {
         handleAuthError(err);
@@ -1536,17 +2338,20 @@
       const username = usernameInput.value.trim();
 
       if (!email || !password) {
+        chessAudio.errorSound();
         showToast("Missing Fields", "Enter your email and password.", "error");
         return;
       }
 
       if (authMode === "signup") {
         if (!username || username.length < 3) {
+          chessAudio.errorSound();
           showToast("Invalid Username", "Username must be at least 3 characters.", "error");
           usernameInput.focus();
           return;
         }
         if (password.length < 6) {
+          chessAudio.errorSound();
           showToast("Password Too Short", "Password must be at least 6 characters.", "error");
           passwordInput.focus();
           return;
@@ -1558,12 +2363,13 @@
         if (authMode === "signup") {
           const cred = await createUserWithEmailAndPassword(auth, email, password);
           await updateProfile(cred.user, { displayName: username });
+          chessAudio.checkSound();
           showToast("Account Created", `Welcome to GAMBIT, ${username}.`, "success");
-          populateLobby({ displayName: username, email: cred.user.email, photoURL: cred.user.photoURL });
-          sceneState.setScreen("lobby");
+          await routeAuthenticatedUser(cred.user, username);
         } else {
           const cred = await signInWithEmailAndPassword(auth, email, password);
           const name = cred.user.displayName || cred.user.email.split("@")[0];
+          chessAudio.checkSound();
           showToast("Signed In", `Welcome back, ${name}.`, "success");
         }
       } catch (err) {
@@ -1574,14 +2380,17 @@
     });
 
     forgotPasswordBtn.addEventListener("click", async () => {
+      chessAudio.tickSound();
       const email = emailInput.value.trim();
       if (!email) {
+        chessAudio.errorSound();
         showToast("Email Required", "Enter your email address first.", "info");
         emailInput.focus();
         return;
       }
       try {
         await sendPasswordResetEmail(auth, email);
+        chessAudio.checkSound();
         showToast("Reset Sent", `Password reset email sent to ${email}.`, "success");
       } catch (err) {
         handleAuthError(err);
@@ -1589,6 +2398,9 @@
     });
 
     signOutBtn.addEventListener("click", async () => {
+      chessAudio.tickSound();
+      stopMatchmaking(false);
+      friendRoomDrawer.classList.add("hidden");
       try {
         await signOut(auth);
         showToast("Signed Out", "You have signed out of GAMBIT.", "info");
@@ -1598,7 +2410,61 @@
     });
 
     // =========================================================
-    // 7. AUTH STATE & LOBBY HYDRATION
+    // 8. POST-LOGIN SKILL CALIBRATION (4 GBT TIERS)
+    // =========================================================
+    skillCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        chessAudio.captureSound();
+        skillCards.forEach((c) => c.classList.remove("selected"));
+        card.classList.add("selected");
+
+        const tier = card.getAttribute("data-tier");
+        const gbt = parseInt(card.getAttribute("data-gbt"), 10);
+        const rank = card.getAttribute("data-rank");
+
+        pendingCalibration = { tier, gbt, rank };
+        calibrationSummary.innerHTML = `Starting rating: <span class="text-champagne font-semibold tabular-nums">${gbt} GBT</span> across Rapid, Blitz, Bullet & Gambit`;
+        confirmCalibrationBtn.disabled = false;
+      });
+    });
+
+    confirmCalibrationBtn.addEventListener("click", async () => {
+      if (!pendingCalibration || !activeUser) return;
+
+      confirmCalibrationBtn.disabled = true;
+      confirmCalibrationText.textContent = "INITIALIZING...";
+
+      const gbt = pendingCalibration.gbt;
+      const nowIso = new Date().toISOString();
+      const profile = {
+        uid: activeUser.uid,
+        displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split("@")[0] : "Player"),
+        tier: pendingCalibration.tier,
+        calibrated: true,
+        memberSince: nowIso,
+        ratings: {
+          rapid: { gbt, wins: 0, draws: 0, losses: 0 },
+          blitz: { gbt, wins: 0, draws: 0, losses: 0 },
+          bullet: { gbt, wins: 0, draws: 0, losses: 0 },
+          gambit: { gbt, wins: 0, draws: 0, losses: 0 }
+        }
+      };
+
+      await saveUserProfile(activeUser.uid, profile);
+      activeProfile = profile;
+
+      chessAudio.checkSound();
+      showToast("Rating Calibrated", `Initialized at ${gbt} GBT across all 4 formats.`, "success");
+
+      confirmCalibrationText.textContent = "ENTER GAMBIT ARENA";
+      confirmCalibrationBtn.disabled = false;
+
+      renderDashboard();
+      sceneState.setScreen("dashboard");
+    });
+
+    // =========================================================
+    // 9. CHESS.COM-STYLE DASHBOARD RENDERING & INTERACTIONS
     // =========================================================
     function getInitials(name) {
       if (!name) return "GM";
@@ -1608,41 +2474,354 @@
         : (parts[0][0] + parts[1][0]).toUpperCase();
     }
 
-    function populateLobby(user) {
-      const name = user.displayName || (user.email ? user.email.split("@")[0] : "Player");
-      lobbyUserName.textContent = name;
-
-      if (user.photoURL) {
-        lobbyAvatarImg.src = user.photoURL;
-        lobbyAvatarImg.classList.remove("hidden");
-        lobbyAvatarInitials.classList.add("hidden");
-        lobbyAvatarImg.onerror = () => {
-          lobbyAvatarImg.classList.add("hidden");
-          lobbyAvatarInitials.classList.remove("hidden");
-          lobbyAvatarInitials.textContent = getInitials(name);
-        };
-      } else {
-        lobbyAvatarImg.classList.add("hidden");
-        lobbyAvatarInitials.classList.remove("hidden");
-        lobbyAvatarInitials.textContent = getInitials(name);
+    function formatMemberDate(isoString) {
+      try {
+        const d = isoString ? new Date(isoString) : new Date();
+        return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      } catch (_) {
+        return "Nov 2026";
       }
     }
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        populateLobby(user);
-        sceneState.setScreen("lobby");
+    function getPeakGbt(ratings) {
+      return Math.max(
+        ratings.rapid.gbt,
+        ratings.blitz.gbt,
+        ratings.bullet.gbt,
+        ratings.gambit.gbt
+      );
+    }
+
+    function renderDashboard() {
+      if (!activeUser || !activeProfile) return;
+
+      const displayName = activeUser.displayName || activeProfile.displayName || (activeUser.email ? activeUser.email.split("@")[0] : "Player");
+      const ratings = activeProfile.ratings;
+      const peak = getPeakGbt(ratings);
+      const rank = getRankFromGbt(peak);
+
+      // Header Profile Strip
+      dashUserName.textContent = displayName;
+      dashRankBadge.textContent = rank;
+      headerPeakGbt.textContent = `${peak} GBT`;
+      statsPeakGbt.textContent = `${peak} GBT`;
+      profileMemberSince.textContent = formatMemberDate(activeProfile.memberSince);
+      profileRatingTier.textContent = rank;
+
+      if (activeUser.photoURL) {
+        dashAvatarImg.src = activeUser.photoURL;
+        dashAvatarImg.classList.remove("hidden");
+        dashAvatarInitials.classList.add("hidden");
+        dashAvatarImg.onerror = () => {
+          dashAvatarImg.classList.add("hidden");
+          dashAvatarInitials.classList.remove("hidden");
+          dashAvatarInitials.textContent = getInitials(displayName);
+        };
       } else {
-        sceneState.setScreen("auth");
+        dashAvatarImg.classList.add("hidden");
+        dashAvatarInitials.classList.remove("hidden");
+        dashAvatarInitials.textContent = getInitials(displayName);
       }
+
+      // Format Card Corner Ratings
+      ["rapid", "blitz", "bullet", "gambit"].forEach((key) => {
+        const el = document.getElementById(`cardRating-${key}`);
+        if (el) el.textContent = `${ratings[key].gbt} GBT`;
+      });
+
+      // Render Chess.com-style Separated Ratings List
+      renderSeparatedRatings();
+
+      // Sync Active Format UI (RAPID selected by default)
+      selectFormat(selectedFormat, false);
+    }
+
+    function renderSeparatedRatings() {
+      if (!activeProfile) return;
+      const ratings = activeProfile.ratings;
+      const keys = ["rapid", "blitz", "bullet", "gambit"];
+
+      separatedRatingsList.innerHTML = keys.map((key) => {
+        const meta = FORMAT_META[key];
+        const stat = ratings[key];
+        const { pct, next } = getTierProgress(stat.gbt);
+        const isSelected = key === selectedFormat;
+
+        return `
+          <button
+            type="button"
+            data-rating-format="${key}"
+            class="rating-row ${isSelected ? "active-format" : ""} w-full text-left rounded-xl p-3.5 cursor-pointer"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-lg border ${meta.accentBg} ${meta.accentText} flex items-center justify-center shrink-0">
+                  ${meta.iconSvg}
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">${meta.label}</span>
+                  </div>
+                  <div class="text-[11px] text-[#9ca3af] truncate">${meta.range}</div>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="text-sm sm:text-base font-bold text-[#f3f4f6] tabular-nums">
+                  ${stat.gbt} <span class="text-[11px] font-semibold text-champagne">GBT</span>
+                </div>
+                <div class="text-[10px] text-[#9ca3af] tabular-nums mt-0.5">
+                  ${stat.wins}W · ${stat.draws}D · ${stat.losses}L
+                </div>
+              </div>
+            </div>
+            <div class="mt-2.5 flex items-center gap-2.5">
+              <div class="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div class="h-full rounded-full ${meta.barColor} transition-all duration-300" style="width: ${pct}%"></div>
+              </div>
+              <span class="text-[10px] text-[#9ca3af] tabular-nums shrink-0">${next}</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      separatedRatingsList.querySelectorAll("[data-rating-format]").forEach((row) => {
+        row.addEventListener("click", () => {
+          const fmt = row.getAttribute("data-rating-format");
+          selectFormat(fmt, true);
+        });
+      });
+    }
+
+    function selectFormat(formatKey, playSound = true) {
+      if (!FORMAT_META[formatKey]) return;
+      if (playSound && selectedFormat !== formatKey) {
+        chessAudio.moveSound(0.75);
+      }
+
+      stopMatchmaking(false);
+      selectedFormat = formatKey;
+      const meta = FORMAT_META[formatKey];
+
+      // Update Format Cards
+      formatCards.forEach((card) => {
+        card.classList.toggle("selected", card.getAttribute("data-format") === formatKey);
+      });
+
+      // Update Separated Rating Rows Highlight
+      separatedRatingsList.querySelectorAll("[data-rating-format]").forEach((row) => {
+        row.classList.toggle("active-format", row.getAttribute("data-rating-format") === formatKey);
+      });
+
+      // Update Time Pills
+      selectedRangeBadge.textContent = meta.range;
+      const activeTime = selectedTimeControls[formatKey] || meta.defaultPill;
+
+      timePillsContainer.innerHTML = meta.pills.map((pill) => {
+        const isActive = pill === activeTime;
+        return `
+          <button
+            type="button"
+            data-time-pill="${pill}"
+            class="time-pill ${isActive ? "active" : ""} py-2 px-3 rounded-lg text-xs font-medium tabular-nums cursor-pointer"
+          >
+            ${pill}
+          </button>
+        `;
+      }).join("");
+
+      timePillsContainer.querySelectorAll("[data-time-pill]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.getAttribute("data-time-pill");
+          selectedTimeControls[formatKey] = val;
+          chessAudio.moveSound(0.65);
+          updateTimePillHighlights();
+          syncActionPanel();
+        });
+      });
+
+      // Toggle Custom Duration Slider for GAMBIT
+      gambitCustomBox.classList.toggle("hidden", formatKey !== "gambit");
+      if (formatKey === "gambit") {
+        gambitCustomLabel.textContent = selectedTimeControls.gambit;
+      }
+
+      syncActionPanel();
+    }
+
+    function updateTimePillHighlights() {
+      const currentVal = selectedTimeControls[selectedFormat];
+      timePillsContainer.querySelectorAll("[data-time-pill]").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-time-pill") === currentVal);
+      });
+    }
+
+    function syncActionPanel() {
+      const meta = FORMAT_META[selectedFormat];
+      const rating = activeProfile?.ratings?.[selectedFormat]?.gbt ?? 1000;
+      const timeCtrl = selectedTimeControls[selectedFormat];
+
+      actionFormatIcon.innerHTML = meta.iconSvg;
+      actionFormatName.textContent = meta.label;
+      actionTimeControl.textContent = timeCtrl;
+      actionFormatRating.textContent = `${rating} GBT`;
+      profileActiveFormat.textContent = meta.label;
+      roomFormatTag.textContent = `${meta.label} • ${timeCtrl}`;
+    }
+
+    formatCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        selectFormat(card.getAttribute("data-format"), true);
+      });
     });
 
-    // Lobby Mode Selection
-    document.querySelectorAll(".mode-card").forEach((card) => {
-      card.addEventListener("click", () => {
-        const mode = card.getAttribute("data-mode");
-        showToast(mode, "Matchmaking ready to connect.", "info");
-      });
+    gambitCustomSlider.addEventListener("input", () => {
+      const idx = parseInt(gambitCustomSlider.value, 10);
+      const val = GAMBIT_CUSTOM_STEPS[idx] || "15 min";
+      selectedTimeControls.gambit = val;
+      gambitCustomLabel.textContent = val;
+      updateTimePillHighlights();
+      syncActionPanel();
+    });
+
+    gambitCustomSlider.addEventListener("change", () => {
+      chessAudio.moveSound(0.6);
+    });
+
+    // =========================================================
+    // 10. MATCHMAKING & PLAY A FRIEND ROOM CODE
+    // =========================================================
+    function formatElapsed(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    function stopMatchmaking(notify = true) {
+      if (matchmakingInterval) {
+        clearInterval(matchmakingInterval);
+        matchmakingInterval = null;
+      }
+      matchmakingSeconds = 0;
+      matchmakingStatus.classList.add("hidden");
+      matchmakingStatus.classList.remove("flex");
+      playMatchBtnText.textContent = "PLAY MATCH";
+      if (notify) {
+        chessAudio.tickSound();
+        showToast("Queue Cancelled", "Matchmaking search stopped.", "info");
+      }
+    }
+
+    playMatchBtn.addEventListener("click", () => {
+      if (matchmakingInterval) {
+        stopMatchmaking(true);
+        return;
+      }
+
+      friendRoomDrawer.classList.add("hidden");
+      chessAudio.captureSound();
+
+      const meta = FORMAT_META[selectedFormat];
+      const timeCtrl = selectedTimeControls[selectedFormat];
+      const rating = activeProfile?.ratings?.[selectedFormat]?.gbt ?? 1000;
+
+      matchmakingSeconds = 0;
+      matchmakingTimerText.textContent = "Searching 0:00";
+      matchmakingStatus.classList.remove("hidden");
+      matchmakingStatus.classList.add("flex");
+      playMatchBtnText.textContent = "CANCEL SEARCH";
+
+      showToast(
+        `Searching ${meta.label} (${timeCtrl})`,
+        `Finding opponent near ${rating} GBT...`,
+        "info",
+        3500
+      );
+
+      matchmakingInterval = setInterval(() => {
+        matchmakingSeconds += 1;
+        matchmakingTimerText.textContent = `Searching ${formatElapsed(matchmakingSeconds)}`;
+      }, 1000);
+    });
+
+    function generateRoomCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    playFriendBtn.addEventListener("click", () => {
+      stopMatchmaking(false);
+      chessAudio.checkSound();
+      const code = generateRoomCode();
+      roomCodeDisplay.textContent = code;
+      roomFormatTag.textContent = `${FORMAT_META[selectedFormat].label} • ${selectedTimeControls[selectedFormat]}`;
+      friendRoomDrawer.classList.remove("hidden");
+      showToast("Private Room Created", `Share code ${code} with your opponent.`, "success");
+    });
+
+    closeRoomDrawerBtn.addEventListener("click", () => {
+      chessAudio.tickSound();
+      friendRoomDrawer.classList.add("hidden");
+    });
+
+    // Safe clipboard copy using document.execCommand('copy')
+    copyRoomCodeBtn.addEventListener("click", () => {
+      const code = roomCodeDisplay.textContent.trim();
+      const tempInput = document.createElement("textarea");
+      tempInput.value = code;
+      tempInput.setAttribute("readonly", "");
+      tempInput.style.position = "fixed";
+      tempInput.style.opacity = "0";
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand("copy");
+        chessAudio.tickSound();
+        showToast("Room Code Copied", `Code ${code} copied to clipboard.`, "success");
+      } catch (_) {
+        chessAudio.errorSound();
+        showToast("Copy Failed", `Share code manually: ${code}`, "error");
+      }
+      document.body.removeChild(tempInput);
+    });
+
+    // =========================================================
+    // 11. AUTH STATE ROUTER (LOGIN -> CALIBRATION -> DASHBOARD)
+    // =========================================================
+    async function routeAuthenticatedUser(user, fallbackName = "") {
+      activeUser = user;
+      const existing = await loadUserProfile(user.uid);
+
+      if (existing && existing.calibrated && existing.ratings) {
+        activeProfile = existing;
+        if (fallbackName && !activeProfile.displayName) {
+          activeProfile.displayName = fallbackName;
+        }
+        renderDashboard();
+        sceneState.setScreen("dashboard");
+      } else {
+        // First-time user: show 4-tier GBT Skill Calibration
+        activeProfile = null;
+        pendingCalibration = null;
+        skillCards.forEach((c) => c.classList.remove("selected"));
+        confirmCalibrationBtn.disabled = true;
+        calibrationSummary.textContent = "Select a skill tier above to continue";
+        sceneState.setScreen("calibration");
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await routeAuthenticatedUser(user);
+      } else {
+        activeUser = null;
+        activeProfile = null;
+        stopMatchmaking(false);
+        sceneState.setScreen("auth");
+      }
     });
   </script>
 </body>
