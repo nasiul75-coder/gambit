@@ -3,53 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GAMBIT — 3D Multiplayer Chess Platform</title>
+  <title>GAMBIT — 3D Multiplayer Chess</title>
 
-  <!-- Google Fonts: Cinzel (Display Headings), Montserrat (Wordmark) & Inter (UI) -->
+  <!-- Google Fonts: Plus Jakarta Sans (UI), Cinzel (Brand Wordmark), JetBrains Mono (Numeric Telemetry) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS CDN for Responsive Layout Utilities -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            display: ['Cinzel', 'Georgia', 'serif'],
-            brand: ['Montserrat', 'Inter', 'sans-serif'],
-            sans: ['Inter', 'system-ui', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            brand: ['Cinzel', 'Georgia', 'serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
           },
           colors: {
-            champagne: {
-              DEFAULT: '#d4af6a',
-              hover: '#dfc084',
-              dark: '#b89149',
-            }
+            obsidian: '#0B0D11',
+            panel: '#13161C',
+            elevated: '#181C24',
+            gunmetal: '#1C212B',
+            brass: {
+              DEFAULT: '#D4AF6A',
+              muted: '#C49B54',
+            },
+            ivory: '#EDE8DF',
           }
         }
       }
     };
   </script>
 
-  <!-- Three.js r128 CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Three.js r160+ ES Module Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 
   <style>
     :root {
-      --bg-top: #1d222b;
-      --bg-bottom: #2a313d;
-      --card-bg: rgba(25, 30, 39, 0.80);
-      --card-elevated: rgba(31, 38, 50, 0.86);
-      --card-border: rgba(255, 255, 255, 0.11);
-      --text-primary: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #d4af6a;
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --bg-obsidian: #0B0D11;
+      --bg-panel: #13161C;
+      --bg-elevated: #181C24;
+      --bg-gunmetal: #1C212B;
+      --border-hairline: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --border-brass: rgba(212, 175, 106, 0.55);
+      --brass: #D4AF6A;
+      --brass-muted: #C49B54;
+      --ivory: #EDE8DF;
+      --text-primary: #F3F4F6;
+      --text-secondary: #A1A7B3;
+      --text-muted: #6C7382;
+      --ease-studio: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
     }
 
@@ -58,14 +74,15 @@
       padding: 0;
       width: 100%;
       min-height: 100vh;
-      background: linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+      background-color: var(--bg-obsidian);
       color: var(--text-primary);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Full-Viewport WebGL Canvas */
+    /* Full-Viewport WebGL 3D Studio Canvas */
     #sceneCanvas {
       position: fixed;
       inset: 0;
@@ -76,38 +93,34 @@
       outline: none;
     }
 
-    /* Subtle Dimmer Overlay for Dashboard Readability */
-    #dashboardBackdrop {
+    /* Architectural Dimmer for Calibration & Dashboard Readability */
+    #studioScrim {
       position: fixed;
       inset: 0;
       z-index: 5;
-      background: radial-gradient(circle at 50% 30%, rgba(22, 27, 35, 0.38) 0%, rgba(19, 23, 30, 0.72) 100%);
+      background: radial-gradient(circle at 50% 25%, rgba(11, 13, 17, 0.44) 0%, rgba(11, 13, 17, 0.84) 100%);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.55s var(--ease-out);
+      transition: opacity 0.45s var(--ease-studio);
     }
 
-    #dashboardBackdrop.active {
+    #studioScrim.active {
       opacity: 1;
     }
 
-    /* Balanced Smoked Slate Glass (Lightweight 10px Blur for 60fps) */
-    .glass-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid var(--card-border);
-      box-shadow: 0 22px 46px -16px rgba(8, 10, 15, 0.54);
+    /* Matte Architectural Panels — Zero Generic Glow */
+    .studio-panel {
+      background: rgba(19, 22, 28, 0.94);
+      border: 1px solid var(--border-hairline);
+      box-shadow: 0 24px 48px -18px rgba(0, 0, 0, 0.72);
     }
 
-    .glass-bar {
-      background: rgba(22, 27, 35, 0.84);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--card-border);
+    .studio-header {
+      background: rgba(11, 13, 17, 0.94);
+      border-bottom: 1px solid var(--border-hairline);
     }
 
-    /* Intro Synchronized Wordmark */
+    /* Intro Synchronized Wordmark Overlay */
     #introWordmarkOverlay {
       position: fixed;
       inset: 0;
@@ -118,52 +131,133 @@
       padding-bottom: clamp(13vh, 18vh, 22vh);
       pointer-events: none;
       opacity: 1;
-      transition: opacity 0.45s var(--ease-out);
+      transition: opacity 0.4s var(--ease-studio);
     }
 
     .intro-wordmark {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 500;
-      font-size: clamp(1.35rem, 3vw, 2.2rem);
-      letter-spacing: 0.78em;
-      padding-left: 0.78em;
-      color: #f3f4f6;
+      font-family: 'Cinzel', Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(1.4rem, 3vw, 2.25rem);
+      letter-spacing: 0.72em;
+      padding-left: 0.72em;
+      color: var(--ivory);
       opacity: 0;
       transform: translateY(10px);
-      transition: opacity 0.55s var(--ease-out), transform 0.65s var(--ease-out), letter-spacing 0.75s var(--ease-out), padding-left 0.75s var(--ease-out);
+      transition:
+        opacity 0.55s var(--ease-studio),
+        transform 0.65s var(--ease-studio),
+        letter-spacing 0.75s var(--ease-studio),
+        padding-left 0.75s var(--ease-studio);
     }
 
     .intro-wordmark.revealed {
       opacity: 1;
       transform: translateY(0);
-      letter-spacing: 0.52em;
-      padding-left: 0.52em;
+      letter-spacing: 0.46em;
+      padding-left: 0.46em;
     }
 
-    /* GPU-Composited View Transitions */
+    /* Strict View Layer Transitions */
     .view-layer {
       will-change: opacity, transform;
-      transition: opacity 0.5s var(--ease-out), transform 0.55s var(--ease-out), visibility 0.5s;
+      transition: opacity 0.36s var(--ease-studio), transform 0.4s var(--ease-studio);
     }
 
     .view-hidden {
       opacity: 0;
-      transform: translateY(14px);
-      visibility: hidden;
+      transform: translateY(10px);
       pointer-events: none;
     }
 
-    .view-active,
-    .view-layer.active {
+    .view-active {
       opacity: 1;
       transform: translateY(0);
-      visibility: visible;
       pointer-events: auto;
     }
 
-    /* Sliding Pill Tab Switcher */
-    .tab-pill {
-      transition: transform 0.36s var(--ease-out);
+    /* Numeric Telemetry */
+    .mono-num {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Sharp Primary CTA — Crisp Warm Ivory */
+    .btn-ivory {
+      background-color: var(--ivory);
+      color: var(--bg-obsidian);
+      border: 1px solid var(--ivory);
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.1s ease;
+    }
+
+    .btn-ivory:hover:not(:disabled) {
+      background-color: #FFFFFF;
+      border-color: #FFFFFF;
+    }
+
+    .btn-ivory:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .btn-ivory:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    /* Sharp Secondary CTA — Matte Gunmetal */
+    .btn-gunmetal {
+      background-color: var(--bg-gunmetal);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      font-weight: 500;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.1s ease;
+    }
+
+    .btn-gunmetal:hover:not(:disabled) {
+      background-color: #232936;
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+
+    .btn-gunmetal:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .btn-gunmetal:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Architectural Inputs */
+    .studio-input {
+      background-color: #0E1117;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 8px;
+      color: var(--text-primary);
+      transition: border-color 0.16s ease, background-color 0.16s ease;
+    }
+
+    .studio-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .studio-input:focus {
+      outline: none;
+      background-color: #0B0D11;
+      border-color: var(--border-brass);
+    }
+
+    /* Segmented Auth Tab Switcher */
+    .auth-tab {
+      border-radius: 6px;
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+
+    .auth-tab.active {
+      background-color: var(--bg-gunmetal);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     /* Collapsible Username Field */
@@ -172,7 +266,7 @@
       grid-template-rows: 0fr;
       opacity: 0;
       margin-bottom: 0;
-      transition: grid-template-rows 0.34s var(--ease-out), opacity 0.24s ease, margin-bottom 0.34s var(--ease-out);
+      transition: grid-template-rows 0.28s var(--ease-studio), opacity 0.2s ease, margin-bottom 0.28s var(--ease-studio);
     }
 
     .collapsible-field.open {
@@ -185,150 +279,125 @@
       overflow: hidden;
     }
 
-    /* Inputs */
-    .slate-input {
-      background: rgba(16, 20, 27, 0.76);
-      border: 1px solid rgba(255, 255, 255, 0.11);
-      color: #f3f4f6;
-      transition: border-color 0.2s ease, background-color 0.2s ease;
+    /* Architectural Selection Cards (Calibration & Formats) */
+    .studio-card {
+      position: relative;
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
     }
 
-    .slate-input::placeholder {
-      color: #6b7280;
+    .studio-card:hover {
+      background-color: #1D222C;
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
-    .slate-input:focus {
-      outline: none;
-      background: rgba(16, 20, 27, 0.94);
-      border-color: var(--accent);
+    .studio-card:active {
+      transform: translateY(1px);
     }
 
-    /* Primary Champagne Button */
-    .btn-primary {
-      background: linear-gradient(135deg, #dfc084 0%, #d4af6a 55%, #b89149 100%);
-      color: #151921;
-      transition: transform 0.2s var(--ease-out), filter 0.2s ease, box-shadow 0.2s ease;
+    .studio-card.selected {
+      background-color: #1B2029;
+      border-color: var(--border-brass);
     }
 
-    .btn-primary:hover:not(:disabled) {
-      filter: brightness(1.06);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px -10px rgba(212, 175, 106, 0.45);
+    /* Precision Left Brass Indicator Bar on Active Format Card */
+    .format-card::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 10px;
+      bottom: 10px;
+      width: 3px;
+      background-color: var(--brass);
+      border-radius: 0 2px 2px 0;
+      opacity: 0;
+      transform: scaleY(0.4);
+      transition: opacity 0.18s ease, transform 0.22s var(--ease-studio);
     }
 
-    .btn-primary:active:not(:disabled) {
-      transform: translateY(0);
+    .format-card.selected::before {
+      opacity: 1;
+      transform: scaleY(1);
     }
 
-    /* Secondary Slate Button */
-    .btn-slate {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.13);
-      color: #f3f4f6;
-      transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-out);
+    /* Time Control Preset Buttons */
+    .preset-btn {
+      background-color: #101319;
+      border: 1px solid var(--border-hairline);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
 
-    .btn-slate:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.11);
-      border-color: rgba(212, 175, 106, 0.48);
+    .preset-btn:hover {
+      background-color: #181C24;
+      border-color: rgba(255, 255, 255, 0.18);
+      color: var(--text-primary);
     }
 
-    /* Interactive Skill & Format Cards */
-    .interactive-card {
-      background: rgba(28, 34, 45, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      transition: transform 0.22s var(--ease-out), border-color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease;
-    }
-
-    .interactive-card:hover {
-      transform: translateY(-2px);
-      background: rgba(34, 41, 54, 0.86);
-      border-color: rgba(212, 175, 106, 0.42);
-    }
-
-    .interactive-card.selected {
-      background: linear-gradient(155deg, rgba(212, 175, 106, 0.14) 0%, rgba(30, 36, 48, 0.90) 65%);
-      border-color: #d4af6a;
-      box-shadow: 0 0 0 1px rgba(212, 175, 106, 0.32), 0 14px 28px -12px rgba(0, 0, 0, 0.55);
-    }
-
-    /* Rating Rows (Chess.com-style separated list) */
-    .rating-row {
-      background: rgba(20, 25, 33, 0.62);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-out);
-    }
-
-    .rating-row:hover {
-      background: rgba(30, 37, 49, 0.85);
-      border-color: rgba(212, 175, 106, 0.35);
-    }
-
-    .rating-row.active-format {
-      background: rgba(212, 175, 106, 0.10);
-      border-color: rgba(212, 175, 106, 0.55);
-    }
-
-    /* Time Control Pills */
-    .time-pill {
-      background: rgba(16, 20, 27, 0.68);
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      color: #d1d5db;
-      transition: all 0.18s ease;
-    }
-
-    .time-pill:hover {
-      border-color: rgba(212, 175, 106, 0.45);
-      color: #f9fafb;
-    }
-
-    .time-pill.active {
-      background: #d4af6a;
-      border-color: #d4af6a;
-      color: #151921;
+    .preset-btn.active {
+      background-color: rgba(212, 175, 106, 0.14);
+      border-color: var(--border-brass);
+      color: var(--brass);
       font-weight: 600;
     }
 
-    /* Tabular Figures for Ratings & Timers */
-    .tabular-nums {
-      font-variant-numeric: tabular-nums;
+    /* Chess.com-Style Separated Rating Rows */
+    .rating-row {
+      position: relative;
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      transition: background-color 0.16s ease, border-color 0.16s ease;
     }
 
-    /* Custom Range Slider for GAMBIT Format */
-    input[type="range"].gambit-slider {
+    .rating-row:hover {
+      background-color: #1D222C;
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .rating-row.active-format {
+      background-color: #1B2029;
+      border-color: var(--border-brass);
+    }
+
+    /* Precision Horology Range Slider for GAMBIT Format */
+    input[type="range"].studio-slider {
       -webkit-appearance: none;
       appearance: none;
       width: 100%;
-      height: 5px;
-      border-radius: 9999px;
+      height: 3px;
       background: rgba(255, 255, 255, 0.14);
+      border-radius: 2px;
       outline: none;
     }
 
-    input[type="range"].gambit-slider::-webkit-slider-thumb {
+    input[type="range"].studio-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 9999px;
-      background: #d4af6a;
-      border: 2px solid #161b23;
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--brass);
+      border: 1px solid #0B0D11;
       cursor: pointer;
     }
 
-    input[type="range"].gambit-slider::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      border-radius: 9999px;
-      background: #d4af6a;
-      border: 2px solid #161b23;
+    input[type="range"].studio-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--brass);
+      border: 1px solid #0B0D11;
       cursor: pointer;
     }
 
-    /* Spinner & Pulse */
+    /* Spinner & Matchmaking Status Pulse */
     .spinner {
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
       border: 2px solid currentColor;
       border-right-color: transparent;
       border-radius: 9999px;
@@ -339,107 +408,107 @@
       to { transform: rotate(360deg); }
     }
 
-    @keyframes radarPulse {
-      0% { transform: scale(0.85); opacity: 0.75; }
-      100% { transform: scale(1.6); opacity: 0; }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
     }
 
-    .radar-ring {
-      animation: radarPulse 1.5s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+    .live-dot {
+      animation: pulseDot 1.3s ease-in-out infinite;
     }
 
-    /* Toast Transitions */
+    /* Toast Entrance/Exit */
     @keyframes toastIn {
-      from { opacity: 0; transform: translateX(20px); }
+      from { opacity: 0; transform: translateX(18px); }
       to   { opacity: 1; transform: translateX(0); }
     }
 
     @keyframes toastOut {
       from { opacity: 1; transform: translateX(0); }
-      to   { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 0; transform: translateX(18px); }
     }
 
-    .toast-in { animation: toastIn 0.3s var(--ease-out) forwards; }
-    .toast-out { animation: toastOut 0.22s ease forwards; }
+    .toast-in { animation: toastIn 0.26s var(--ease-studio) forwards; }
+    .toast-out { animation: toastOut 0.2s ease forwards; }
   </style>
 </head>
 
-<body class="selection:bg-champagne/25 selection:text-white">
+<body class="selection:bg-brass/25 selection:text-white">
 
-  <!-- Full-Viewport Three.js WebGL Canvas -->
+  <!-- Full-Viewport Three.js PBR WebGL Canvas -->
   <canvas id="sceneCanvas" aria-label="GAMBIT 3D Chess Arena"></canvas>
 
-  <!-- Subtle Readability Backdrop for Calibration & Dashboard -->
-  <div id="dashboardBackdrop" aria-hidden="true"></div>
+  <!-- Subtle Studio Dimmer for Calibration & Dashboard -->
+  <div id="studioScrim" aria-hidden="true"></div>
 
-  <!-- Synchronized 3D Intro Wordmark (Hidden once intro completes) -->
+  <!-- Synchronized 3D Intro Wordmark -->
   <div id="introWordmarkOverlay" aria-hidden="true">
     <div id="introWordmarkText" class="intro-wordmark">GAMBIT</div>
   </div>
 
-  <!-- Floating Sound Toggle (Visible on Login & Calibration Views) -->
+  <!-- Floating Sound Control (Login & Calibration Views) -->
   <button
     type="button"
     id="floatingSoundBtn"
     aria-label="Toggle chess sound effects"
-    title="Toggle sound"
-    class="view-layer view-hidden fixed top-5 right-5 z-40 glass-card w-10 h-10 rounded-xl flex items-center justify-center text-[#f3f4f6] hover:border-champagne/50 hover:text-champagne transition-colors cursor-pointer"
+    title="Toggle Sound"
+    style="display: none;"
+    class="fixed top-5 right-5 z-40 btn-gunmetal w-10 h-10 flex items-center justify-center cursor-pointer"
   >
-    <svg class="sound-on-icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <svg class="sound-on-icon w-4 h-4 text-[#EDE8DF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
       <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
       <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
     </svg>
-    <svg class="sound-off-icon w-4 h-4 hidden text-[#9ca3af]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <svg class="sound-off-icon w-4 h-4 hidden text-[#6C7382]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
       <line x1="23" y1="9" x2="17" y2="15" />
       <line x1="17" y1="9" x2="23" y2="15" />
     </svg>
   </button>
 
-  <!-- Toast Container -->
-  <div id="toastContainer" class="fixed top-18 sm:top-20 right-4 sm:right-6 z-50 flex flex-col gap-2.5 w-[calc(100vw-2rem)] max-w-sm pointer-events-none"></div>
+  <!-- Toast Notification Stack -->
+  <div id="toastContainer" class="fixed top-16 sm:top-[72px] right-4 sm:right-6 z-50 flex flex-col gap-2 w-[calc(100vw-2rem)] max-w-sm pointer-events-none"></div>
 
   <!-- =========================================================
-       VIEW 1: MINIMAL PRODUCTION LOGIN SCREEN
+       VIEW 1: ARCHITECTURAL LOGIN SCREEN
   ========================================================== -->
   <main id="authView" style="display: none;" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center lg:justify-end px-4 py-8 sm:px-8 lg:px-16 overflow-y-auto">
-    <div class="glass-card w-full max-w-[400px] rounded-2xl p-6 sm:p-8 relative my-auto">
+    <div class="studio-panel w-full max-w-[404px] rounded-[10px] p-6 sm:p-8 relative my-auto">
 
-      <!-- Subtle Top Champagne Accent Line -->
-      <div class="absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-champagne/60 to-transparent"></div>
+      <!-- Precision Top Brass Hairline -->
+      <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brass/65 to-transparent"></div>
 
-      <!-- Brand Header: Exact 4-Ring G + Chess King SVG & GAMBIT Wordmark -->
+      <!-- Brand Emblem: Exact 4-Ring G + Chess King SVG & GAMBIT Wordmark -->
       <div class="flex flex-col items-center mb-6">
         <div class="w-14 h-14 flex items-center justify-center mb-2.5">
-          <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Logo">
-            <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" stroke-linejoin="miter" />
-            <path d="M 74.6 25.4 A 34.8 34.8 0 1 0 84.3 55.5" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
-            <path d="M 69.8 30.2 A 28.0 28.0 0 1 0 77.4 55.5" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
-            <path d="M 65.0 35.0 A 21.2 21.2 0 1 0 70.5 55.4" stroke="#f3f4f6" stroke-width="3.2" stroke-linecap="butt" />
-            <g fill="#d4af6a">
-              <rect x="74.9" y="21.0" width="2.2" height="6.8" rx="0.5" />
-              <rect x="72.6" y="23.2" width="6.8" height="2.2" rx="0.5" />
+          <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Emblem">
+            <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#EDE8DF" stroke-width="3.2" stroke-linecap="butt" stroke-linejoin="miter" />
+            <path d="M 74.6 25.4 A 34.8 34.8 0 1 0 84.3 55.5" stroke="#EDE8DF" stroke-width="3.2" stroke-linecap="butt" />
+            <path d="M 69.8 30.2 A 28.0 28.0 0 1 0 77.4 55.5" stroke="#EDE8DF" stroke-width="3.2" stroke-linecap="butt" />
+            <path d="M 65.0 35.0 A 21.2 21.2 0 1 0 70.5 55.4" stroke="#EDE8DF" stroke-width="3.2" stroke-linecap="butt" />
+            <g fill="#D4AF6A">
+              <rect x="74.9" y="21.0" width="2.2" height="6.8" rx="0.4" />
+              <rect x="72.6" y="23.2" width="6.8" height="2.2" rx="0.4" />
               <path d="M 71.7 39.2 L 70.1 32.2 C 69.6 29.8 71.4 27.9 73.7 27.9 L 78.3 27.9 C 80.6 27.9 82.4 29.8 81.9 32.2 L 80.3 39.2 Z" />
-              <rect x="70.8" y="40.3" width="10.4" height="2.0" rx="1.0" />
+              <rect x="70.8" y="40.3" width="10.4" height="2.0" rx="0.8" />
               <path d="M 69.4 46.2 C 69.4 44.3 70.9 43.3 72.6 43.3 L 79.4 43.3 C 81.1 43.3 82.6 44.3 82.6 46.2 Z" />
             </g>
           </svg>
         </div>
-        <h1 class="font-brand text-xl font-semibold tracking-[0.38em] pl-[0.38em] text-[#f3f4f6]">
+        <h1 class="font-brand text-xl font-semibold tracking-[0.40em] pl-[0.40em] text-[#EDE8DF]">
           GAMBIT
         </h1>
       </div>
 
-      <!-- Sliding Pill Tab Switcher -->
-      <div class="relative grid grid-cols-2 p-1 rounded-xl bg-black/25 border border-white/10 mb-5" role="tablist">
-        <div id="tabPill" class="tab-pill absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-lg bg-white/12"></div>
+      <!-- Segmented Auth Mode Switcher -->
+      <div class="grid grid-cols-2 p-1 rounded-[8px] bg-[#0B0D11] border border-white/[0.08] mb-5" role="tablist">
         <button
           type="button"
           id="tabSignIn"
           role="tab"
           aria-selected="true"
-          class="relative z-10 py-2 text-xs sm:text-sm font-semibold rounded-lg text-[#f3f4f6] transition-colors cursor-pointer"
+          class="auth-tab active py-2 text-xs font-semibold tracking-wide cursor-pointer"
         >
           Sign In
         </button>
@@ -448,17 +517,20 @@
           id="tabSignUp"
           role="tab"
           aria-selected="false"
-          class="relative z-10 py-2 text-xs sm:text-sm font-medium rounded-lg text-[#9ca3af] transition-colors cursor-pointer"
+          class="auth-tab py-2 text-xs font-medium tracking-wide text-[#A1A7B3] cursor-pointer"
         >
-          Sign Up
+          Create Account
         </button>
       </div>
 
-      <!-- Continue with Google Button -->
+      <!-- Inline Auth Error Banner -->
+      <div id="authInlineError" class="hidden mb-4 px-3.5 py-2.5 rounded-[8px] bg-rose-950/50 border border-rose-500/35 text-xs text-rose-200 leading-relaxed"></div>
+
+      <!-- Continue with Google -->
       <button
         type="button"
         id="googleAuthBtn"
-        class="btn-slate w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-3 text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        class="btn-gunmetal w-full py-2.5 px-4 flex items-center justify-center gap-3 text-sm cursor-pointer"
       >
         <svg class="w-4 h-4 shrink-0" viewBox="0 0 48 48" aria-hidden="true">
           <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -469,57 +541,57 @@
         <span id="googleBtnText">Continue with Google</span>
       </button>
 
-      <!-- Subtle Divider -->
+      <!-- Hairline Divider -->
       <div class="relative flex items-center my-5">
-        <div class="flex-grow border-t border-white/10"></div>
-        <span class="px-3 text-xs text-[#9ca3af]">or</span>
-        <div class="flex-grow border-t border-white/10"></div>
+        <div class="flex-grow border-t border-white/[0.08]"></div>
+        <span class="px-3 text-[11px] uppercase tracking-[0.16em] text-[#6C7382]">or</span>
+        <div class="flex-grow border-t border-white/[0.08]"></div>
       </div>
 
-      <!-- Auth Form -->
+      <!-- Email / Password Auth Form -->
       <form id="authForm" novalidate>
-        <!-- Username (Sign Up Only) -->
+        <!-- Player Tag (Sign Up Only) -->
         <div id="usernameCollapse" class="collapsible-field">
           <div class="collapsible-inner">
-            <label for="usernameInput" class="block text-xs font-medium text-[#9ca3af] mb-1.5">
-              Username
+            <label for="usernameInput" class="block text-[11px] font-medium uppercase tracking-[0.12em] text-[#A1A7B3] mb-1.5">
+              Player Tag
             </label>
             <input
               id="usernameInput"
               type="text"
               autocomplete="username"
               maxlength="24"
-              placeholder="Choose a username"
-              class="slate-input w-full rounded-xl px-3.5 py-2.5 text-sm"
+              placeholder="Choose a display name"
+              class="studio-input w-full px-3.5 py-2.5 text-sm"
             />
           </div>
         </div>
 
         <!-- Email -->
         <div class="mb-3.5">
-          <label for="emailInput" class="block text-xs font-medium text-[#9ca3af] mb-1.5">
-            Email
+          <label for="emailInput" class="block text-[11px] font-medium uppercase tracking-[0.12em] text-[#A1A7B3] mb-1.5">
+            Email Address
           </label>
           <input
             id="emailInput"
             type="email"
             required
             autocomplete="email"
-            placeholder="name@example.com"
-            class="slate-input w-full rounded-xl px-3.5 py-2.5 text-sm"
+            placeholder="name@domain.com"
+            class="studio-input w-full px-3.5 py-2.5 text-sm"
           />
         </div>
 
         <!-- Password -->
         <div class="mb-5">
           <div class="flex items-center justify-between mb-1.5">
-            <label for="passwordInput" class="block text-xs font-medium text-[#9ca3af]">
+            <label for="passwordInput" class="block text-[11px] font-medium uppercase tracking-[0.12em] text-[#A1A7B3]">
               Password
             </label>
             <button
               type="button"
               id="forgotPasswordBtn"
-              class="text-xs font-medium text-champagne hover:text-champagne-hover transition-colors cursor-pointer"
+              class="text-xs font-medium text-brass hover:text-[#EDE8DF] transition-colors cursor-pointer"
             >
               Forgot password?
             </button>
@@ -530,14 +602,14 @@
               type="password"
               required
               autocomplete="current-password"
-              placeholder="Enter your password"
-              class="slate-input w-full rounded-xl pl-3.5 pr-11 py-2.5 text-sm"
+              placeholder="Enter password"
+              class="studio-input w-full pl-3.5 pr-11 py-2.5 text-sm"
             />
             <button
               type="button"
               id="togglePasswordBtn"
               aria-label="Toggle password visibility"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[#9ca3af] hover:text-[#f3f4f6] transition-colors cursor-pointer"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-[#6C7382] hover:text-[#F3F4F6] transition-colors cursor-pointer"
             >
               <svg id="eyeOpenIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
@@ -557,7 +629,7 @@
         <button
           type="submit"
           id="submitAuthBtn"
-          class="btn-primary w-full py-2.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed"
+          class="btn-ivory w-full py-2.5 px-4 text-sm flex items-center justify-center gap-2 cursor-pointer"
         >
           <span id="submitBtnText">Sign In</span>
         </button>
@@ -566,112 +638,118 @@
   </main>
 
   <!-- =========================================================
-       VIEW 2: POST-LOGIN SKILL CALIBRATION (4 GBT TIERS)
+       VIEW 2: POST-LOGIN 4-TIER SKILL CALIBRATION
   ========================================================== -->
   <section id="calibrationView" style="display: none;" class="view-layer view-hidden fixed inset-0 z-20 flex items-center justify-center px-4 py-8 sm:px-6 overflow-y-auto">
-    <div class="glass-card w-full max-w-2xl rounded-2xl p-6 sm:p-8 relative my-auto">
-      <div class="absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-champagne/65 to-transparent"></div>
+    <div class="studio-panel w-full max-w-2xl rounded-[10px] p-6 sm:p-8 relative my-auto">
+      <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brass/65 to-transparent"></div>
 
-      <!-- Calibration Heading -->
-      <div class="text-center mb-6 sm:mb-7">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne/12 border border-champagne/30 text-[11px] font-semibold tracking-[0.18em] uppercase text-champagne mb-3">
-          Initial Rating Placement
+      <!-- Heading -->
+      <div class="mb-6">
+        <div class="text-[11px] font-semibold uppercase tracking-[0.20em] text-brass mb-1.5">
+          Rating Placement
         </div>
-        <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-wider text-[#f3f4f6]">
+        <h2 class="text-xl sm:text-2xl font-bold tracking-[0.06em] text-[#F3F4F6]">
           CALIBRATE YOUR RATING
         </h2>
-        <p class="text-xs sm:text-sm text-[#9ca3af] mt-2 max-w-md mx-auto">
-          Select your current chess experience to initialize your starting GBT rating across all formats.
+        <p class="text-xs sm:text-sm text-[#A1A7B3] mt-1.5">
+          Select your current playing strength to assign your initial GBT rating.
         </p>
       </div>
 
-      <!-- 4 Interactive Skill Cards -->
-      <div id="skillGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
+      <!-- 4 Tactile Skill Cards (2x2 Desktop, Stacked Mobile) -->
+      <div id="skillGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
 
-        <!-- Option 1: Beginner (300 GBT) -->
+        <!-- 1. Beginner (300 GBT) -->
         <button
           type="button"
           data-tier="beginner"
           data-gbt="300"
-          data-rank="Novice"
-          class="skill-card interactive-card text-left rounded-xl p-4 sm:p-5 flex items-center gap-4 cursor-pointer group"
+          data-rank="NOVICE"
+          class="skill-card studio-card text-left p-4 flex items-start gap-3.5 cursor-pointer"
         >
-          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-champagne shrink-0">
-            <!-- Custom Pawn SVG -->
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <div class="w-10 h-10 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
+            <!-- Pawn SVG -->
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="7" r="3" />
               <path d="M9.5 11h5l-1 4.5 2.5 3.5H8l2.5-3.5-1-4.5Z" />
               <line x1="6.5" y1="21" x2="17.5" y2="21" />
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">I AM A BEGINNER</div>
-            <div class="text-[11px] text-[#9ca3af] mt-0.5">Learning rules & piece movement</div>
-            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-champagne/15 border border-champagne/30 text-xs font-semibold text-champagne tabular-nums">
-              300 GBT <span class="text-[10px] font-normal text-champagne/80">(ELO)</span>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold tracking-[0.06em] text-[#F3F4F6]">I AM A BEGINNER</span>
+            </div>
+            <p class="text-xs text-[#A1A7B3] mt-1">New to chess or learning core rules.</p>
+            <div class="mt-2.5 inline-flex items-center px-2 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 mono-num text-xs font-bold text-brass">
+              300 GBT
             </div>
           </div>
         </button>
 
-        <!-- Option 2: Intermediate (600 GBT) -->
+        <!-- 2. Intermediate (600 GBT) -->
         <button
           type="button"
           data-tier="intermediate"
           data-gbt="600"
-          data-rank="Tactician"
-          class="skill-card interactive-card text-left rounded-xl p-4 sm:p-5 flex items-center gap-4 cursor-pointer group"
+          data-rank="TACTICIAN"
+          class="skill-card studio-card text-left p-4 flex items-start gap-3.5 cursor-pointer"
         >
-          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-champagne shrink-0">
-            <!-- Custom Knight SVG -->
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <div class="w-10 h-10 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
+            <!-- Knight SVG -->
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M17 19H7l1.2-3.2c.6-1.6 1.8-2.4 2.5-3.3-1.2.2-2.4.8-3.7 1.2L5.5 11l3-4.5L9.5 4l2.5 1.5c3 .5 5.2 2.9 5.2 6.5 0 2.5-.8 4.8-.2 7Z" />
               <line x1="6" y1="21" x2="18" y2="21" />
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">I KNOW HOW TO PLAY</div>
-            <div class="text-[11px] text-[#9ca3af] mt-0.5">Comfortable with tactics & openings</div>
-            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-champagne/15 border border-champagne/30 text-xs font-semibold text-champagne tabular-nums">
-              600 GBT <span class="text-[10px] font-normal text-champagne/80">(ELO)</span>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold tracking-[0.06em] text-[#F3F4F6]">I KNOW HOW TO PLAY</span>
+            </div>
+            <p class="text-xs text-[#A1A7B3] mt-1">Familiar with tactics and openings.</p>
+            <div class="mt-2.5 inline-flex items-center px-2 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 mono-num text-xs font-bold text-brass">
+              600 GBT
             </div>
           </div>
         </button>
 
-        <!-- Option 3: Pro (1000 GBT) -->
+        <!-- 3. Pro (1000 GBT) -->
         <button
           type="button"
           data-tier="pro"
           data-gbt="1000"
-          data-rank="Master"
-          class="skill-card interactive-card text-left rounded-xl p-4 sm:p-5 flex items-center gap-4 cursor-pointer group"
+          data-rank="MASTER"
+          class="skill-card studio-card text-left p-4 flex items-start gap-3.5 cursor-pointer"
         >
-          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-champagne shrink-0">
-            <!-- Custom Rook SVG -->
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <div class="w-10 h-10 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
+            <!-- Rook SVG -->
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M6 4h3v2.5h2V4h2v2.5h2V4h3v4.5l-1.5 1.5v6.5l1.5 2.5H6l1.5-2.5V10L6 8.5V4Z" />
               <line x1="5.5" y1="21" x2="18.5" y2="21" />
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">I AM PRO</div>
-            <div class="text-[11px] text-[#9ca3af] mt-0.5">Strong positional & endgame play</div>
-            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-champagne/15 border border-champagne/30 text-xs font-semibold text-champagne tabular-nums">
-              1000 GBT <span class="text-[10px] font-normal text-champagne/80">(ELO)</span>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold tracking-[0.06em] text-[#F3F4F6]">I AM PRO</span>
+            </div>
+            <p class="text-xs text-[#A1A7B3] mt-1">Experienced club & competitive player.</p>
+            <div class="mt-2.5 inline-flex items-center px-2 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 mono-num text-xs font-bold text-brass">
+              1000 GBT
             </div>
           </div>
         </button>
 
-        <!-- Option 4: Professional (1499 GBT) -->
+        <!-- 4. Professional (1499 GBT) -->
         <button
           type="button"
           data-tier="professional"
           data-gbt="1499"
-          data-rank="Grandmaster"
-          class="skill-card interactive-card text-left rounded-xl p-4 sm:p-5 flex items-center gap-4 cursor-pointer group"
+          data-rank="GRANDMASTER"
+          class="skill-card studio-card text-left p-4 flex items-start gap-3.5 cursor-pointer"
         >
-          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-champagne shrink-0">
-            <!-- Custom King SVG -->
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <div class="w-10 h-10 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0 mt-0.5">
+            <!-- King SVG -->
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="12" y1="2.5" x2="12" y2="7" />
               <line x1="9.75" y1="4.75" x2="14.25" y2="4.75" />
               <path d="M7.5 10.5c0-1.9 2-3.2 4.5-3.2s4.5 1.3 4.5 3.2c0 1.4-1 2.9-1.8 4.2l1.8 4.3h-9l1.8-4.3c-.8-1.3-1.8-2.8-1.8-4.2Z" />
@@ -679,29 +757,31 @@
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">I AM A PROFESSIONAL</div>
-            <div class="text-[11px] text-[#9ca3af] mt-0.5">Tournament-level calculation & theory</div>
-            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-champagne/15 border border-champagne/30 text-xs font-semibold text-champagne tabular-nums">
-              1499 GBT <span class="text-[10px] font-normal text-champagne/80">(ELO)</span>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold tracking-[0.06em] text-[#F3F4F6]">I AM A PROFESSIONAL</span>
+            </div>
+            <p class="text-xs text-[#A1A7B3] mt-1">Tournament-level calculation & theory.</p>
+            <div class="mt-2.5 inline-flex items-center px-2 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 mono-num text-xs font-bold text-brass">
+              1499 GBT
             </div>
           </div>
         </button>
 
       </div>
 
-      <!-- Confirm Calibration CTA -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/10">
-        <div id="calibrationSummary" class="text-xs text-[#9ca3af]">
-          Select a skill tier above to continue
+      <!-- Calibration Footer CTA -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
+        <div id="calibrationSummary" class="text-xs text-[#A1A7B3]">
+          Select a playing strength above to continue.
         </div>
         <button
           type="button"
           id="confirmCalibrationBtn"
           disabled
-          class="btn-primary w-full sm:w-auto px-6 py-3 rounded-xl font-semibold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          class="btn-ivory w-full sm:w-auto px-6 py-2.5 text-xs tracking-[0.10em] uppercase flex items-center justify-center gap-2 cursor-pointer"
         >
-          <span id="confirmCalibrationText">ENTER GAMBIT ARENA</span>
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <span>ENTER GAMBIT ARENA</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
           </svg>
@@ -711,87 +791,83 @@
   </section>
 
   <!-- =========================================================
-       VIEW 3: PROFESSIONAL CHESS.COM-STYLE GAMBIT DASHBOARD
+       VIEW 3: PRO CHESS.COM-STYLE 4-FORMAT DASHBOARD
   ========================================================== -->
   <section id="dashboardView" style="display: none;" class="view-layer view-hidden fixed inset-0 z-20 flex flex-col overflow-y-auto">
 
-    <!-- Top Navigation & Player Profile Header Bar -->
-    <header class="glass-bar sticky top-0 z-30 shrink-0">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+    <!-- 60px Architectural Top Profile Bar -->
+    <header class="studio-header sticky top-0 z-30 h-[60px] shrink-0">
+      <div class="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
 
-        <!-- Left: Brand Logo & Wordmark -->
+        <!-- Left: Exact 4-Ring G + King Emblem & Wordmark -->
         <div class="flex items-center gap-2.5 shrink-0">
-          <div class="w-9 h-9 flex items-center justify-center">
-            <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Logo">
-              <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" stroke-linejoin="miter" />
-              <path d="M 74.6 25.4 A 34.8 34.8 0 1 0 84.3 55.5" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" />
-              <path d="M 69.8 30.2 A 28.0 28.0 0 1 0 77.4 55.5" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" />
-              <path d="M 65.0 35.0 A 21.2 21.2 0 1 0 70.5 55.4" stroke="#f3f4f6" stroke-width="3.6" stroke-linecap="butt" />
-              <g fill="#d4af6a">
-                <rect x="74.9" y="21.0" width="2.2" height="6.8" rx="0.5" />
-                <rect x="72.6" y="23.2" width="6.8" height="2.2" rx="0.5" />
+          <div class="w-8 h-8 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" class="w-full h-full" fill="none" aria-label="GAMBIT Emblem">
+              <path d="M 79.4 20.6 A 41.6 41.6 0 1 0 91.6 50 L 50 50" stroke="#EDE8DF" stroke-width="3.6" stroke-linecap="butt" stroke-linejoin="miter" />
+              <path d="M 74.6 25.4 A 34.8 34.8 0 1 0 84.3 55.5" stroke="#EDE8DF" stroke-width="3.6" stroke-linecap="butt" />
+              <path d="M 69.8 30.2 A 28.0 28.0 0 1 0 77.4 55.5" stroke="#EDE8DF" stroke-width="3.6" stroke-linecap="butt" />
+              <path d="M 65.0 35.0 A 21.2 21.2 0 1 0 70.5 55.4" stroke="#EDE8DF" stroke-width="3.6" stroke-linecap="butt" />
+              <g fill="#D4AF6A">
+                <rect x="74.9" y="21.0" width="2.2" height="6.8" rx="0.4" />
+                <rect x="72.6" y="23.2" width="6.8" height="2.2" rx="0.4" />
                 <path d="M 71.7 39.2 L 70.1 32.2 C 69.6 29.8 71.4 27.9 73.7 27.9 L 78.3 27.9 C 80.6 27.9 82.4 29.8 81.9 32.2 L 80.3 39.2 Z" />
-                <rect x="70.8" y="40.3" width="10.4" height="2.0" rx="1.0" />
+                <rect x="70.8" y="40.3" width="10.4" height="2.0" rx="0.8" />
                 <path d="M 69.4 46.2 C 69.4 44.3 70.9 43.3 72.6 43.3 L 79.4 43.3 C 81.1 43.3 82.6 44.3 82.6 46.2 Z" />
               </g>
             </svg>
           </div>
-          <span class="font-brand text-sm sm:text-base font-semibold tracking-[0.34em] text-[#f3f4f6]">
+          <span class="font-brand text-sm sm:text-base font-semibold tracking-[0.34em] text-[#EDE8DF]">
             GAMBIT
           </span>
         </div>
 
-        <!-- Right: Professional Player Profile Strip + Controls -->
-        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <!-- Right: Player Profile Cluster + Controls -->
+        <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
 
-          <!-- Peak GBT Rating Pill -->
-          <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-champagne/14 border border-champagne/30 shrink-0">
-            <svg class="w-3.5 h-3.5 text-champagne" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-            <span id="headerPeakGbt" class="text-xs font-semibold text-champagne tabular-nums">1000 GBT</span>
+          <!-- Peak GBT Readout -->
+          <div class="hidden md:flex items-center gap-2 px-3 h-9 rounded-[8px] bg-[#13161C] border border-white/[0.08] shrink-0">
+            <span class="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6C7382]">PEAK</span>
+            <span id="headerPeakGbt" class="mono-num text-xs font-bold text-brass">1000 GBT</span>
           </div>
 
           <!-- Profile Strip -->
-          <div class="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-xl bg-white/5 border border-white/10 min-w-0">
+          <div class="flex items-center gap-2.5 pl-1.5 pr-3 h-9 rounded-[8px] bg-[#13161C] border border-white/[0.08] min-w-0">
             <img
               id="dashAvatarImg"
               src=""
               alt="Player Avatar"
-              class="hidden w-8 h-8 rounded-lg object-cover border border-champagne/50 shrink-0"
+              class="hidden w-6 h-6 rounded-[5px] object-cover border border-brass/50 shrink-0"
             />
             <div
               id="dashAvatarInitials"
-              class="w-8 h-8 rounded-lg bg-[#1d222b] border border-champagne/65 text-champagne font-bold text-xs flex items-center justify-center shrink-0"
+              class="w-6 h-6 rounded-[5px] bg-[#0B0D11] border border-brass/55 text-brass mono-num font-bold text-[10px] flex items-center justify-center shrink-0"
             >
               GM
             </div>
-            <div class="min-w-0 leading-tight">
-              <div id="dashUserName" class="text-xs font-semibold text-[#f3f4f6] max-w-[100px] sm:max-w-[155px] truncate">
+            <div class="flex items-center gap-2 min-w-0">
+              <span id="dashUserName" class="text-xs font-semibold text-[#F3F4F6] max-w-[96px] sm:max-w-[140px] truncate">
                 Player
-              </div>
-              <div class="flex items-center gap-1.5 mt-0.5">
-                <span id="dashRankBadge" class="text-[10px] font-semibold uppercase tracking-wider text-champagne">
-                  Master
-                </span>
-              </div>
+              </span>
+              <span id="dashRankBadge" class="hidden sm:inline-block px-1.5 py-0.5 rounded-[4px] bg-[#0B0D11] border border-brass/35 text-[9px] font-bold uppercase tracking-[0.12em] text-brass shrink-0">
+                MASTER
+              </span>
             </div>
           </div>
 
-          <!-- Header Sound Toggle -->
+          <!-- Sound Toggle -->
           <button
             type="button"
             id="headerSoundBtn"
             aria-label="Toggle chess sound effects"
-            title="Toggle sound"
-            class="btn-slate w-9 h-9 rounded-xl flex items-center justify-center shrink-0 cursor-pointer"
+            title="Toggle Sound"
+            class="btn-gunmetal w-9 h-9 flex items-center justify-center shrink-0 cursor-pointer"
           >
-            <svg class="sound-on-icon w-4 h-4 text-[#f3f4f6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="sound-on-icon w-4 h-4 text-[#EDE8DF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
             </svg>
-            <svg class="sound-off-icon w-4 h-4 hidden text-[#9ca3af]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="sound-off-icon w-4 h-4 hidden text-[#6C7382]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
               <line x1="23" y1="9" x2="17" y2="15" />
               <line x1="17" y1="9" x2="23" y2="15" />
@@ -803,322 +879,327 @@
             type="button"
             id="signOutBtn"
             aria-label="Sign out"
-            title="Sign out"
-            class="btn-slate inline-flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-medium shrink-0 cursor-pointer"
+            title="Sign Out"
+            class="btn-gunmetal inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 h-9 text-xs shrink-0 cursor-pointer"
           >
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="w-3.5 h-3.5 text-[#A1A7B3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            <span class="hidden sm:inline">Sign Out</span>
+            <span class="hidden sm:inline text-[#F3F4F6]">Sign Out</span>
           </button>
         </div>
       </div>
     </header>
 
-    <!-- Main 2-Column Responsive Dashboard Workspace -->
+    <!-- Main 2-Column Pro Dashboard Grid -->
     <div class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
 
         <!-- =======================================================
-             LEFT COLUMN (7 cols): FORMAT SELECTOR & PLAY ARENA
+             LEFT COLUMN (7 cols): MATCH CONSOLE
         ======================================================== -->
         <div class="lg:col-span-7 flex flex-col gap-5">
 
-          <!-- Format Selection Panel -->
-          <div class="glass-card rounded-2xl p-5 sm:p-6 relative">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div class="studio-panel rounded-[10px] p-5 sm:p-6">
+            <!-- Console Header -->
+            <div class="flex items-center justify-between gap-2 pb-4 mb-5 border-b border-white/[0.08]">
               <div>
-                <h2 class="font-display text-lg sm:text-xl font-semibold tracking-wider text-[#f3f4f6]">
-                  PLAY ARENA
+                <h2 class="text-sm font-bold uppercase tracking-[0.14em] text-[#F3F4F6]">
+                  MATCH CONSOLE
                 </h2>
-                <p class="text-xs text-[#9ca3af] mt-0.5">Choose a time format to queue for a rated GBT match</p>
+                <p class="text-xs text-[#A1A7B3] mt-0.5">Select time control to enter rated matchmaking</p>
               </div>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/12 border border-emerald-400/25 text-[11px] font-medium text-emerald-300">
+              <div class="flex items-center gap-2 px-2.5 py-1 rounded-[6px] bg-[#0B0D11] border border-white/[0.08]">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                Rated Matchmaking
-              </span>
+                <span class="mono-num text-[10px] font-semibold uppercase tracking-wider text-[#A1A7B3]">RATED</span>
+              </div>
             </div>
 
-            <!-- 4 Selectable Format Cards -->
+            <!-- 4 Structured Format Selector Cards (2x2 Grid) -->
             <div id="formatCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
-              <!-- 1. RAPID (10 - 30 mins) — Default Selected -->
+              <!-- 1. RAPID (10–30 mins) — Default Selected -->
               <button
                 type="button"
                 data-format="rapid"
-                class="format-card interactive-card selected text-left rounded-xl p-4 cursor-pointer"
+                class="format-card studio-card selected text-left p-4 cursor-pointer"
               >
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
-                      <!-- Stopwatch SVG -->
-                      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="12" cy="13" r="8" />
                         <path d="M12 9v4l2.5 1.5" />
                         <path d="M9 2h6" />
                         <path d="M12 2v3" />
                       </svg>
                     </div>
-                    <div>
-                      <div class="text-sm font-semibold tracking-wide text-[#f3f4f6]">RAPID</div>
-                      <div class="text-[11px] text-[#9ca3af]">10 - 30 mins</div>
+                    <div class="min-w-0">
+                      <div class="text-xs font-bold tracking-[0.10em] text-[#F3F4F6]">RAPID</div>
+                      <div class="text-[11px] text-[#A1A7B3] mt-0.5">10–30 mins</div>
                     </div>
                   </div>
-                  <span id="cardRating-rapid" class="text-xs font-bold text-champagne tabular-nums">1000</span>
+                  <span id="cardRating-rapid" class="mono-num text-xs font-bold text-brass shrink-0">1000</span>
                 </div>
               </button>
 
-              <!-- 2. BLITZ (3 - 5 mins) -->
+              <!-- 2. BLITZ (3–5 mins) -->
               <button
                 type="button"
                 data-format="blitz"
-                class="format-card interactive-card text-left rounded-xl p-4 cursor-pointer"
+                class="format-card studio-card text-left p-4 cursor-pointer"
               >
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
-                      <!-- Lightning Bolt SVG -->
-                      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                       </svg>
                     </div>
-                    <div>
-                      <div class="text-sm font-semibold tracking-wide text-[#f3f4f6]">BLITZ</div>
-                      <div class="text-[11px] text-[#9ca3af]">3 - 5 mins</div>
+                    <div class="min-w-0">
+                      <div class="text-xs font-bold tracking-[0.10em] text-[#F3F4F6]">BLITZ</div>
+                      <div class="text-[11px] text-[#A1A7B3] mt-0.5">3–5 mins</div>
                     </div>
                   </div>
-                  <span id="cardRating-blitz" class="text-xs font-bold text-champagne tabular-nums">1000</span>
+                  <span id="cardRating-blitz" class="mono-num text-xs font-bold text-brass shrink-0">1000</span>
                 </div>
               </button>
 
-              <!-- 3. BULLET (15 sec - 2 mins) -->
+              <!-- 3. BULLET (15 sec–2 mins) -->
               <button
                 type="button"
                 data-format="bullet"
-                class="format-card interactive-card text-left rounded-xl p-4 cursor-pointer"
+                class="format-card studio-card text-left p-4 cursor-pointer"
               >
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-rose-500/15 border border-rose-400/30 flex items-center justify-center text-rose-300 shrink-0">
-                      <!-- Bullet Speed SVG -->
-                      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M5 12h6" />
                         <path d="M3 8h5" />
                         <path d="M4 16h5" />
                         <path d="M12 7h4.5c2.5 0 4.5 2.2 4.5 5s-2 5-4.5 5H12V7Z" />
                       </svg>
                     </div>
-                    <div>
-                      <div class="text-sm font-semibold tracking-wide text-[#f3f4f6]">BULLET</div>
-                      <div class="text-[11px] text-[#9ca3af]">15 sec - 2 mins</div>
+                    <div class="min-w-0">
+                      <div class="text-xs font-bold tracking-[0.10em] text-[#F3F4F6]">BULLET</div>
+                      <div class="text-[11px] text-[#A1A7B3] mt-0.5">15 sec–2 mins</div>
                     </div>
                   </div>
-                  <span id="cardRating-bullet" class="text-xs font-bold text-champagne tabular-nums">1000</span>
+                  <span id="cardRating-bullet" class="mono-num text-xs font-bold text-brass shrink-0">1000</span>
                 </div>
               </button>
 
-              <!-- 4. GAMBIT (10 seconds - 3 hours) -->
+              <!-- 4. GAMBIT (10 seconds–3 hours) -->
               <button
                 type="button"
                 data-format="gambit"
-                class="format-card interactive-card text-left rounded-xl p-4 cursor-pointer"
+                class="format-card studio-card text-left p-4 cursor-pointer"
               >
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-champagne/18 border border-champagne/40 flex items-center justify-center text-champagne shrink-0">
-                      <!-- Signature Crown/King SVG -->
-                      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-[6px] bg-[#0E1117] border border-brass/35 flex items-center justify-center text-brass shrink-0">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M3 17l2-9 4.5 4L12 5l2.5 7L19 8l2 9H3Z" />
                         <line x1="4" y1="20" x2="20" y2="20" />
                       </svg>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                       <div class="flex items-center gap-1.5">
-                        <span class="text-sm font-semibold tracking-wide text-[#f3f4f6]">GAMBIT</span>
-                        <span class="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-champagne/20 text-champagne">Signature</span>
+                        <span class="text-xs font-bold tracking-[0.10em] text-[#F3F4F6]">GAMBIT</span>
+                        <span class="text-[9px] font-semibold uppercase tracking-[0.12em] px-1.5 py-0.5 rounded-[3px] bg-brass/15 text-brass">PRO</span>
                       </div>
-                      <div class="text-[11px] text-[#9ca3af]">10 seconds - 3 hours</div>
+                      <div class="text-[11px] text-[#A1A7B3] mt-0.5">10 seconds–3 hours</div>
                     </div>
                   </div>
-                  <span id="cardRating-gambit" class="text-xs font-bold text-champagne tabular-nums">1000</span>
+                  <span id="cardRating-gambit" class="mono-num text-xs font-bold text-brass shrink-0">1000</span>
                 </div>
               </button>
 
             </div>
 
-            <!-- Time Control Selector Pills -->
-            <div class="mt-5 pt-4 border-t border-white/10">
+            <!-- Preset Time Controls -->
+            <div class="mt-5 pt-4 border-t border-white/[0.08]">
               <div class="flex items-center justify-between mb-2.5">
-                <span class="text-xs font-medium text-[#9ca3af] uppercase tracking-wider">Time Control</span>
-                <span id="selectedRangeBadge" class="text-[11px] text-champagne font-medium">10 - 30 mins</span>
+                <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#A1A7B3]">Time Control</span>
+                <span id="selectedRangeBadge" class="mono-num text-[11px] text-brass">10–30 mins</span>
               </div>
               <div id="timePillsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
 
-              <!-- Custom Duration Slider (Shown exclusively for GAMBIT format) -->
-              <div id="gambitCustomBox" class="hidden mt-4 p-3.5 rounded-xl bg-black/25 border border-white/10">
-                <div class="flex items-center justify-between mb-2">
-                  <label for="gambitCustomSlider" class="text-xs font-medium text-[#d1d5db]">
-                    Custom GAMBIT Clock (10s - 3h)
+              <!-- Precision Custom Clock Slider (GAMBIT Format Only) -->
+              <div id="gambitCustomBox" class="hidden mt-4 p-3.5 rounded-[8px] bg-[#0E1117] border border-white/[0.08]">
+                <div class="flex items-center justify-between mb-2.5">
+                  <label for="gambitCustomSlider" class="text-[11px] font-medium uppercase tracking-[0.12em] text-[#A1A7B3]">
+                    Custom Clock (10s – 3h)
                   </label>
-                  <span id="gambitCustomLabel" class="text-xs font-semibold text-champagne tabular-nums">
-                    15 min
+                  <span id="gambitCustomLabel" class="mono-num text-xs font-bold text-brass">
+                    5+0
                   </span>
                 </div>
                 <input
                   id="gambitCustomSlider"
                   type="range"
                   min="0"
-                  max="11"
+                  max="14"
                   step="1"
                   value="5"
-                  class="gambit-slider"
+                  class="studio-slider"
                 />
-                <div class="flex justify-between text-[10px] text-[#9ca3af] mt-1.5 tabular-nums">
-                  <span>10 sec</span>
-                  <span>1 min</span>
-                  <span>10 min</span>
-                  <span>1 hr</span>
-                  <span>3 hrs</span>
+                <div class="flex justify-between mono-num text-[10px] text-[#6C7382] mt-2">
+                  <span>10s</span>
+                  <span>1m</span>
+                  <span>10m</span>
+                  <span>1h</span>
+                  <span>3h</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Active Match Action Panel -->
-          <div class="glass-card rounded-2xl p-5 sm:p-6">
-            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-white/10">
-              <div class="flex items-center gap-3">
-                <div id="actionFormatIcon" class="w-11 h-11 rounded-xl bg-champagne/15 border border-champagne/35 flex items-center justify-center text-champagne shrink-0"></div>
-                <div>
+            <!-- Action Bar -->
+            <div class="mt-6 pt-5 border-t border-white/[0.08]">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span id="actionFormatName" class="text-xs font-bold uppercase tracking-[0.14em] text-[#F3F4F6]">RAPID</span>
+                  <span class="text-[#6C7382]">/</span>
+                  <span id="actionTimeControl" class="mono-num text-xs font-bold text-brass">10+0</span>
+                </div>
+                <div class="text-xs text-[#A1A7B3]">
+                  Rating <span id="actionFormatRating" class="mono-num font-bold text-[#F3F4F6] ml-1">1000 GBT</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  id="playMatchBtn"
+                  class="btn-ivory py-3 px-5 text-xs tracking-[0.12em] uppercase flex items-center justify-center gap-2.5 cursor-pointer"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <polygon points="6 4 20 12 6 20 6 4" />
+                  </svg>
+                  <span id="playMatchBtnText">PLAY MATCH</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="playFriendBtn"
+                  class="btn-gunmetal py-3 px-5 text-xs font-semibold tracking-[0.12em] uppercase flex items-center justify-center gap-2.5 cursor-pointer"
+                >
+                  <svg class="w-4 h-4 text-brass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  <span>PLAY A FRIEND</span>
+                </button>
+              </div>
+
+              <!-- Live Matchmaking Status Drawer -->
+              <div id="matchmakingDrawer" class="hidden mt-4 p-4 rounded-[8px] bg-[#0E1117] border border-brass/45">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div class="flex items-start gap-3">
+                    <span class="live-dot w-2 h-2 rounded-full bg-brass mt-1.5 shrink-0"></span>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-[0.10em] text-[#F3F4F6]">Searching Opponent</span>
+                        <span id="matchmakingTimerText" class="mono-num text-xs font-semibold text-brass">00:00</span>
+                      </div>
+                      <div id="matchmakingWindowText" class="mono-num text-[11px] text-[#A1A7B3] mt-0.5">
+                        RAPID 10+0 · Window 950–1050 GBT
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="cancelQueueBtn"
+                    class="btn-gunmetal px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer shrink-0"
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+
+              <!-- Private Room Invite Drawer -->
+              <div id="friendRoomDrawer" class="hidden mt-4 p-4 rounded-[8px] bg-[#0E1117] border border-brass/45">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div class="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#A1A7B3]">Private Room Code</div>
+                    <div class="flex items-center gap-3 mt-1">
+                      <span id="roomCodeDisplay" class="mono-num text-lg font-bold tracking-[0.22em] text-brass">GMB492</span>
+                      <span id="roomFormatTag" class="mono-num text-[11px] text-[#A1A7B3]">RAPID · 10+0</span>
+                    </div>
+                  </div>
                   <div class="flex items-center gap-2">
-                    <span id="actionFormatName" class="font-display text-base sm:text-lg font-semibold tracking-wider text-[#f3f4f6]">RAPID</span>
-                    <span class="text-xs text-[#9ca3af]">•</span>
-                    <span id="actionTimeControl" class="text-xs sm:text-sm font-semibold text-champagne tabular-nums">10 min</span>
-                  </div>
-                  <div class="text-xs text-[#9ca3af] mt-0.5">
-                    Current Format Rating: <span id="actionFormatRating" class="text-[#f3f4f6] font-semibold tabular-nums">1000 GBT</span>
+                    <button
+                      type="button"
+                      id="copyRoomCodeBtn"
+                      class="btn-ivory px-3.5 py-2 text-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                      <span>Copy</span>
+                    </button>
+                    <button
+                      type="button"
+                      id="closeRoomDrawerBtn"
+                      aria-label="Close room code"
+                      class="btn-gunmetal w-8 h-8 flex items-center justify-center cursor-pointer"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
 
-              <!-- Matchmaking Live Status Pill -->
-              <div id="matchmakingStatus" class="hidden items-center gap-2.5 px-3 py-1.5 rounded-xl bg-champagne/15 border border-champagne/35">
-                <span class="relative flex h-2.5 w-2.5">
-                  <span class="radar-ring absolute inline-flex h-full w-full rounded-full bg-champagne"></span>
-                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-champagne"></span>
-                </span>
-                <span id="matchmakingTimerText" class="text-xs font-semibold text-champagne tabular-nums">Searching 0:00</span>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                id="playMatchBtn"
-                class="btn-primary py-3.5 px-5 rounded-xl font-semibold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2.5 cursor-pointer"
-              >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <polygon points="6 4 20 12 6 20 6 4" />
-                </svg>
-                <span id="playMatchBtnText">PLAY MATCH</span>
-              </button>
-
-              <button
-                type="button"
-                id="playFriendBtn"
-                class="btn-slate py-3.5 px-5 rounded-xl font-semibold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2.5 cursor-pointer"
-              >
-                <svg class="w-4 h-4 text-champagne" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                <span>PLAY A FRIEND</span>
-              </button>
-            </div>
-
-            <!-- Private Room Invite Drawer (Appears on PLAY A FRIEND) -->
-            <div id="friendRoomDrawer" class="hidden mt-4 p-4 rounded-xl bg-black/30 border border-champagne/35">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <div class="text-[11px] uppercase tracking-wider text-[#9ca3af] font-medium">Private Room Code</div>
-                  <div class="flex items-center gap-2.5 mt-1">
-                    <span id="roomCodeDisplay" class="font-brand text-lg font-semibold tracking-[0.26em] text-champagne tabular-nums">GMB-000</span>
-                    <span class="text-[11px] text-[#9ca3af]" id="roomFormatTag">RAPID • 10 min</span>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button
-                    type="button"
-                    id="copyRoomCodeBtn"
-                    class="btn-primary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </svg>
-                    <span>Copy Code</span>
-                  </button>
-                  <button
-                    type="button"
-                    id="closeRoomDrawerBtn"
-                    aria-label="Close room code"
-                    class="btn-slate p-2 rounded-lg cursor-pointer"
-                  >
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
 
         </div>
 
         <!-- =======================================================
-             RIGHT COLUMN (5 cols): CHESS.COM-STYLE SEPARATED RATINGS
+             RIGHT COLUMN (5 cols): SEPARATED FORMAT RATINGS
         ======================================================== -->
-        <aside class="lg:col-span-5 flex flex-col gap-5">
-          <div class="glass-card rounded-2xl p-5 sm:p-6">
+        <aside class="lg:col-span-5">
+          <div class="studio-panel rounded-[10px] p-5 sm:p-6">
 
-            <!-- Ratings Header -->
-            <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/[0.08]">
               <div>
-                <h2 class="font-display text-lg font-semibold tracking-wider text-[#f3f4f6]">
-                  RATINGS
+                <h2 class="text-sm font-bold uppercase tracking-[0.14em] text-[#F3F4F6]">
+                  FORMAT RATINGS
                 </h2>
-                <p class="text-[11px] text-[#9ca3af] mt-0.5">Separated GBT ratings by time control</p>
+                <p class="text-xs text-[#A1A7B3] mt-0.5">Independent GBT ladders</p>
               </div>
               <div class="text-right">
-                <div class="text-[10px] uppercase tracking-wider text-[#9ca3af]">Peak Rating</div>
-                <div id="statsPeakGbt" class="text-base font-bold text-champagne tabular-nums">1000 GBT</div>
+                <div class="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6C7382]">Peak GBT</div>
+                <div id="statsPeakGbt" class="mono-num text-sm font-bold text-brass mt-0.5">1000 GBT</div>
               </div>
             </div>
 
-            <!-- 4 Distinct Separated Rating Rows -->
-            <div id="separatedRatingsList" class="flex flex-col gap-2.5">
-              <!-- Populated dynamically and kept synced with active format -->
-            </div>
+            <!-- 4 Separated Rating Rows -->
+            <div id="separatedRatingsList" class="flex flex-col gap-2.5"></div>
 
-            <!-- Clean Profile Summary Footer -->
-            <div class="mt-5 pt-4 border-t border-white/10 grid grid-cols-3 gap-2 text-center">
-              <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-                <div class="text-[10px] uppercase tracking-wider text-[#9ca3af]">Member Since</div>
-                <div id="profileMemberSince" class="text-xs font-semibold text-[#f3f4f6] mt-1">Nov 2026</div>
+            <!-- Compact Telemetry Footer -->
+            <div class="mt-5 pt-4 border-t border-white/[0.08] grid grid-cols-3 gap-2">
+              <div class="p-2.5 rounded-[6px] bg-[#0E1117] border border-white/[0.06]">
+                <div class="text-[10px] uppercase tracking-[0.12em] text-[#6C7382]">Member</div>
+                <div id="profileMemberSince" class="mono-num text-xs font-semibold text-[#F3F4F6] mt-1">Nov 2026</div>
               </div>
-              <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-                <div class="text-[10px] uppercase tracking-wider text-[#9ca3af]">Active Format</div>
-                <div id="profileActiveFormat" class="text-xs font-semibold text-champagne mt-1">RAPID</div>
+              <div class="p-2.5 rounded-[6px] bg-[#0E1117] border border-white/[0.06]">
+                <div class="text-[10px] uppercase tracking-[0.12em] text-[#6C7382]">Format</div>
+                <div id="profileActiveFormat" class="mono-num text-xs font-semibold text-brass mt-1">RAPID</div>
               </div>
-              <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-                <div class="text-[10px] uppercase tracking-wider text-[#9ca3af]">Rating Tier</div>
-                <div id="profileRatingTier" class="text-xs font-semibold text-[#f3f4f6] mt-1">Master</div>
+              <div class="p-2.5 rounded-[6px] bg-[#0E1117] border border-white/[0.06]">
+                <div class="text-[10px] uppercase tracking-[0.12em] text-[#6C7382]">Tier</div>
+                <div id="profileRatingTier" class="mono-num text-xs font-semibold text-[#F3F4F6] mt-1">MASTER</div>
               </div>
             </div>
 
@@ -1130,11 +1211,13 @@
   </section>
 
   <!-- =========================================================
-       AUDIO ENGINE + ZERO-LAG 3D SCENE + FIREBASE v10 + DASHBOARD
+       MAIN MODULE: AUDIO + PBR THREE.JS r160+ + SESSION-LOCKED AUTH
   ========================================================== -->
   <script type="module">
+    import * as THREE from "three";
+    import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
     import {
       getAuth,
       setPersistence,
@@ -1169,13 +1252,12 @@
           const AudioCtx = window.AudioContext || window.webkitAudioContext;
           if (!AudioCtx) return null;
           ctx = new AudioCtx();
-          // Pre-generate a short reusable white noise buffer for tactile wooden clacks
           const sr = ctx.sampleRate;
-          const length = Math.floor(sr * 0.12);
+          const length = Math.floor(sr * 0.11);
           noiseBuffer = ctx.createBuffer(1, length, sr);
           const data = noiseBuffer.getChannelData(0);
           for (let i = 0; i < length; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * 0.018));
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * 0.015));
           }
         }
         if (ctx.state === "suspended") {
@@ -1186,10 +1268,7 @@
 
       function unlock() {
         if (unlocked) return;
-        const c = ensureContext();
-        if (c) {
-          unlocked = true;
-        }
+        if (ensureContext()) unlocked = true;
       }
 
       window.addEventListener("pointerdown", unlock, { passive: true });
@@ -1199,137 +1278,127 @@
         return enabled && unlocked;
       }
 
-      // Authentic wooden chess piece clack (filtered transient + warm 180Hz->90Hz woody body)
-      function playWoodImpact(c, startTime, gainScale = 1.0, freqStart = 185, freqEnd = 88) {
-        // 1) Tactile click transient
+      function playWoodImpact(c, startTime, gainScale = 1.0, freqStart = 182, freqEnd = 86) {
         const noise = c.createBufferSource();
         noise.buffer = noiseBuffer;
-        const bandpass = c.createBiquadFilter();
-        bandpass.type = "bandpass";
-        bandpass.frequency.setValueAtTime(1150, startTime);
-        bandpass.Q.setValueAtTime(1.6, startTime);
+
+        const bp = c.createBiquadFilter();
+        bp.type = "bandpass";
+        bp.frequency.setValueAtTime(1180, startTime);
+        bp.Q.setValueAtTime(1.7, startTime);
 
         const nGain = c.createGain();
-        nGain.gain.setValueAtTime(0.28 * gainScale, startTime);
-        nGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.048);
+        nGain.gain.setValueAtTime(0.26 * gainScale, startTime);
+        nGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.044);
 
-        noise.connect(bandpass);
-        bandpass.connect(nGain);
+        noise.connect(bp);
+        bp.connect(nGain);
         nGain.connect(c.destination);
         noise.start(startTime);
-        noise.stop(startTime + 0.06);
+        noise.stop(startTime + 0.055);
 
-        // 2) Warm resonant wooden board thud
         const osc = c.createOscillator();
         osc.type = "triangle";
         osc.frequency.setValueAtTime(freqStart, startTime);
-        osc.frequency.exponentialRampToValueAtTime(freqEnd, startTime + 0.065);
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, startTime + 0.062);
 
-        const lowpass = c.createBiquadFilter();
-        lowpass.type = "lowpass";
-        lowpass.frequency.setValueAtTime(420, startTime);
+        const lp = c.createBiquadFilter();
+        lp.type = "lowpass";
+        lp.frequency.setValueAtTime(410, startTime);
 
         const oGain = c.createGain();
-        oGain.gain.setValueAtTime(0.32 * gainScale, startTime);
-        oGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.085);
+        oGain.gain.setValueAtTime(0.30 * gainScale, startTime);
+        oGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
 
-        osc.connect(lowpass);
-        lowpass.connect(oGain);
+        osc.connect(lp);
+        lp.connect(oGain);
         oGain.connect(c.destination);
         osc.start(startTime);
-        osc.stop(startTime + 0.095);
+        osc.stop(startTime + 0.09);
       }
 
       return {
         isEnabled: () => enabled,
-        setEnabled(val) {
-          enabled = Boolean(val);
-          syncSoundButtons();
+        toggle() {
+          enabled = !enabled;
+          syncSoundIcons();
           if (enabled) {
             unlock();
             this.tickSound();
           }
         },
-        toggle() {
-          this.setEnabled(!enabled);
-        },
         moveSound(volume = 0.85) {
           if (!canPlay()) return;
           const c = ensureContext();
-          if (!c) return;
-          playWoodImpact(c, c.currentTime, volume, 180, 90);
+          if (c) playWoodImpact(c, c.currentTime, volume, 182, 86);
         },
         captureSound() {
           if (!canPlay()) return;
           const c = ensureContext();
           if (!c) return;
-          const now = c.currentTime;
-          // Richer double-impact wooden strike
-          playWoodImpact(c, now, 0.9, 210, 105);
-          playWoodImpact(c, now + 0.042, 1.15, 165, 76);
+          const t = c.currentTime;
+          playWoodImpact(c, t, 0.85, 205, 102);
+          playWoodImpact(c, t + 0.04, 1.1, 162, 74);
         },
         checkSound() {
           if (!canPlay()) return;
           const c = ensureContext();
           if (!c) return;
-          const now = c.currentTime;
-          // Refined royal harmonic bell chime (D5 + A5)
-          const freqs = [587.33, 880.0];
-          freqs.forEach((f, idx) => {
+          const t = c.currentTime;
+          [587.33, 880.0].forEach((freq, idx) => {
             const osc = c.createOscillator();
             osc.type = "sine";
-            osc.frequency.setValueAtTime(f, now + idx * 0.06);
+            osc.frequency.setValueAtTime(freq, t + idx * 0.055);
 
             const g = c.createGain();
-            g.gain.setValueAtTime(0.0001, now + idx * 0.06);
-            g.gain.linearRampToValueAtTime(idx === 0 ? 0.11 : 0.085, now + idx * 0.06 + 0.015);
-            g.gain.exponentialRampToValueAtTime(0.0008, now + idx * 0.06 + 0.55);
+            g.gain.setValueAtTime(0.0001, t + idx * 0.055);
+            g.gain.linearRampToValueAtTime(idx === 0 ? 0.095 : 0.072, t + idx * 0.055 + 0.014);
+            g.gain.exponentialRampToValueAtTime(0.0008, t + idx * 0.055 + 0.48);
 
             osc.connect(g);
             g.connect(c.destination);
-            osc.start(now + idx * 0.06);
-            osc.stop(now + idx * 0.06 + 0.58);
+            osc.start(t + idx * 0.055);
+            osc.stop(t + idx * 0.055 + 0.52);
           });
         },
         tickSound() {
           if (!canPlay()) return;
           const c = ensureContext();
           if (!c) return;
-          const now = c.currentTime;
+          const t = c.currentTime;
           const osc = c.createOscillator();
           osc.type = "sine";
-          osc.frequency.setValueAtTime(520, now);
-          osc.frequency.exponentialRampToValueAtTime(240, now + 0.025);
+          osc.frequency.setValueAtTime(640, t);
+          osc.frequency.exponentialRampToValueAtTime(280, t + 0.02);
 
           const g = c.createGain();
-          g.gain.setValueAtTime(0.07, now);
-          g.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+          g.gain.setValueAtTime(0.06, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.024);
 
           osc.connect(g);
           g.connect(c.destination);
-          osc.start(now);
-          osc.stop(now + 0.035);
+          osc.start(t);
+          osc.stop(t + 0.028);
         },
         errorSound() {
           if (!canPlay()) return;
           const c = ensureContext();
           if (!c) return;
-          const now = c.currentTime;
-          // Soft low muted wood knock
-          playWoodImpact(c, now, 0.55, 118, 62);
-          playWoodImpact(c, now + 0.09, 0.45, 96, 54);
+          const t = c.currentTime;
+          playWoodImpact(c, t, 0.5, 115, 60);
+          playWoodImpact(c, t + 0.085, 0.4, 94, 52);
         }
       };
     })();
 
-    function syncSoundButtons() {
+    function syncSoundIcons() {
       const isOn = chessAudio.isEnabled();
       document.querySelectorAll(".sound-on-icon").forEach((el) => el.classList.toggle("hidden", !isOn));
       document.querySelectorAll(".sound-off-icon").forEach((el) => el.classList.toggle("hidden", isOn));
     }
 
     // =========================================================
-    // 2. FIREBASE v10 INITIALIZATION (AUTH + FIRESTORE)
+    // 2. FIREBASE v10 INITIALIZATION & SESSION LOCK
     // =========================================================
     const firebaseConfig = {
       apiKey: "AIzaSyCX9xcZSbGKsHqWSTAcrgsU4N-qOeU-SRo",
@@ -1342,85 +1411,164 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    try {
-      getAnalytics(app);
-    } catch (_) {
-      // Analytics optional in restricted environments
-    }
-
     const auth = getAuth(app);
-    setPersistence(auth, browserLocalPersistence).catch(() => {});
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: "select_account" });
 
+    const SESSION_CACHE_KEY = "gambit_active_session_v2";
+
+    let activeUser = null;
+    let activeProfile = null;
+    let isExplicitSignOut = false;
+    let authInitialized = false;
+    let introFinished = false;
+    let currentScreen = "intro"; // "intro" | "login" | "calibration" | "dashboard"
+
+    function saveSessionCache(user) {
+      if (!user || !user.uid) return;
+      try {
+        localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({
+          uid: user.uid,
+          email: user.email || "",
+          displayName: user.displayName || "",
+          photoURL: user.photoURL || "",
+          timestamp: Date.now()
+        }));
+      } catch (_) {}
+    }
+
+    function loadSessionCache() {
+      try {
+        const raw = localStorage.getItem(SESSION_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.uid) return parsed;
+      } catch (_) {}
+      return null;
+    }
+
+    function clearSessionCache() {
+      try {
+        localStorage.removeItem(SESSION_CACHE_KEY);
+      } catch (_) {}
+    }
+
+    function profileStorageKey(uid) {
+      return `gambit_profile_${uid}`;
+    }
+
+    function withTimeout(promise, ms = 2000) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("firestore-timeout")), ms))
+      ]);
+    }
+
+    // Instant localStorage read + non-blocking background Firestore sync
+    function loadLocalProfile(uid) {
+      try {
+        const raw = localStorage.getItem(profileStorageKey(uid));
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.calibrated && parsed.ratings) return parsed;
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    function syncProfileFromFirestoreInBackground(uid) {
+      withTimeout(getDoc(doc(db, "users", uid)), 2000)
+        .then((snap) => {
+          if (!snap || !snap.exists()) return;
+          const remote = snap.data();
+          if (remote && remote.calibrated && remote.ratings) {
+            try {
+              localStorage.setItem(profileStorageKey(uid), JSON.stringify(remote));
+            } catch (_) {}
+            if (activeUser && activeUser.uid === uid) {
+              activeProfile = remote;
+              if (currentScreen === "calibration" || currentScreen === "dashboard") {
+                renderDashboard();
+                if (currentScreen === "calibration") {
+                  showScreen("dashboard");
+                }
+              }
+            }
+          }
+        })
+        .catch(() => {
+          // Silently ignore Firestore network/permission errors
+        });
+    }
+
+    function saveUserProfileInstant(uid, profileData) {
+      try {
+        localStorage.setItem(profileStorageKey(uid), JSON.stringify(profileData));
+      } catch (_) {}
+
+      withTimeout(setDoc(doc(db, "users", uid), profileData, { merge: true }), 2000)
+        .catch(() => {
+          // Local persistence already succeeded
+        });
+    }
+
     // =========================================================
-    // 3. FORMAT DEFINITIONS & PROFILE PERSISTENCE
+    // 3. FORMAT METADATA & RANK CALCULATIONS
     // =========================================================
     const FORMAT_META = {
       rapid: {
         id: "rapid",
         label: "RAPID",
-        range: "10 - 30 mins",
-        pills: ["10 min", "15 | 10", "20 min", "30 min"],
-        defaultPill: "10 min",
-        accentText: "text-emerald-300",
-        accentBg: "bg-emerald-500/15 border-emerald-400/30",
-        barColor: "bg-emerald-400",
-        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M9 2h6"/><path d="M12 2v3"/></svg>`
+        range: "10–30 mins",
+        pills: ["10+0", "15+10", "20+0", "30+0"],
+        defaultPill: "10+0",
+        iconSvg: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M9 2h6"/><path d="M12 2v3"/></svg>`
       },
       blitz: {
         id: "blitz",
         label: "BLITZ",
-        range: "3 - 5 mins",
-        pills: ["3 min", "3 | 2", "5 min", "5 | 3"],
-        defaultPill: "3 | 2",
-        accentText: "text-amber-300",
-        accentBg: "bg-amber-500/15 border-amber-400/30",
-        barColor: "bg-amber-400",
-        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`
+        range: "3–5 mins",
+        pills: ["3+0", "3+2", "5+0", "5+3"],
+        defaultPill: "3+2",
+        iconSvg: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`
       },
       bullet: {
         id: "bullet",
         label: "BULLET",
-        range: "15 sec - 2 mins",
-        pills: ["15 sec", "1 min", "1 | 1", "2 | 1"],
-        defaultPill: "1 min",
-        accentText: "text-rose-300",
-        accentBg: "bg-rose-500/15 border-rose-400/30",
-        barColor: "bg-rose-400",
-        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h6"/><path d="M3 8h5"/><path d="M4 16h5"/><path d="M12 7h4.5c2.5 0 4.5 2.2 4.5 5s-2 5-4.5 5H12V7Z"/></svg>`
+        range: "15 sec–2 mins",
+        pills: ["15s", "30s", "1+0", "2+1"],
+        defaultPill: "1+0",
+        iconSvg: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h6"/><path d="M3 8h5"/><path d="M4 16h5"/><path d="M12 7h4.5c2.5 0 4.5 2.2 4.5 5s-2 5-4.5 5H12V7Z"/></svg>`
       },
       gambit: {
         id: "gambit",
         label: "GAMBIT",
-        range: "10 seconds - 3 hours",
-        pills: ["10 sec", "10 min", "1 hr", "3 hrs"],
-        defaultPill: "10 min",
-        accentText: "text-champagne",
-        accentBg: "bg-champagne/18 border-champagne/40",
-        barColor: "bg-champagne",
-        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l2-9 4.5 4L12 5l2.5 7L19 8l2 9H3Z"/><line x1="4" y1="20" x2="20" y2="20"/></svg>`
+        range: "10 seconds–3 hours",
+        pills: ["10s", "5+0", "45m", "3h"],
+        defaultPill: "5+0",
+        iconSvg: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l2-9 4.5 4L12 5l2.5 7L19 8l2 9H3Z"/><line x1="4" y1="20" x2="20" y2="20"/></svg>`
       }
     };
 
-    const GAMBIT_CUSTOM_STEPS = [
-      "10 sec", "30 sec", "1 min", "3 min", "5 min",
-      "15 min", "30 min", "45 min", "1 hr", "1.5 hrs", "2 hrs", "3 hrs"
+    const GAMBIT_SLIDER_STEPS = [
+      "10s", "20s", "30s", "1m", "3m",
+      "5+0", "10+0", "15+10", "30m", "45m",
+      "1h", "1h 30m", "2h", "2h 30m", "3h"
     ];
 
     function getRankFromGbt(gbt) {
-      if (gbt >= 1400) return "Grandmaster";
-      if (gbt >= 950) return "Master";
-      if (gbt >= 550) return "Tactician";
-      return "Novice";
+      if (gbt >= 1400) return "GRANDMASTER";
+      if (gbt >= 950) return "MASTER";
+      if (gbt >= 550) return "TACTICIAN";
+      return "NOVICE";
     }
 
     function getTierProgress(gbt) {
-      const milestones = [300, 600, 1000, 1500, 2000, 2500];
+      const tiers = [300, 600, 1000, 1500, 2000, 2500];
       let prev = 0;
       let next = 2500;
-      for (const m of milestones) {
+      for (const m of tiers) {
         if (gbt < m) {
           next = m;
           break;
@@ -1432,74 +1580,13 @@
       return { pct, next };
     }
 
-    function profileStorageKey(uid) {
-      return `gambit_profile_${uid}`;
-    }
-
-    function withTimeout(promise, ms = 2000) {
-      return Promise.race([
-        promise,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("firestore-timeout")), ms)
-        )
-      ]);
-    }
-
-    // Check localStorage FIRST for instant routing; wrap Firestore getDoc in 2s timeout + try/catch
-    async function loadUserProfile(uid) {
-      try {
-        const raw = localStorage.getItem(profileStorageKey(uid));
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.calibrated && parsed.ratings) {
-            return parsed;
-          }
-        }
-      } catch (_) {}
-
-      try {
-        const snap = await withTimeout(getDoc(doc(db, "users", uid)), 2000);
-        if (snap && snap.exists()) {
-          const data = snap.data();
-          if (data && data.calibrated && data.ratings) {
-            try {
-              localStorage.setItem(profileStorageKey(uid), JSON.stringify(data));
-            } catch (_) {}
-            return data;
-          }
-        }
-      } catch (_) {
-        // Silently fall back to localStorage / calibration if Firestore is locked or timed out
-      }
-
-      return null;
-    }
-
-    // Save synchronously to localStorage FIRST, then fire-and-forget Firestore sync in background
-    function saveUserProfileInstant(uid, profileData) {
-      try {
-        localStorage.setItem(profileStorageKey(uid), JSON.stringify(profileData));
-      } catch (_) {}
-
-      try {
-        withTimeout(
-          setDoc(doc(db, "users", uid), profileData, { merge: true }),
-          2000
-        ).catch(() => {});
-      } catch (_) {
-        // Local persistence already succeeded
-      }
-    }
-
     // =========================================================
-    // 4. DOM REFERENCES & STRICT VIEW STATE MACHINE
-    // =========================================================
-    // 4. DOM REFERENCES & APP STATE
+    // 4. DOM REFERENCES & STRICT SCREEN STATE MACHINE
     // =========================================================
     const authView = document.getElementById("authView");
     const calibrationView = document.getElementById("calibrationView");
     const dashboardView = document.getElementById("dashboardView");
-    const dashboardBackdrop = document.getElementById("dashboardBackdrop");
+    const studioScrim = document.getElementById("studioScrim");
     const floatingSoundBtn = document.getElementById("floatingSoundBtn");
     const headerSoundBtn = document.getElementById("headerSoundBtn");
 
@@ -1508,8 +1595,7 @@
 
     const tabSignIn = document.getElementById("tabSignIn");
     const tabSignUp = document.getElementById("tabSignUp");
-    const tabPill = document.getElementById("tabPill");
-
+    const authInlineError = document.getElementById("authInlineError");
     const authForm = document.getElementById("authForm");
     const usernameCollapse = document.getElementById("usernameCollapse");
     const usernameInput = document.getElementById("usernameInput");
@@ -1527,7 +1613,6 @@
     const skillCards = document.querySelectorAll(".skill-card");
     const calibrationSummary = document.getElementById("calibrationSummary");
     const confirmCalibrationBtn = document.getElementById("confirmCalibrationBtn");
-    const confirmCalibrationText = document.getElementById("confirmCalibrationText");
 
     const dashAvatarImg = document.getElementById("dashAvatarImg");
     const dashAvatarInitials = document.getElementById("dashAvatarInitials");
@@ -1546,7 +1631,6 @@
     const gambitCustomBox = document.getElementById("gambitCustomBox");
     const gambitCustomSlider = document.getElementById("gambitCustomSlider");
     const gambitCustomLabel = document.getElementById("gambitCustomLabel");
-    const actionFormatIcon = document.getElementById("actionFormatIcon");
     const actionFormatName = document.getElementById("actionFormatName");
     const actionTimeControl = document.getElementById("actionTimeControl");
     const actionFormatRating = document.getElementById("actionFormatRating");
@@ -1555,8 +1639,10 @@
     const playMatchBtn = document.getElementById("playMatchBtn");
     const playMatchBtnText = document.getElementById("playMatchBtnText");
     const playFriendBtn = document.getElementById("playFriendBtn");
-    const matchmakingStatus = document.getElementById("matchmakingStatus");
+    const matchmakingDrawer = document.getElementById("matchmakingDrawer");
     const matchmakingTimerText = document.getElementById("matchmakingTimerText");
+    const matchmakingWindowText = document.getElementById("matchmakingWindowText");
+    const cancelQueueBtn = document.getElementById("cancelQueueBtn");
     const friendRoomDrawer = document.getElementById("friendRoomDrawer");
     const roomCodeDisplay = document.getElementById("roomCodeDisplay");
     const roomFormatTag = document.getElementById("roomFormatTag");
@@ -1565,96 +1651,146 @@
     const toastContainer = document.getElementById("toastContainer");
 
     let authMode = "signin";
-    let introFinished = false;
-    let activeUser = null;
-    let activeProfile = null;
-    let currentScreen = "intro"; // "intro" | "login" | "calibration" | "dashboard"
     let pendingCalibration = null;
-    let handlingAuthUid = null;
-
     let selectedFormat = "rapid"; // RAPID selected by default
     let selectedTimeControls = {
-      rapid: "10 min",
-      blitz: "3 | 2",
-      bullet: "1 min",
-      gambit: "10 min"
+      rapid: "10+0",
+      blitz: "3+2",
+      bullet: "1+0",
+      gambit: "5+0"
     };
 
     let matchmakingInterval = null;
     let matchmakingSeconds = 0;
 
-    // Hook populated by init3DScene to cleanly hide the 3D logo intro & reveal the arena
+    const sceneState = { phase: "intro" };
+
+    // Overridden by init3DScene once WebGL objects exist
     let finishIntroVisuals = () => {
       introFinished = true;
       introWordmarkOverlay.style.display = "none";
     };
 
-    const sceneState = {
-      phase: "intro" // "intro" | "login" | "calibration" | "dashboard"
-    };
-
-    // Single authoritative screen switcher: hides all other screens with display:none
     function showScreen(screenName) {
+      // Session Lock Safety: Never show login if an active user is locked in unless explicitly signed out
+      if (screenName === "login" && activeUser && !isExplicitSignOut) {
+        return;
+      }
+
       currentScreen = screenName;
       sceneState.phase = screenName;
 
       if (screenName !== "intro") {
         introWordmarkOverlay.style.display = "none";
-        if (!introFinished) {
-          finishIntroVisuals();
-        }
+        if (!introFinished) finishIntroVisuals();
       } else {
         introWordmarkOverlay.style.display = "flex";
       }
 
-      const viewMap = {
+      const views = {
         login: authView,
         calibration: calibrationView,
         dashboard: dashboardView
       };
 
-      Object.entries(viewMap).forEach(([key, el]) => {
+      Object.entries(views).forEach(([key, el]) => {
         if (screenName === key) {
           el.style.display = "flex";
-          el.classList.remove("view-hidden");
-          el.classList.add("view-active", "active");
+          // Trigger transition cleanly on next frame
+          requestAnimationFrame(() => {
+            el.classList.remove("view-hidden");
+            el.classList.add("view-active");
+          });
         } else {
           el.style.display = "none";
-          el.classList.remove("view-active", "active");
+          el.classList.remove("view-active");
           el.classList.add("view-hidden");
         }
       });
 
-      dashboardBackdrop.classList.toggle(
-        "active",
-        screenName === "calibration" || screenName === "dashboard"
-      );
-
-      const showFloatingSound = screenName === "login" || screenName === "calibration";
-      floatingSoundBtn.style.display = showFloatingSound ? "flex" : "none";
-      floatingSoundBtn.classList.toggle("view-active", showFloatingSound);
-      floatingSoundBtn.classList.toggle("view-hidden", !showFloatingSound);
+      studioScrim.classList.toggle("active", screenName === "calibration" || screenName === "dashboard");
+      floatingSoundBtn.style.display = (screenName === "login" || screenName === "calibration") ? "flex" : "none";
     }
 
     floatingSoundBtn.addEventListener("click", () => chessAudio.toggle());
     headerSoundBtn.addEventListener("click", () => chessAudio.toggle());
 
     // =========================================================
-    // 5. ZERO-LAG THREE.JS ENGINE (ANTI-MERGE INTRO + INSTANCED ARENA)
+    // 5. PROCEDURAL 512x512 STUDIO TEXTURES (ZERO EXTERNAL IMAGES)
     // =========================================================
-    function init3DScene() {
-      const THREE = window.THREE;
-      if (!THREE) {
-        introFinished = true;
-        introWordmarkOverlay.style.display = "none";
-        if (activeUser) {
-          handleAuthenticatedUser(activeUser);
+    function createMarbleTexture(isDark) {
+      const size = 512;
+      const c = document.createElement("canvas");
+      c.width = size;
+      c.height = size;
+      const ctx = c.getContext("2d");
+
+      // Base mineral tone
+      ctx.fillStyle = isDark ? "#171A21" : "#CFC8BC";
+      ctx.fillRect(0, 0, size, size);
+
+      // Subtle cloudy mineral tonal variation
+      for (let i = 0; i < 42; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = 45 + Math.random() * 140;
+        const grad = ctx.createRadialGradient(x, y, 2, x, y, r);
+        if (isDark) {
+          grad.addColorStop(0, "rgba(42, 48, 60, 0.14)");
+          grad.addColorStop(1, "rgba(23, 26, 33, 0)");
         } else {
-          showScreen("login");
+          grad.addColorStop(0, "rgba(182, 173, 158, 0.16)");
+          grad.addColorStop(1, "rgba(207, 200, 188, 0)");
         }
-        return;
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
       }
 
+      // Fine Nero Marquina veining or warm travertine micro-striations
+      const veinCount = isDark ? 14 : 18;
+      for (let v = 0; v < veinCount; v++) {
+        ctx.beginPath();
+        let x = Math.random() * size;
+        let y = Math.random() * size;
+        ctx.moveTo(x, y);
+        const steps = 16;
+        const angleBase = isDark ? (Math.PI * 0.25 + (Math.random() - 0.5) * 0.6) : (Math.random() * 0.25);
+        for (let s = 0; s < steps; s++) {
+          const a = angleBase + (Math.random() - 0.5) * 0.65;
+          const dist = 16 + Math.random() * 24;
+          x += Math.cos(a) * dist;
+          y += Math.sin(a) * dist;
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = isDark
+          ? `rgba(218, 206, 184, ${0.04 + Math.random() * 0.06})`
+          : `rgba(136, 128, 114, ${0.05 + Math.random() * 0.06})`;
+        ctx.lineWidth = 0.6 + Math.random() * 1.4;
+        ctx.stroke();
+      }
+
+      // Fine tactile stone micro-grain
+      const imgData = ctx.getImageData(0, 0, size, size);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const n = (Math.random() - 0.5) * 7;
+        d[i] = Math.max(0, Math.min(255, d[i] + n));
+        d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + n));
+        d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + n));
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.anisotropy = 4;
+      return tex;
+    }
+
+    // =========================================================
+    // 6. ULTRA-CRISP PBR THREE.JS r160+ ENGINE
+    // =========================================================
+    function init3DScene() {
       const canvas = document.getElementById("sceneCanvas");
 
       const renderer = new THREE.WebGLRenderer({
@@ -1663,72 +1799,85 @@
         powerPreference: "high-performance",
         alpha: true
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.08;
-      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.toneMappingExposure = 1.15;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
       const scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x232934, 0.022);
+      scene.fog = new THREE.FogExp2(0x0b0d11, 0.024);
+
+      // Studio Specular Environment Reflections via PMREMGenerator + RoomEnvironment
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      scene.environment = envTexture;
+      pmrem.dispose();
 
       const camera = new THREE.PerspectiveCamera(
-        38,
+        36,
         window.innerWidth / window.innerHeight,
         0.1,
         90
       );
 
-      // Balanced Warm-Ivory Studio Lighting (3 Lights Total)
-      const hemiLight = new THREE.HemisphereLight(0xf6f1e7, 0x262d38, 1.15);
+      // Precision Architectural Studio Lighting
+      const hemiLight = new THREE.HemisphereLight(0xf3eee4, 0x10141c, 0.55);
       scene.add(hemiLight);
 
-      const dirLight = new THREE.DirectionalLight(0xfff1dc, 1.55);
-      dirLight.position.set(6.5, 13.0, 8.0);
-      dirLight.castShadow = true;
-      dirLight.shadow.mapSize.width = 1024;
-      dirLight.shadow.mapSize.height = 1024;
-      dirLight.shadow.camera.near = 2;
-      dirLight.shadow.camera.far = 32;
-      dirLight.shadow.camera.left = -7.5;
-      dirLight.shadow.camera.right = 7.5;
-      dirLight.shadow.camera.top = 7.5;
-      dirLight.shadow.camera.bottom = -7.5;
-      dirLight.shadow.bias = -0.0005;
-      scene.add(dirLight);
+      const keyLight = new THREE.DirectionalLight(0xfff2dc, 2.2);
+      keyLight.position.set(6.5, 13.5, 7.5);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.width = 1024;
+      keyLight.shadow.mapSize.height = 1024;
+      keyLight.shadow.camera.near = 2;
+      keyLight.shadow.camera.far = 32;
+      keyLight.shadow.camera.left = -7.2;
+      keyLight.shadow.camera.right = 7.2;
+      keyLight.shadow.camera.top = 7.2;
+      keyLight.shadow.camera.bottom = -7.2;
+      keyLight.shadow.bias = -0.0004;
+      scene.add(keyLight);
 
-      const rimLight = new THREE.PointLight(0xd4af6a, 1.05, 24, 1.6);
-      rimLight.position.set(-5.5, 5.2, -5.5);
+      const rimLight = new THREE.PointLight(0xd4af6a, 1.35, 24, 1.5);
+      rimLight.position.set(-5.8, 5.2, -5.5);
       scene.add(rimLight);
 
+      // Sweeping intro specular light
+      const introSweepLight = new THREE.PointLight(0xfff4df, 3.2, 18, 1.4);
+      introSweepLight.position.set(-5.5, 2.2, 4.2);
+      scene.add(introSweepLight);
+
       // ---------------------------------------------------------
-      // STAGE 1: NON-MERGING 3D GAMBIT LOGO GROUP
+      // STAGE 1: NON-MERGING 3D GAMBIT LOGO INTRO GROUP
       // ---------------------------------------------------------
       const logoGroup = new THREE.Group();
       logoGroup.position.set(0, 0.35, 0);
       scene.add(logoGroup);
 
       const logoArcMat = new THREE.MeshStandardMaterial({
-        color: 0xf0ede6,
-        roughness: 0.25,
-        metalness: 0.52,
+        color: 0xede8df,
+        roughness: 0.22,
+        metalness: 0.65,
+        envMapIntensity: 1.25,
         transparent: true,
         opacity: 1
       });
 
       const logoKingMat = new THREE.MeshStandardMaterial({
         color: 0xd4af6a,
-        roughness: 0.22,
-        metalness: 0.80,
+        roughness: 0.20,
+        metalness: 0.88,
+        envMapIntensity: 1.4,
         transparent: true,
         opacity: 1
       });
 
       function buildLogoArc(innerR, outerR, startAngle, endAngle, withCrossbar = false) {
         const shape = new THREE.Shape();
-        const segs = 38;
+        const segs = 44;
 
         shape.moveTo(Math.cos(startAngle) * outerR, Math.sin(startAngle) * outerR);
         for (let i = 1; i <= segs; i++) {
@@ -1758,18 +1907,19 @@
           bevelEnabled: true,
           bevelThickness: 0.025,
           bevelSize: 0.02,
-          bevelSegments: 2,
-          curveSegments: 22
+          bevelSegments: 3,
+          curveSegments: 28
         });
         geo.translate(0, 0, -0.11);
         return new THREE.Mesh(geo, logoArcMat);
       }
 
+      // Generous radial gaps so concentric rings NEVER merge
       const arcConfigs = [
-        { innerR: 1.76, outerR: 1.90, start: 0.86, end: Math.PI * 2, bar: true },
+        { innerR: 1.78, outerR: 1.92, start: 0.86, end: Math.PI * 2, bar: true },
         { innerR: 1.44, outerR: 1.58, start: 0.86, end: Math.PI * 2 - 0.16, bar: false },
-        { innerR: 1.12, outerR: 1.26, start: 0.86, end: Math.PI * 2 - 0.20, bar: false },
-        { innerR: 0.80, outerR: 0.94, start: 0.86, end: Math.PI * 2 - 0.26, bar: false }
+        { innerR: 1.10, outerR: 1.24, start: 0.86, end: Math.PI * 2 - 0.20, bar: false },
+        { innerR: 0.76, outerR: 0.90, start: 0.86, end: Math.PI * 2 - 0.26, bar: false }
       ];
 
       const logoArcs = arcConfigs.map((c) => {
@@ -1785,20 +1935,20 @@
         [0.19, 0.46], [0.24, 0.60], [0.22, 0.68], [0.14, 0.73], [0.0, 0.74]
       ].map(([x, y]) => new THREE.Vector2(x, y));
 
-      const logoKingBody = new THREE.Mesh(new THREE.LatheGeometry(kingProfile, 20), logoKingMat);
-      const logoCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.24, 0.075), logoKingMat);
+      const logoKingBody = new THREE.Mesh(new THREE.LatheGeometry(kingProfile, 32), logoKingMat);
+      const logoCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.24, 0.072), logoKingMat);
       logoCrossV.position.y = 0.86;
-      const logoCrossH = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.07, 0.075), logoKingMat);
+      const logoCrossH = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.068, 0.072), logoKingMat);
       logoCrossH.position.y = 0.89;
       logoKing.add(logoKingBody, logoCrossV, logoCrossH);
 
       const KING_REST_X = 1.22;
-      const KING_REST_Y = 0.08;
+      const KING_REST_Y = 0.09;
       logoKing.position.set(KING_REST_X, KING_REST_Y, 0);
       logoGroup.add(logoKing);
 
       // ---------------------------------------------------------
-      // STAGE 2: ZERO-LAG INSTANCED 3D CHESS ARENA
+      // STAGE 2: MUSEUM-GRADE PBR 3D CHESS ARENA
       // ---------------------------------------------------------
       const arenaGroup = new THREE.Group();
       arenaGroup.visible = false;
@@ -1807,28 +1957,76 @@
       const SQUARE_SIZE = 1.0;
       const BOARD_SPAN = SQUARE_SIZE * 8;
 
-      const frameMat = new THREE.MeshStandardMaterial({ color: 0x2a313d, roughness: 0.45, metalness: 0.22 });
-      const goldMat = new THREE.MeshStandardMaterial({ color: 0xc8a96e, roughness: 0.26, metalness: 0.82 });
-      const lightSqMat = new THREE.MeshStandardMaterial({ color: 0xd6cfc2, roughness: 0.34, metalness: 0.08 });
-      const darkSqMat = new THREE.MeshStandardMaterial({ color: 0x3a4250, roughness: 0.32, metalness: 0.20 });
-      const ivoryPieceMat = new THREE.MeshStandardMaterial({ color: 0xebe6dc, roughness: 0.22, metalness: 0.14 });
-      const bronzePieceMat = new THREE.MeshStandardMaterial({ color: 0x2b303a, roughness: 0.24, metalness: 0.52 });
+      const darkMarbleTex = createMarbleTexture(true);
+      const lightStoneTex = createMarbleTexture(false);
 
-      const boardBase = new THREE.Mesh(new THREE.BoxGeometry(BOARD_SPAN + 0.92, 0.34, BOARD_SPAN + 0.92), frameMat);
-      boardBase.position.y = -0.21;
+      const frameMat = new THREE.MeshStandardMaterial({
+        color: 0x151820,
+        roughness: 0.42,
+        metalness: 0.28,
+        envMapIntensity: 0.9
+      });
+
+      const brassMat = new THREE.MeshStandardMaterial({
+        color: 0xd4af6a,
+        roughness: 0.22,
+        metalness: 0.88,
+        envMapIntensity: 1.35
+      });
+
+      const lightSqMat = new THREE.MeshStandardMaterial({
+        map: lightStoneTex,
+        roughness: 0.28,
+        metalness: 0.06,
+        envMapIntensity: 0.85
+      });
+
+      const darkSqMat = new THREE.MeshStandardMaterial({
+        map: darkMarbleTex,
+        roughness: 0.24,
+        metalness: 0.14,
+        envMapIntensity: 1.0
+      });
+
+      const ivoryPieceMat = new THREE.MeshStandardMaterial({
+        color: 0xede8df,
+        roughness: 0.20,
+        metalness: 0.12,
+        envMapIntensity: 1.15
+      });
+
+      const obsidianPieceMat = new THREE.MeshStandardMaterial({
+        color: 0x1a1e26,
+        roughness: 0.22,
+        metalness: 0.62,
+        envMapIntensity: 1.35
+      });
+
+      // Architectural Walnut-Obsidian Base + Precision Inlaid Satin Brass Border
+      const boardBase = new THREE.Mesh(
+        new THREE.BoxGeometry(BOARD_SPAN + 0.96, 0.36, BOARD_SPAN + 0.96),
+        frameMat
+      );
+      boardBase.position.y = -0.22;
       boardBase.receiveShadow = true;
       arenaGroup.add(boardBase);
 
-      const goldOuterFrame = new THREE.Mesh(new THREE.BoxGeometry(BOARD_SPAN + 0.98, 0.045, BOARD_SPAN + 0.98), goldMat);
-      goldOuterFrame.position.y = -0.05;
-      arenaGroup.add(goldOuterFrame);
+      const brassOuterFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(BOARD_SPAN + 1.00, 0.04, BOARD_SPAN + 1.00),
+        brassMat
+      );
+      brassOuterFrame.position.y = -0.05;
+      arenaGroup.add(brassOuterFrame);
 
-      const goldInnerTrim = new THREE.Mesh(new THREE.BoxGeometry(BOARD_SPAN + 0.16, 0.05, BOARD_SPAN + 0.16), goldMat);
-      goldInnerTrim.position.y = -0.015;
-      arenaGroup.add(goldInnerTrim);
+      const brassInnerInlay = new THREE.Mesh(
+        new THREE.BoxGeometry(BOARD_SPAN + 0.12, 0.052, BOARD_SPAN + 0.12),
+        brassMat
+      );
+      brassInnerInlay.position.y = -0.014;
+      arenaGroup.add(brassInnerInlay);
 
-      // 64 Squares via 2 InstancedMesh objects (2 Draw Calls Total)
-      const squareGeo = new THREE.BoxGeometry(SQUARE_SIZE - 0.02, 0.08, SQUARE_SIZE - 0.02);
+      // All 64 Squares in 2 InstancedMesh Draw Calls
+      const squareGeo = new THREE.BoxGeometry(SQUARE_SIZE - 0.016, 0.08, SQUARE_SIZE - 0.016);
       const lightInstances = new THREE.InstancedMesh(squareGeo, lightSqMat, 32);
       const darkInstances = new THREE.InstancedMesh(squareGeo, darkSqMat, 32);
       lightInstances.receiveShadow = true;
@@ -1862,21 +2060,22 @@
       darkInstances.instanceMatrix.needsUpdate = true;
       arenaGroup.add(lightInstances, darkInstances);
 
+      // High-Smoothness 32-Segment Staunton Geometries
       function makeLathe(pts) {
-        return new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), 18);
+        return new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), 32);
       }
 
       const SHARED_GEO = {
         pawnBody: makeLathe([[0, 0], [0.30, 0], [0.31, 0.07], [0.24, 0.14], [0.15, 0.34], [0.11, 0.54], [0.17, 0.60], [0.11, 0.66], [0, 0.69]]),
-        pawnHead: new THREE.SphereGeometry(0.155, 16, 14),
-        pawnCollar: new THREE.TorusGeometry(0.23, 0.017, 8, 18),
+        pawnHead: new THREE.SphereGeometry(0.155, 24, 20),
+        pawnCollar: new THREE.TorusGeometry(0.23, 0.016, 12, 32),
 
         rookBody: makeLathe([[0, 0], [0.34, 0], [0.35, 0.08], [0.27, 0.16], [0.18, 0.64], [0.25, 0.72], [0.26, 0.90], [0.17, 0.90], [0.17, 0.80], [0, 0.80]]),
-        rookCollar: new THREE.TorusGeometry(0.26, 0.018, 8, 18),
+        rookCollar: new THREE.TorusGeometry(0.26, 0.017, 12, 32),
 
         bishopBody: makeLathe([[0, 0], [0.33, 0], [0.34, 0.08], [0.26, 0.16], [0.15, 0.56], [0.13, 0.76], [0.20, 0.82], [0.15, 0.88], [0.19, 1.04], [0.14, 1.20], [0.05, 1.29], [0, 1.31]]),
-        bishopOrb: new THREE.SphereGeometry(0.055, 12, 10),
-        bishopCollar: new THREE.TorusGeometry(0.25, 0.018, 8, 18),
+        bishopOrb: new THREE.SphereGeometry(0.055, 18, 16),
+        bishopCollar: new THREE.TorusGeometry(0.25, 0.017, 12, 32),
 
         knightBase: makeLathe([[0, 0], [0.34, 0], [0.35, 0.08], [0.27, 0.16], [0.21, 0.32], [0, 0.32]]),
         knightHead: (() => {
@@ -1895,30 +2094,30 @@
             bevelEnabled: true,
             bevelThickness: 0.03,
             bevelSize: 0.025,
-            bevelSegments: 2,
-            curveSegments: 18
+            bevelSegments: 3,
+            curveSegments: 24
           });
           g.translate(0, 0.30, -0.08);
           return g;
         })(),
-        knightCollar: new THREE.TorusGeometry(0.26, 0.018, 8, 18),
+        knightCollar: new THREE.TorusGeometry(0.26, 0.017, 12, 32),
 
         queenBody: makeLathe([[0, 0], [0.36, 0], [0.37, 0.09], [0.28, 0.18], [0.16, 0.72], [0.14, 1.00], [0.22, 1.08], [0.16, 1.14], [0.24, 1.36], [0.18, 1.40], [0, 1.36]]),
-        queenCrown: new THREE.SphereGeometry(0.072, 12, 10),
-        queenCollar: new THREE.TorusGeometry(0.28, 0.019, 8, 18),
+        queenCrown: new THREE.SphereGeometry(0.072, 18, 16),
+        queenCollar: new THREE.TorusGeometry(0.28, 0.018, 12, 32),
 
         kingBody: makeLathe([[0, 0], [0.38, 0], [0.39, 0.09], [0.30, 0.18], [0.17, 0.76], [0.15, 1.08], [0.24, 1.16], [0.17, 1.22], [0.25, 1.44], [0.20, 1.49], [0, 1.47]]),
-        kingCrossV: new THREE.BoxGeometry(0.058, 0.24, 0.058),
-        kingCrossH: new THREE.BoxGeometry(0.17, 0.055, 0.058),
-        kingCollar: new THREE.TorusGeometry(0.29, 0.019, 8, 18)
+        kingCrossV: new THREE.BoxGeometry(0.056, 0.24, 0.056),
+        kingCrossH: new THREE.BoxGeometry(0.17, 0.054, 0.056),
+        kingCollar: new THREE.TorusGeometry(0.29, 0.018, 12, 32)
       };
 
       function createPieceMesh(type, side) {
-        const mat = side === "white" ? ivoryPieceMat : bronzePieceMat;
+        const mat = side === "white" ? ivoryPieceMat : obsidianPieceMat;
         const g = new THREE.Group();
 
         const addCollar = (geo, y) => {
-          const c = new THREE.Mesh(geo, goldMat);
+          const c = new THREE.Mesh(geo, brassMat);
           c.rotation.x = Math.PI / 2;
           c.position.y = y;
           g.add(c);
@@ -1938,7 +2137,7 @@
           addCollar(SHARED_GEO.rookCollar, 0.17);
         } else if (type === "B") {
           const body = new THREE.Mesh(SHARED_GEO.bishopBody, mat);
-          const orb = new THREE.Mesh(SHARED_GEO.bishopOrb, goldMat);
+          const orb = new THREE.Mesh(SHARED_GEO.bishopOrb, brassMat);
           orb.position.y = 1.35;
           body.castShadow = true;
           g.add(body, orb);
@@ -1952,22 +2151,21 @@
           addCollar(SHARED_GEO.knightCollar, 0.17);
         } else if (type === "Q") {
           const body = new THREE.Mesh(SHARED_GEO.queenBody, mat);
-          const crown = new THREE.Mesh(SHARED_GEO.queenCrown, goldMat);
+          const crown = new THREE.Mesh(SHARED_GEO.queenCrown, brassMat);
           crown.position.y = 1.46;
           body.castShadow = true;
           g.add(body, crown);
           addCollar(SHARED_GEO.queenCollar, 0.19);
         } else if (type === "K") {
           const body = new THREE.Mesh(SHARED_GEO.kingBody, mat);
-          const cv = new THREE.Mesh(SHARED_GEO.kingCrossV, goldMat);
+          const cv = new THREE.Mesh(SHARED_GEO.kingCrossV, brassMat);
           cv.position.y = 1.61;
-          const ch = new THREE.Mesh(SHARED_GEO.kingCrossH, goldMat);
+          const ch = new THREE.Mesh(SHARED_GEO.kingCrossH, brassMat);
           ch.position.y = 1.65;
           body.castShadow = true;
           g.add(body, cv, ch);
           addCollar(SHARED_GEO.kingCollar, 0.19);
         }
-
         return g;
       }
 
@@ -2009,6 +2207,20 @@
         piecesMap.set(p.id, { mesh });
       });
 
+      // Crisp Brass Landing Settle Ring
+      const ringGeo = new THREE.RingGeometry(0.32, 0.37, 36);
+      ringGeo.rotateX(-Math.PI / 2);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xd4af6a,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false
+      });
+      const settleRing = new THREE.Mesh(ringGeo, ringMat);
+      settleRing.position.y = 0.048;
+      arenaGroup.add(settleRing);
+      let ringAnim = 0;
+
       const moveQueue = [
         { id: "wN2", f: 4, r: 4 },
         { id: "bQ",  f: 2, r: 6 },
@@ -2020,29 +2232,10 @@
         { id: "bQ",  f: 3, r: 7 }
       ];
       let moveIdx = 0;
-      let moveDelay = 2.0;
+      let moveDelay = 1.9;
       let activeMove = null;
 
-      // Max 24 Dust Particles for 60fps
-      const dustCount = 24;
-      const dustPos = new Float32Array(dustCount * 3);
-      for (let i = 0; i < dustCount; i++) {
-        dustPos[i * 3] = (Math.random() - 0.5) * 14;
-        dustPos[i * 3 + 1] = 0.5 + Math.random() * 6.5;
-        dustPos[i * 3 + 2] = (Math.random() - 0.5) * 14;
-      }
-      const dustGeo = new THREE.BufferGeometry();
-      dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
-      const dustMat = new THREE.PointsMaterial({
-        color: 0xd4af6a,
-        size: 0.055,
-        transparent: true,
-        opacity: 0.34,
-        depthWrite: false
-      });
-      const dustPoints = new THREE.Points(dustGeo, dustMat);
-      arenaGroup.add(dustPoints);
-
+      // Subtle Pointer Parallax
       const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
       window.addEventListener("pointermove", (e) => {
         pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -2060,7 +2253,9 @@
       const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
       const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-      const camPos = new THREE.Vector3(-1.8, 0.8, 8.2);
+      // Critically Damped Camera State
+      const camPos = new THREE.Vector3(-1.6, 0.75, 8.2);
+      const camVel = new THREE.Vector3();
       const camLook = new THREE.Vector3(0, 0.25, 0);
       const targetPos = new THREE.Vector3();
       const targetLook = new THREE.Vector3();
@@ -2071,132 +2266,145 @@
       let wordmarkShown = false;
       let arenaReveal = 0;
 
-      // Cleanly complete/hide 3D intro and reveal arena without ever overwriting authenticated state
       finishIntroVisuals = () => {
         if (introFinished) return;
         introFinished = true;
         logoGroup.visible = false;
+        introSweepLight.visible = false;
         introWordmarkOverlay.style.display = "none";
 
         const isDesktop = window.innerWidth >= 1024;
         const isLogin = !activeUser;
         const offsetX = isLogin ? (isDesktop ? 1.85 : 0) : 0;
-        camPos.set(isLogin ? -2.6 + offsetX * 0.4 : 0, 6.2, 10.6);
-        camLook.set(offsetX, 0.3, 0.1);
+        camPos.set(isLogin ? -2.5 + offsetX * 0.4 : 0, 6.2, 10.4);
+        camVel.set(0, 0, 0);
+        camLook.set(offsetX, 0.28, 0.1);
         camera.position.copy(camPos);
         camera.lookAt(camLook);
 
         arenaGroup.visible = true;
-        arenaGroup.position.y = -0.35;
-        arenaGroup.scale.setScalar(0.96);
+        arenaGroup.position.y = -0.32;
+        arenaGroup.scale.setScalar(0.965);
       };
 
       const clock = new THREE.Clock();
       let rafId = null;
+
+      function stepSpringVec3(current, target, velocity, stiffness, dt) {
+        const damping = 2 * Math.sqrt(stiffness);
+        const fx = (target.x - current.x) * stiffness - velocity.x * damping;
+        const fy = (target.y - current.y) * stiffness - velocity.y * damping;
+        const fz = (target.z - current.z) * stiffness - velocity.z * damping;
+        velocity.x += fx * dt;
+        velocity.y += fy * dt;
+        velocity.z += fz * dt;
+        current.x += velocity.x * dt;
+        current.y += velocity.y * dt;
+        current.z += velocity.z * dt;
+      }
 
       function animate() {
         rafId = requestAnimationFrame(animate);
         const dt = Math.min(clock.getDelta(), 0.05);
         const elapsed = clock.getElapsedTime();
 
-        const dampPtr = 1 - Math.exp(-4.5 * dt);
+        const dampPtr = 1 - Math.exp(-5.0 * dt);
         pointer.sx += (pointer.x - pointer.sx) * dampPtr;
         pointer.sy += (pointer.y - pointer.sy) * dampPtr;
 
         if (!introFinished && sceneState.phase === "intro") {
           introTime += dt;
 
+          // Sweep studio specular highlight across the 3D logo
+          introSweepLight.position.x = -5.5 + clamp01(introTime / 2.2) * 11.0;
+
           logoArcs.forEach((arc, i) => {
-            const p = easeOutExpo(clamp01((introTime - i * 0.08) / 0.88));
-            const s = 0.72 + 0.28 * p;
-            arc.scale.set(s, s, 0.4 + 0.6 * p);
-            arc.rotation.z = (1 - p) * (-0.42 - i * 0.1);
-            arc.position.z = (1 - p) * (-1.1 - i * 0.18);
+            const p = easeOutExpo(clamp01((introTime - i * 0.085) / 0.92));
+            const s = 0.74 + 0.26 * p;
+            arc.scale.set(s, s, 0.45 + 0.55 * p);
+            arc.rotation.z = (1 - p) * (-0.38 - i * 0.09);
+            arc.position.z = (1 - p) * (-1.0 - i * 0.16);
           });
 
-          const kingP = easeOutCubic(clamp01((introTime - 0.60) / 0.78));
-          logoKing.visible = introTime >= 0.58;
-          logoKing.position.set(KING_REST_X, KING_REST_Y + (1 - kingP) * 1.9, 0);
-          logoKing.rotation.y = (1 - kingP) * Math.PI * 0.9;
+          const kingP = easeOutCubic(clamp01((introTime - 0.64) / 0.80));
+          logoKing.visible = introTime >= 0.62;
+          logoKing.position.set(KING_REST_X, KING_REST_Y + (1 - kingP) * 1.85, 0);
+          logoKing.rotation.y = (1 - kingP) * Math.PI * 0.85;
 
-          if (introTime >= 0.95 && !wordmarkShown) {
+          if (introTime >= 1.02 && !wordmarkShown) {
             wordmarkShown = true;
             introWordmarkText.classList.add("revealed");
           }
 
-          logoGroup.rotation.y = Math.sin(introTime * 0.9) * 0.08 + pointer.sx * 0.1;
+          logoGroup.rotation.y = Math.sin(introTime * 0.85) * 0.07 + pointer.sx * 0.09;
 
-          if (introTime >= 1.90) {
-            const outP = easeInOutCubic(clamp01((introTime - 1.90) / 0.58));
-            const sOut = 1 - outP * 0.14;
+          if (introTime >= 2.15) {
+            const outP = easeInOutCubic(clamp01((introTime - 2.15) / 0.60));
+            const sOut = 1 - outP * 0.12;
             logoGroup.scale.set(sOut, sOut, sOut);
-            logoGroup.position.y = 0.35 + outP * 0.9;
+            logoGroup.position.y = 0.35 + outP * 0.85;
             logoArcMat.opacity = 1 - outP;
             logoKingMat.opacity = 1 - outP;
             introWordmarkOverlay.style.opacity = String(1 - outP);
           }
 
-          const camP = easeOutCubic(clamp01(introTime / 1.25));
-          targetPos.set(-1.8 * (1 - camP) + pointer.sx * 0.25, 0.8 * (1 - camP) + 0.35, 8.2 - 1.0 * camP);
+          const camP = easeOutCubic(clamp01(introTime / 1.35));
+          targetPos.set(-1.6 * (1 - camP) + pointer.sx * 0.22, 0.75 * (1 - camP) + 0.35, 8.2 - 0.95 * camP);
           targetLook.set(0, 0.25, 0);
-          const camDamp = 1 - Math.exp(-5.0 * dt);
-          camPos.lerp(targetPos, camDamp);
-          camLook.lerp(targetLook, camDamp);
+          stepSpringVec3(camPos, targetPos, camVel, 26, dt);
+          camLook.lerp(targetLook, 1 - Math.exp(-6 * dt));
           camera.position.copy(camPos);
           camera.lookAt(camLook);
 
-          if (introTime >= 2.50) {
+          if (introTime >= 2.78) {
             finishIntroVisuals();
-            // Never overwrite an authenticated state when intro completes
+            // Intro Guard: Never route to login if an active user is already authenticated
             if (activeUser) {
-              if (currentScreen !== "calibration" && currentScreen !== "dashboard") {
-                handleAuthenticatedUser(activeUser);
-              }
-            } else {
+              routeAuthenticatedUser(activeUser);
+            } else if (authInitialized) {
               showScreen("login");
             }
           }
         } else {
           if (arenaReveal < 1) {
-            arenaReveal = Math.min(1, arenaReveal + dt * 1.65);
+            arenaReveal = Math.min(1, arenaReveal + dt * 1.7);
             const rEase = easeOutCubic(arenaReveal);
-            arenaGroup.position.y = -0.35 * (1 - rEase);
-            arenaGroup.scale.setScalar(0.96 + 0.04 * rEase);
+            arenaGroup.position.y = -0.32 * (1 - rEase);
+            arenaGroup.scale.setScalar(0.965 + 0.035 * rEase);
           }
 
           const isDesktop = window.innerWidth >= 1024;
           if (sceneState.phase === "dashboard") {
-            const orbitAngle = elapsed * 0.08;
+            const orbitAngle = elapsed * 0.065;
             targetPos.set(
-              Math.sin(orbitAngle) * 2.2 + pointer.sx * 0.55,
-              7.6 - pointer.sy * 0.28,
-              9.0 + Math.cos(orbitAngle) * 0.7
+              Math.sin(orbitAngle) * 2.1 + pointer.sx * 0.45,
+              7.8 - pointer.sy * 0.24,
+              9.1 + Math.cos(orbitAngle) * 0.6
             );
-            targetLook.set(0, 0.15, 0.2);
+            targetLook.set(0, 0.12, 0.15);
           } else if (sceneState.phase === "calibration") {
             targetPos.set(
-              pointer.sx * 0.65,
-              6.6 - pointer.sy * 0.3,
-              9.2 + Math.sin(elapsed * 0.25) * 0.2
+              pointer.sx * 0.55,
+              6.8 - pointer.sy * 0.25,
+              9.2 + Math.sin(elapsed * 0.22) * 0.18
             );
-            targetLook.set(0, 0.25, 0);
+            targetLook.set(0, 0.22, 0);
           } else {
             const offsetX = isDesktop ? 1.85 : 0.0;
             targetPos.set(
-              -2.6 + offsetX * 0.4 + pointer.sx * 0.7,
-              5.4 - pointer.sy * 0.32,
-              9.8 + Math.cos(elapsed * 0.2) * 0.14
+              -2.5 + offsetX * 0.4 + pointer.sx * 0.65,
+              5.4 - pointer.sy * 0.28,
+              9.7 + Math.cos(elapsed * 0.18) * 0.12
             );
-            targetLook.set(offsetX, 0.3, 0.1);
+            targetLook.set(offsetX, 0.28, 0.1);
           }
 
-          const dampCam = 1 - Math.exp(-3.4 * dt);
-          camPos.lerp(targetPos, dampCam);
-          camLook.lerp(targetLook, dampCam);
+          stepSpringVec3(camPos, targetPos, camVel, 18, dt);
+          camLook.lerp(targetLook, 1 - Math.exp(-4.5 * dt));
           camera.position.copy(camPos);
           camera.lookAt(camLook);
 
-          // Gentle Automated Parabolic Piece Moves
+          // Automated Parabolic Piece Moves with Brass Settle Ring
           if (!activeMove) {
             moveDelay -= dt;
             if (moveDelay <= 0) {
@@ -2208,7 +2416,7 @@
                   from: entry.mesh.position.clone(),
                   to: gridToWorld(spec.f, spec.r),
                   t: 0,
-                  dur: 1.25
+                  dur: 1.2
                 };
               }
               moveIdx = (moveIdx + 1) % moveQueue.length;
@@ -2218,19 +2426,26 @@
             const p = Math.min(activeMove.t, 1);
             const eased = easeInOutCubic(p);
             activeMove.mesh.position.lerpVectors(activeMove.from, activeMove.to, eased);
-            activeMove.mesh.position.y = activeMove.from.y + Math.sin(p * Math.PI) * 1.05;
+            activeMove.mesh.position.y = activeMove.from.y + Math.sin(p * Math.PI) * 1.02;
+
             if (p >= 1) {
               activeMove.mesh.position.copy(activeMove.to);
-              // Play subtle wooden piece placement sound on Login screen once audio unlocked
+              settleRing.position.set(activeMove.to.x, 0.048, activeMove.to.z);
+              ringAnim = 1.0;
               if (sceneState.phase === "login") {
                 chessAudio.moveSound(0.42);
               }
               activeMove = null;
-              moveDelay = 2.9;
+              moveDelay = 2.8;
             }
           }
 
-          dustPoints.rotation.y = elapsed * 0.025;
+          if (ringAnim > 0) {
+            ringAnim = Math.max(0, ringAnim - dt * 1.45);
+            const inv = 1 - ringAnim;
+            settleRing.scale.setScalar(0.85 + inv * 0.95);
+            ringMat.opacity = ringAnim * 0.65;
+          }
         }
 
         renderer.render(scene, camera);
@@ -2254,24 +2469,24 @@
     window.addEventListener("load", init3DScene);
 
     // =========================================================
-    // 6. MINIMAL SVG TOAST NOTIFICATIONS
+    // 7. ARCHITECTURAL TOASTS & INLINE ERROR HANDLING
     // =========================================================
     const TOAST_ICONS = {
       success: `<svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>`,
       error: `<svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>`,
-      info: `<svg class="w-4 h-4 text-champagne shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>`
+      info: `<svg class="w-4 h-4 text-brass shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>`
     };
 
-    function showToast(title, message = "", type = "info", duration = 4200) {
+    function showToast(title, message = "", type = "info", duration = 3800) {
       const el = document.createElement("div");
-      el.className = "pointer-events-auto toast-in glass-card rounded-xl px-4 py-3 flex items-start gap-3";
+      el.className = "pointer-events-auto toast-in studio-panel rounded-[8px] px-4 py-3 flex items-start gap-3";
       el.innerHTML = `
         ${TOAST_ICONS[type] || TOAST_ICONS.info}
         <div class="flex-1 min-w-0">
-          <div class="text-xs font-semibold text-[#f3f4f6]">${title}</div>
-          ${message ? `<div class="text-[11px] text-[#9ca3af] mt-0.5 leading-relaxed">${message}</div>` : ""}
+          <div class="text-xs font-semibold text-[#F3F4F6]">${title}</div>
+          ${message ? `<div class="text-[11px] text-[#A1A7B3] mt-0.5 leading-relaxed">${message}</div>` : ""}
         </div>
-        <button type="button" aria-label="Close" class="text-[#9ca3af] hover:text-[#f3f4f6] p-0.5 cursor-pointer">
+        <button type="button" aria-label="Close" class="text-[#6C7382] hover:text-[#F3F4F6] p-0.5 cursor-pointer">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
@@ -2282,7 +2497,7 @@
       const close = () => {
         el.classList.remove("toast-in");
         el.classList.add("toast-out");
-        setTimeout(() => el.remove(), 220);
+        setTimeout(() => el.remove(), 200);
       };
 
       el.querySelector("button").addEventListener("click", close);
@@ -2292,71 +2507,69 @@
       }
     }
 
+    function setInlineAuthError(msg) {
+      if (!msg) {
+        authInlineError.textContent = "";
+        authInlineError.classList.add("hidden");
+      } else {
+        authInlineError.textContent = msg;
+        authInlineError.classList.remove("hidden");
+      }
+    }
+
     function handleAuthError(error) {
       chessAudio.errorSound();
       const code = error?.code || "";
+      let message = error?.message || "Unable to complete authentication.";
+
       switch (code) {
         case "auth/unauthorized-domain":
-          showToast(
-            "Domain Not Authorized for Google",
-            `Add "${window.location.hostname || "this domain"}" in Firebase Console > Authentication > Settings > Authorized domains, or sign in with Email.`,
-            "error",
-            7000
-          );
+          message = `Domain "${window.location.hostname || "current host"}" is not authorized for Google Sign-In. Add it in Firebase Console > Authentication > Settings > Authorized domains, or sign in with Email.`;
           break;
         case "auth/popup-closed-by-user":
-          showToast("Sign-In Cancelled", "Google sign-in popup was closed.", "info");
+          message = "Google sign-in popup was closed before completion.";
           break;
         case "auth/popup-blocked":
-          showToast("Popup Blocked", "Allow popups in your browser to sign in with Google, or use Email Sign-In.", "error");
-          break;
-        case "auth/popup-closed-by-user":
-          showToast("Sign-In Cancelled", "Google sign-in popup was closed.", "info");
-          break;
-        case "auth/popup-blocked":
-          showToast("Popup Blocked", "Allow popups in your browser to sign in with Google.", "error");
+          message = "Browser blocked the Google sign-in popup. Allow popups or use Email sign-in.";
           break;
         case "auth/invalid-credential":
         case "auth/wrong-password":
         case "auth/user-not-found":
-          showToast("Invalid Credentials", "Check your email and password and try again.", "error");
+          message = "Invalid email or password. Please check your credentials and try again.";
           break;
         case "auth/email-already-in-use":
-          showToast("Account Exists", "This email is already registered. Switch to Sign In.", "info");
+          message = "This email is already registered. Switch to Sign In.";
           break;
         case "auth/weak-password":
-          showToast("Weak Password", "Password must be at least 6 characters.", "error");
+          message = "Password must be at least 6 characters.";
           break;
         case "auth/invalid-email":
-          showToast("Invalid Email", "Enter a valid email address.", "error");
+          message = "Enter a valid email address.";
           break;
         case "auth/too-many-requests":
-          showToast("Too Many Attempts", "Please wait a moment and try again.", "error");
+          message = "Too many failed attempts. Please wait a moment and try again.";
           break;
-        default:
-          showToast("Authentication Error", error?.message || "Unable to sign in.", "error");
       }
+
+      setInlineAuthError(message);
     }
 
     // =========================================================
-    // 7. AUTH TAB & FORM CONTROLS
+    // 8. AUTH FORM & CONTROLS
     // =========================================================
     function setAuthMode(mode) {
       if (authMode !== mode) chessAudio.tickSound();
       authMode = mode;
+      setInlineAuthError("");
       const isSignUp = mode === "signup";
 
-      tabPill.style.transform = isSignUp ? "translateX(100%)" : "translateX(0%)";
+      tabSignIn.classList.toggle("active", !isSignUp);
+      tabSignIn.classList.toggle("text-[#A1A7B3]", isSignUp);
       tabSignIn.setAttribute("aria-selected", String(!isSignUp));
+
+      tabSignUp.classList.toggle("active", isSignUp);
+      tabSignUp.classList.toggle("text-[#A1A7B3]", !isSignUp);
       tabSignUp.setAttribute("aria-selected", String(isSignUp));
-
-      tabSignIn.classList.toggle("text-[#f3f4f6]", !isSignUp);
-      tabSignIn.classList.toggle("font-semibold", !isSignUp);
-      tabSignIn.classList.toggle("text-[#9ca3af]", isSignUp);
-
-      tabSignUp.classList.toggle("text-[#f3f4f6]", isSignUp);
-      tabSignUp.classList.toggle("font-semibold", isSignUp);
-      tabSignUp.classList.toggle("text-[#9ca3af]", !isSignUp);
 
       usernameCollapse.classList.toggle("open", isSignUp);
       forgotPasswordBtn.classList.toggle("hidden", isSignUp);
@@ -2369,10 +2582,10 @@
 
     togglePasswordBtn.addEventListener("click", () => {
       chessAudio.tickSound();
-      const hidden = passwordInput.type === "password";
-      passwordInput.type = hidden ? "text" : "password";
-      eyeOpenIcon.classList.toggle("hidden", hidden);
-      eyeClosedIcon.classList.toggle("hidden", !hidden);
+      const isHidden = passwordInput.type === "password";
+      passwordInput.type = isHidden ? "text" : "password";
+      eyeOpenIcon.classList.toggle("hidden", isHidden);
+      eyeClosedIcon.classList.toggle("hidden", !isHidden);
     });
 
     function setGoogleBusy(busy) {
@@ -2393,12 +2606,16 @@
 
     googleAuthBtn.addEventListener("click", async () => {
       chessAudio.tickSound();
+      setInlineAuthError("");
       setGoogleBusy(true);
       try {
         const res = await signInWithPopup(auth, googleProvider);
+        isExplicitSignOut = false;
+        activeUser = res.user;
+        saveSessionCache(res.user);
         chessAudio.checkSound();
         showToast("Signed In", `Welcome, ${res.user.displayName || "Player"}.`, "success");
-        await handleAuthenticatedUser(res.user);
+        routeAuthenticatedUser(res.user);
       } catch (err) {
         handleAuthError(err);
       } finally {
@@ -2406,28 +2623,49 @@
       }
     });
 
+    forgotPasswordBtn.addEventListener("click", async () => {
+      chessAudio.tickSound();
+      setInlineAuthError("");
+      const email = emailInput.value.trim();
+      if (!email) {
+        chessAudio.errorSound();
+        setInlineAuthError("Enter your email address above to receive a password reset link.");
+        emailInput.focus();
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        chessAudio.checkSound();
+        showToast("Reset Email Sent", `Password reset instructions sent to ${email}.`, "success");
+      } catch (err) {
+        handleAuthError(err);
+      }
+    });
+
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      setInlineAuthError("");
+
       const email = emailInput.value.trim();
       const password = passwordInput.value;
-      const username = usernameInput.value.trim();
+      const playerTag = usernameInput.value.trim();
 
       if (!email || !password) {
         chessAudio.errorSound();
-        showToast("Missing Fields", "Enter your email and password.", "error");
+        setInlineAuthError("Please enter both your email address and password.");
         return;
       }
 
       if (authMode === "signup") {
-        if (!username || username.length < 3) {
+        if (!playerTag || playerTag.length < 3) {
           chessAudio.errorSound();
-          showToast("Invalid Username", "Username must be at least 3 characters.", "error");
+          setInlineAuthError("Player Tag must be at least 3 characters.");
           usernameInput.focus();
           return;
         }
         if (password.length < 6) {
           chessAudio.errorSound();
-          showToast("Password Too Short", "Password must be at least 6 characters.", "error");
+          setInlineAuthError("Password must be at least 6 characters.");
           passwordInput.focus();
           return;
         }
@@ -2437,16 +2675,28 @@
       try {
         if (authMode === "signup") {
           const cred = await createUserWithEmailAndPassword(auth, email, password);
-          await updateProfile(cred.user, { displayName: username }).catch(() => {});
+          await updateProfile(cred.user, { displayName: playerTag }).catch(() => {});
+          const enrichedUser = {
+            uid: cred.user.uid,
+            email: cred.user.email,
+            displayName: playerTag,
+            photoURL: cred.user.photoURL || ""
+          };
+          isExplicitSignOut = false;
+          activeUser = enrichedUser;
+          saveSessionCache(enrichedUser);
           chessAudio.checkSound();
-          showToast("Account Created", `Welcome to GAMBIT, ${username}.`, "success");
-          await handleAuthenticatedUser(cred.user, username);
+          showToast("Account Created", `Welcome to GAMBIT, ${playerTag}.`, "success");
+          routeAuthenticatedUser(enrichedUser);
         } else {
           const cred = await signInWithEmailAndPassword(auth, email, password);
-          const name = cred.user.displayName || cred.user.email.split("@")[0];
+          isExplicitSignOut = false;
+          activeUser = cred.user;
+          saveSessionCache(cred.user);
+          const name = cred.user.displayName || (cred.user.email ? cred.user.email.split("@")[0] : "Player");
           chessAudio.checkSound();
           showToast("Signed In", `Welcome back, ${name}.`, "success");
-          await handleAuthenticatedUser(cred.user);
+          routeAuthenticatedUser(cred.user);
         }
       } catch (err) {
         handleAuthError(err);
@@ -2454,50 +2704,29 @@
         setSubmitBusy(false);
       }
     });
-    confirmCalibrationBtn.addEventListener("click", () => {
-      if (!pendingCalibration || !activeUser) return;
-
-      const gbt = pendingCalibration.gbt;
-      const nowIso = new Date().toISOString();
-      const profile = {
-        uid: activeUser.uid,
-        displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split("@")[0] : "Player"),
-        tier: pendingCalibration.tier,
-        calibrated: true,
-        memberSince: nowIso,
-        ratings: {
-          rapid: { gbt, wins: 0, draws: 0, losses: 0 },
-          blitz: { gbt, wins: 0, draws: 0, losses: 0 },
-          bullet: { gbt, wins: 0, draws: 0, losses: 0 },
-          gambit: { gbt, wins: 0, draws: 0, losses: 0 }
-        }
-      };
-
-      // Save to localStorage FIRST for instant transition, sync Firestore in background
-      saveUserProfileInstant(activeUser.uid, profile);
-      activeProfile = profile;
-
-      chessAudio.checkSound();
-      showToast("Rating Calibrated", `Initialized at ${gbt} GBT across all 4 formats.`, "success");
-
-      renderDashboard();
-      showScreen("dashboard");
-    });
 
     signOutBtn.addEventListener("click", async () => {
       chessAudio.tickSound();
       stopMatchmaking(false);
       friendRoomDrawer.classList.add("hidden");
+
+      // Explicit sign-out is the ONLY way an active session returns to login
+      isExplicitSignOut = true;
+      activeUser = null;
+      activeProfile = null;
+      clearSessionCache();
+
       try {
         await signOut(auth);
-        showToast("Signed Out", "You have signed out of GAMBIT.", "info");
-      } catch (err) {
-        handleAuthError(err);
-      }
+      } catch (_) {}
+
+      setInlineAuthError("");
+      showScreen("login");
+      showToast("Signed Out", "You have signed out of GAMBIT.", "info");
     });
 
     // =========================================================
-    // 8. POST-LOGIN SKILL CALIBRATION (4 GBT TIERS)
+    // 9. POST-LOGIN 4-TIER SKILL CALIBRATION
     // =========================================================
     skillCards.forEach((card) => {
       card.addEventListener("click", () => {
@@ -2510,48 +2739,40 @@
         const rank = card.getAttribute("data-rank");
 
         pendingCalibration = { tier, gbt, rank };
-        calibrationSummary.innerHTML = `Starting rating: <span class="text-champagne font-semibold tabular-nums">${gbt} GBT</span> across Rapid, Blitz, Bullet & Gambit`;
+        calibrationSummary.innerHTML = `Initial rating: <span class="mono-num font-bold text-brass">${gbt} GBT</span> across Rapid, Blitz, Bullet & Gambit.`;
         confirmCalibrationBtn.disabled = false;
       });
     });
 
-    confirmCalibrationBtn.addEventListener("click", async () => {
+    confirmCalibrationBtn.addEventListener("click", () => {
       if (!pendingCalibration || !activeUser) return;
 
-      confirmCalibrationBtn.disabled = true;
-      confirmCalibrationText.textContent = "INITIALIZING...";
-
       const gbt = pendingCalibration.gbt;
-      const nowIso = new Date().toISOString();
       const profile = {
         uid: activeUser.uid,
         displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split("@")[0] : "Player"),
         tier: pendingCalibration.tier,
         calibrated: true,
-        memberSince: nowIso,
+        memberSince: new Date().toISOString(),
         ratings: {
-          rapid: { gbt, wins: 0, draws: 0, losses: 0 },
-          blitz: { gbt, wins: 0, draws: 0, losses: 0 },
+          rapid:  { gbt, wins: 0, draws: 0, losses: 0 },
+          blitz:  { gbt, wins: 0, draws: 0, losses: 0 },
           bullet: { gbt, wins: 0, draws: 0, losses: 0 },
           gambit: { gbt, wins: 0, draws: 0, losses: 0 }
         }
       };
 
-      await saveUserProfile(activeUser.uid, profile);
+      saveUserProfileInstant(activeUser.uid, profile);
       activeProfile = profile;
 
       chessAudio.checkSound();
-      showToast("Rating Calibrated", `Initialized at ${gbt} GBT across all 4 formats.`, "success");
-
-      confirmCalibrationText.textContent = "ENTER GAMBIT ARENA";
-      confirmCalibrationBtn.disabled = false;
-
+      showToast("Rating Calibrated", `Assigned ${gbt} GBT across all 4 formats.`, "success");
       renderDashboard();
-      sceneState.setScreen("dashboard");
+      showScreen("dashboard");
     });
 
     // =========================================================
-    // 9. CHESS.COM-STYLE DASHBOARD RENDERING & INTERACTIONS
+    // 10. PRO CHESS.COM-STYLE DASHBOARD RENDERING
     // =========================================================
     function getInitials(name) {
       if (!name) return "GM";
@@ -2561,10 +2782,9 @@
         : (parts[0][0] + parts[1][0]).toUpperCase();
     }
 
-    function formatMemberDate(isoString) {
+    function formatMemberDate(iso) {
       try {
-        const d = isoString ? new Date(isoString) : new Date();
-        return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        return new Date(iso || Date.now()).toLocaleDateString("en-US", { month: "short", year: "numeric" });
       } catch (_) {
         return "Nov 2026";
       }
@@ -2587,7 +2807,6 @@
       const peak = getPeakGbt(ratings);
       const rank = getRankFromGbt(peak);
 
-      // Header Profile Strip
       dashUserName.textContent = displayName;
       dashRankBadge.textContent = rank;
       headerPeakGbt.textContent = `${peak} GBT`;
@@ -2610,16 +2829,12 @@
         dashAvatarInitials.textContent = getInitials(displayName);
       }
 
-      // Format Card Corner Ratings
       ["rapid", "blitz", "bullet", "gambit"].forEach((key) => {
         const el = document.getElementById(`cardRating-${key}`);
-        if (el) el.textContent = `${ratings[key].gbt} GBT`;
+        if (el) el.textContent = `${ratings[key].gbt}`;
       });
 
-      // Render Chess.com-style Separated Ratings List
       renderSeparatedRatings();
-
-      // Sync Active Format UI (RAPID selected by default)
       selectFormat(selectedFormat, false);
     }
 
@@ -2631,43 +2846,43 @@
       separatedRatingsList.innerHTML = keys.map((key) => {
         const meta = FORMAT_META[key];
         const stat = ratings[key];
-        const rankLabel = getRankFromGbt(stat.gbt);
+        const rank = getRankFromGbt(stat.gbt);
         const { pct, next } = getTierProgress(stat.gbt);
-        const isSelected = key === selectedFormat;
+        const isActive = key === selectedFormat;
 
         return `
           <button
             type="button"
             data-rating-format="${key}"
-            class="rating-row ${isSelected ? "active-format" : ""} w-full text-left rounded-xl p-3.5 cursor-pointer"
+            class="rating-row ${isActive ? "active-format" : ""} w-full text-left p-3.5 cursor-pointer"
           >
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-lg border ${meta.accentBg} ${meta.accentText} flex items-center justify-center shrink-0">
+                <div class="w-9 h-9 rounded-[6px] bg-[#0E1117] border border-white/[0.08] flex items-center justify-center text-brass shrink-0">
                   ${meta.iconSvg}
                 </div>
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
-                    <span class="text-xs sm:text-sm font-semibold tracking-wide text-[#f3f4f6]">${meta.label}</span>
-                    <span class="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/6 text-champagne">${rankLabel}</span>
+                    <span class="text-xs font-bold tracking-[0.08em] text-[#F3F4F6]">${meta.label}</span>
+                    <span class="px-1.5 py-0.5 rounded-[3px] bg-[#0B0D11] border border-white/[0.08] text-[9px] font-semibold uppercase tracking-[0.10em] text-brass">${rank}</span>
                   </div>
-                  <div class="text-[11px] text-[#9ca3af] truncate">${meta.range}</div>
+                  <div class="text-[11px] text-[#A1A7B3] mt-0.5">${meta.range}</div>
                 </div>
               </div>
               <div class="text-right shrink-0">
-                <div class="text-sm sm:text-base font-bold text-[#f3f4f6] tabular-nums">
-                  ${stat.gbt} <span class="text-[11px] font-semibold text-champagne">GBT</span>
+                <div class="mono-num text-base font-bold text-[#F3F4F6]">
+                  ${stat.gbt} <span class="text-[11px] font-semibold text-brass">GBT</span>
                 </div>
-                <div class="text-[10px] text-[#9ca3af] tabular-nums mt-0.5">
+                <div class="mono-num text-[10px] text-[#A1A7B3] mt-0.5">
                   ${stat.wins}W · ${stat.draws}D · ${stat.losses}L
                 </div>
               </div>
             </div>
-            <div class="mt-2.5 flex items-center gap-2.5">
-              <div class="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div class="h-full rounded-full ${meta.barColor} transition-all duration-300" style="width: ${pct}%"></div>
+            <div class="mt-3 flex items-center gap-2.5">
+              <div class="flex-1 h-[2px] bg-white/[0.09] overflow-hidden">
+                <div class="h-full bg-brass transition-all duration-300" style="width: ${pct}%"></div>
               </div>
-              <span class="text-[10px] text-[#9ca3af] tabular-nums shrink-0">${next}</span>
+              <span class="mono-num text-[10px] text-[#6C7382] shrink-0">${next}</span>
             </div>
           </button>
         `;
@@ -2675,8 +2890,7 @@
 
       separatedRatingsList.querySelectorAll("[data-rating-format]").forEach((row) => {
         row.addEventListener("click", () => {
-          const fmt = row.getAttribute("data-rating-format");
-          selectFormat(fmt, true);
+          selectFormat(row.getAttribute("data-rating-format"), true);
         });
       });
     }
@@ -2684,24 +2898,21 @@
     function selectFormat(formatKey, playSound = true) {
       if (!FORMAT_META[formatKey]) return;
       if (playSound && selectedFormat !== formatKey) {
-        chessAudio.moveSound(0.75);
+        chessAudio.tickSound();
       }
 
       stopMatchmaking(false);
       selectedFormat = formatKey;
       const meta = FORMAT_META[formatKey];
 
-      // Update Format Cards
       formatCards.forEach((card) => {
         card.classList.toggle("selected", card.getAttribute("data-format") === formatKey);
       });
 
-      // Update Separated Rating Rows Highlight
       separatedRatingsList.querySelectorAll("[data-rating-format]").forEach((row) => {
         row.classList.toggle("active-format", row.getAttribute("data-rating-format") === formatKey);
       });
 
-      // Update Time Pills
       selectedRangeBadge.textContent = meta.range;
       const activeTime = selectedTimeControls[formatKey] || meta.defaultPill;
 
@@ -2711,7 +2922,7 @@
           <button
             type="button"
             data-time-pill="${pill}"
-            class="time-pill ${isActive ? "active" : ""} py-2 px-3 rounded-lg text-xs font-medium tabular-nums cursor-pointer"
+            class="preset-btn ${isActive ? "active" : ""} py-2 px-3 mono-num text-xs cursor-pointer"
           >
             ${pill}
           </button>
@@ -2720,15 +2931,13 @@
 
       timePillsContainer.querySelectorAll("[data-time-pill]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const val = btn.getAttribute("data-time-pill");
-          selectedTimeControls[formatKey] = val;
-          chessAudio.moveSound(0.65);
+          selectedTimeControls[formatKey] = btn.getAttribute("data-time-pill");
+          chessAudio.tickSound();
           updateTimePillHighlights();
           syncActionPanel();
         });
       });
 
-      // Toggle Custom Duration Slider for GAMBIT
       gambitCustomBox.classList.toggle("hidden", formatKey !== "gambit");
       if (formatKey === "gambit") {
         gambitCustomLabel.textContent = selectedTimeControls.gambit;
@@ -2749,12 +2958,11 @@
       const rating = activeProfile?.ratings?.[selectedFormat]?.gbt ?? 1000;
       const timeCtrl = selectedTimeControls[selectedFormat];
 
-      actionFormatIcon.innerHTML = meta.iconSvg;
       actionFormatName.textContent = meta.label;
       actionTimeControl.textContent = timeCtrl;
       actionFormatRating.textContent = `${rating} GBT`;
       profileActiveFormat.textContent = meta.label;
-      roomFormatTag.textContent = `${meta.label} • ${timeCtrl}`;
+      roomFormatTag.textContent = `${meta.label} · ${timeCtrl}`;
     }
 
     formatCards.forEach((card) => {
@@ -2765,7 +2973,7 @@
 
     gambitCustomSlider.addEventListener("input", () => {
       const idx = parseInt(gambitCustomSlider.value, 10);
-      const val = GAMBIT_CUSTOM_STEPS[idx] || "15 min";
+      const val = GAMBIT_SLIDER_STEPS[idx] || "5+0";
       selectedTimeControls.gambit = val;
       gambitCustomLabel.textContent = val;
       updateTimePillHighlights();
@@ -2773,16 +2981,16 @@
     });
 
     gambitCustomSlider.addEventListener("change", () => {
-      chessAudio.moveSound(0.6);
+      chessAudio.tickSound();
     });
 
     // =========================================================
-    // 10. MATCHMAKING & PLAY A FRIEND ROOM CODE
+    // 11. MATCHMAKING QUEUE & PRIVATE ROOM CODE
     // =========================================================
-    function formatElapsed(sec) {
+    function formatMMSS(sec) {
       const m = Math.floor(sec / 60);
       const s = sec % 60;
-      return `${m}:${String(s).padStart(2, "0")}`;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
     }
 
     function stopMatchmaking(notify = true) {
@@ -2791,8 +2999,7 @@
         matchmakingInterval = null;
       }
       matchmakingSeconds = 0;
-      matchmakingStatus.classList.add("hidden");
-      matchmakingStatus.classList.remove("flex");
+      matchmakingDrawer.classList.add("hidden");
       playMatchBtnText.textContent = "PLAY MATCH";
       if (notify) {
         chessAudio.tickSound();
@@ -2814,23 +3021,20 @@
       const rating = activeProfile?.ratings?.[selectedFormat]?.gbt ?? 1000;
 
       matchmakingSeconds = 0;
-      matchmakingTimerText.textContent = "Searching 0:00";
-      matchmakingStatus.classList.remove("hidden");
-      matchmakingStatus.classList.add("flex");
-      playMatchBtnText.textContent = "CANCEL SEARCH";
-
-      showToast(
-        `Searching ${meta.label} (${timeCtrl})`,
-        `Finding opponent near ${rating} GBT...`,
-        "info",
-        3500
-      );
+      matchmakingTimerText.textContent = "00:00";
+      matchmakingWindowText.textContent = `${meta.label} ${timeCtrl} · Window ${Math.max(100, rating - 50)}–${rating + 50} GBT`;
+      matchmakingDrawer.classList.remove("hidden");
+      playMatchBtnText.textContent = "SEARCHING...";
 
       matchmakingInterval = setInterval(() => {
         matchmakingSeconds += 1;
-        matchmakingTimerText.textContent = `Searching ${formatElapsed(matchmakingSeconds)}`;
+        const spread = 50 + Math.min(200, Math.floor(matchmakingSeconds / 5) * 25);
+        matchmakingTimerText.textContent = formatMMSS(matchmakingSeconds);
+        matchmakingWindowText.textContent = `${meta.label} ${timeCtrl} · Window ${Math.max(100, rating - spread)}–${rating + spread} GBT`;
       }, 1000);
     });
+
+    cancelQueueBtn.addEventListener("click", () => stopMatchmaking(true));
 
     function generateRoomCode() {
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -2846,9 +3050,9 @@
       chessAudio.checkSound();
       const code = generateRoomCode();
       roomCodeDisplay.textContent = code;
-      roomFormatTag.textContent = `${FORMAT_META[selectedFormat].label} • ${selectedTimeControls[selectedFormat]}`;
+      roomFormatTag.textContent = `${FORMAT_META[selectedFormat].label} · ${selectedTimeControls[selectedFormat]}`;
       friendRoomDrawer.classList.remove("hidden");
-      showToast("Private Room Created", `Share code ${code} with your opponent.`, "success");
+      showToast("Private Room Ready", `Share code ${code} with your opponent.`, "success");
     });
 
     closeRoomDrawerBtn.addEventListener("click", () => {
@@ -2856,92 +3060,119 @@
       friendRoomDrawer.classList.add("hidden");
     });
 
-    // Safe clipboard copy using document.execCommand('copy')
     copyRoomCodeBtn.addEventListener("click", () => {
       const code = roomCodeDisplay.textContent.trim();
-      const tempInput = document.createElement("textarea");
-      tempInput.value = code;
-      tempInput.setAttribute("readonly", "");
-      tempInput.style.position = "fixed";
-      tempInput.style.opacity = "0";
-      document.body.appendChild(tempInput);
-      tempInput.select();
+      const temp = document.createElement("textarea");
+      temp.value = code;
+      temp.setAttribute("readonly", "");
+      temp.style.position = "fixed";
+      temp.style.opacity = "0";
+      document.body.appendChild(temp);
+      temp.select();
       try {
         document.execCommand("copy");
         chessAudio.tickSound();
-        showToast("Room Code Copied", `Code ${code} copied to clipboard.`, "success");
+        showToast("Code Copied", `Room code ${code} copied to clipboard.`, "success");
       } catch (_) {
         chessAudio.errorSound();
         showToast("Copy Failed", `Share code manually: ${code}`, "error");
       }
-      document.body.removeChild(tempInput);
+      document.body.removeChild(temp);
     });
 
     // =========================================================
-    // 11. AUTH STATE ROUTER (LOGIN -> CALIBRATION -> DASHBOARD)
+    // 12. BULLETPROOF SESSION-LOCKED AUTH BOOT & ROUTER
     // =========================================================
-    async function handleAuthenticatedUser(user, fallbackName = "") {
-      if (!user) return;
+    function routeAuthenticatedUser(user) {
+      if (!user || !user.uid) return;
 
-      // Guard against duplicate simultaneous calls for the same authenticated user
-      if (handlingAuthUid === user.uid) return;
-      if (
-        activeUser &&
-        activeUser.uid === user.uid &&
-        (currentScreen === "calibration" || currentScreen === "dashboard")
-      ) {
-        return;
-      }
-
-      handlingAuthUid = user.uid;
       activeUser = user;
+      saveSessionCache(user);
 
-      // If 3D intro is still running, cleanly finish/hide it immediately
+      // Immediately finish 3D intro if user authenticated during intro
       if (!introFinished) {
         finishIntroVisuals();
       }
 
-      try {
-        const existing = await loadUserProfile(user.uid);
-        // Ensure user did not sign out while loading
-        if (!activeUser || activeUser.uid !== user.uid) return;
+      // Instant localStorage profile check so routing NEVER hangs
+      const localProf = loadLocalProfile(user.uid);
+      if (localProf) {
+        activeProfile = localProf;
+        renderDashboard();
+        showScreen("dashboard");
+      } else {
+        activeProfile = null;
+        pendingCalibration = null;
+        skillCards.forEach((c) => c.classList.remove("selected"));
+        confirmCalibrationBtn.disabled = true;
+        calibrationSummary.textContent = "Select a playing strength above to continue.";
+        showScreen("calibration");
+      }
 
-        if (existing && existing.calibrated && existing.ratings) {
-          activeProfile = existing;
-          if (fallbackName && !activeProfile.displayName) {
-            activeProfile.displayName = fallbackName;
+      // Quietly sync Firestore in background without blocking UI
+      syncProfileFromFirestoreInBackground(user.uid);
+    }
+
+    async function bootAuthSession() {
+      // 1. Check cached session immediately to prevent any flash back to login
+      const cached = loadSessionCache();
+      if (cached && cached.uid) {
+        activeUser = cached;
+      }
+
+      // 2. Ensure local persistence is configured
+      await setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+      // 3. Wait for Firebase Auth initial state resolution BEFORE ever treating user as logged out
+      if (typeof auth.authStateReady === "function") {
+        await auth.authStateReady().catch(() => {});
+      }
+
+      authInitialized = true;
+
+      // 4. Listen for live auth updates with strict Session Lock
+      onAuthStateChanged(auth, (firebaseUser) => {
+        if (firebaseUser) {
+          isExplicitSignOut = false;
+          activeUser = firebaseUser;
+          saveSessionCache(firebaseUser);
+          if (introFinished) {
+            // Only route if not already on calibration/dashboard for this same user
+            if (currentScreen !== "calibration" && currentScreen !== "dashboard") {
+              routeAuthenticatedUser(firebaseUser);
+            }
           }
-          renderDashboard();
-          showScreen("dashboard");
         } else {
-          // First-time user: show 4-tier GBT Skill Calibration
-          activeProfile = null;
-          pendingCalibration = null;
-          skillCards.forEach((c) => c.classList.remove("selected"));
-          confirmCalibrationBtn.disabled = true;
-          calibrationSummary.textContent = "Select a skill tier above to continue";
-          showScreen("calibration");
+          // CRITICAL SESSION LOCK:
+          // Never kick an active user back to login on a transient null callback!
+          if (isExplicitSignOut) {
+            activeUser = null;
+            activeProfile = null;
+            clearSessionCache();
+            if (introFinished) showScreen("login");
+          } else if (!activeUser && !loadSessionCache()) {
+            if (introFinished) showScreen("login");
+          }
         }
-      } finally {
-        if (handlingAuthUid === user.uid) {
-          handlingAuthUid = null;
+      });
+
+      // 5. Reconcile initial boot state if intro already finished
+      if (auth.currentUser) {
+        isExplicitSignOut = false;
+        activeUser = auth.currentUser;
+        saveSessionCache(auth.currentUser);
+      }
+
+      if (introFinished) {
+        if (activeUser) {
+          routeAuthenticatedUser(activeUser);
+        } else {
+          showScreen("login");
         }
       }
     }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        await handleAuthenticatedUser(user);
-      } else {
-        activeUser = null;
-        activeProfile = null;
-        handlingAuthUid = null;
-        stopMatchmaking(false);
-        if (introFinished) {
-          showScreen("login");
-        }
-      }
-    });
+    bootAuthSession();
   </script>
 </body>
 </html>
