@@ -1,1 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GAMBIT — Outsmart. Outplay. Checkmate.</title>
 
+  <!-- Google Fonts: Cinzel for luxury royal display & Plus Jakarta Sans for modern UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Cinzel', 'serif'],
+            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            obsidian: '#07080c',
+            surface: '#11131a',
+            gold: {
+              DEFAULT: '#f5c451',
+              light: '#fde08d',
+              dark: '#c89328',
+            },
+            emerald: {
+              DEFAULT: '#10b981',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Base Dark Obsidian Luxury Theme */
+    :root {
+      --bg-obsidian: #07080c;
+      --card-bg: rgba(17, 19, 26, 0.72);
+      --gold: #f5c451;
+      --gold-glow: rgba(245, 196, 81, 0.28);
+      --emerald: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-obsidian);
+      color: #f3f4f6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Animated Perspective Chessboard Floor */
+    .chess-grid-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      perspective: 900px;
+    }
+
+    .chess-plane {
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      left: -50%;
+      top: -10%;
+      background-image:
+        linear-gradient(45deg, rgba(245, 196, 81, 0.035) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(245, 196, 81, 0.035) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(245, 196, 81, 0.035) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(245, 196, 81, 0.035) 75%);
+      background-size: 92px 92px;
+      background-position: 0 0, 0 46px, 46px -46px, -46px 0;
+      transform: rotateX(62deg) translateY(0);
+      animation: planeDrift 28s linear infinite;
+      mask-image: radial-gradient(ellipse 68% 60% at 50% 48%, rgba(0,0,0,0.95) 0%, transparent 78%);
+      -webkit-mask-image: radial-gradient(ellipse 68% 60% at 50% 48%, rgba(0,0,0,0.95) 0%, transparent 78%);
+    }
+
+    @keyframes planeDrift {
+      0% { transform: rotateX(62deg) translateY(0); }
+      100% { transform: rotateX(62deg) translateY(92px); }
+    }
+
+    /* Ambient Glowing Orbs */
+    .ambient-orb {
+      position: fixed;
+      border-radius: 9999px;
+      filter: blur(110px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.42;
+      animation: orbFloat 16s ease-in-out infinite alternate;
+    }
+
+    .orb-gold {
+      width: 440px;
+      height: 440px;
+      top: -120px;
+      left: -100px;
+      background: radial-gradient(circle, rgba(245, 196, 81, 0.32), transparent 70%);
+    }
+
+    .orb-violet {
+      width: 500px;
+      height: 500px;
+      bottom: -160px;
+      right: -120px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.26), transparent 70%);
+      animation-delay: -6s;
+    }
+
+    .orb-emerald {
+      width: 340px;
+      height: 340px;
+      top: 42%;
+      left: 44%;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.14), transparent 70%);
+      animation-delay: -11s;
+    }
+
+    @keyframes orbFloat {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(35px, -28px) scale(1.12); }
+    }
+
+    /* Floating Translucent Chess Pieces */
+    .floating-piece {
+      position: fixed;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+      color: rgba(245, 196, 81, 0.08);
+      text-shadow: 0 0 28px rgba(245, 196, 81, 0.14);
+      animation: pieceDrift var(--dur, 20s) ease-in-out infinite alternate;
+      will-change: transform;
+    }
+
+    @keyframes pieceDrift {
+      0% {
+        transform: translate3d(0, 0, 0) rotate(var(--rot-start, -10deg));
+        opacity: var(--op-min, 0.05);
+      }
+      50% {
+        opacity: var(--op-max, 0.13);
+      }
+      100% {
+        transform: translate3d(var(--tx, 26px), var(--ty, -42px), 0) rotate(var(--rot-end, 14deg));
+        opacity: var(--op-min, 0.06);
+      }
+    }
+
+    /* Glassmorphic Card */
+    .glass-card {
+      background: linear-gradient(155deg, rgba(22, 25, 36, 0.84) 0%, rgba(13, 15, 22, 0.92) 100%);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow:
+        0 25px 60px -15px rgba(0, 0, 0, 0.78),
+        0 0 0 1px rgba(245, 196, 81, 0.06) inset;
+    }
+
+    /* Gold Gradient Text */
+    .text-gold-gradient {
+      background: linear-gradient(135deg, #fff2c2 0%, #f5c451 45%, #d19422 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Primary Gold Button with Shimmer */
+    .btn-gold {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f8d06b 0%, #e5a92c 55%, #c78b18 100%);
+      color: #090a0f;
+      box-shadow: 0 10px 28px -8px rgba(245, 196, 81, 0.48);
+      transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+    }
+
+    .btn-gold::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 65%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+      transform: skewX(-24deg);
+      transition: left 0.65s ease;
+    }
+
+    .btn-gold:hover {
+      transform: translateY(-1.5px);
+      box-shadow: 0 14px 34px -8px rgba(245, 196, 81, 0.62);
+      filter: brightness(1.05);
+    }
+
+    .btn-gold:hover::after {
+      left: 140%;
+    }
+
+    .btn-gold:active {
+      transform: translateY(0);
+    }
+
+    /* Google Auth Button */
+    .btn-google {
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: all 0.25s ease;
+    }
+
+    .btn-google:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(245, 196, 81, 0.42);
+      box-shadow: 0 0 24px rgba(245, 196, 81, 0.12);
+      transform: translateY(-1px);
+    }
+
+    /* Sliding Auth Tab Pill */
+    .tab-pill {
+      transition: transform 0.34s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    /* Input Focus Styling */
+    .gambit-input {
+      background: rgba(8, 10, 16, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .gambit-input:focus {
+      outline: none;
+      border-color: rgba(245, 196, 81, 0.65);
+      background: rgba(12, 15, 23, 0.92);
+      box-shadow: 0 0 0 3px rgba(245, 196, 81, 0.14);
+    }
+
+    /* Entrance Animations */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(22px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .animate-enter {
+      animation: fadeSlideUp 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-enter-delay {
+      opacity: 0;
+      animation: fadeSlideUp 0.78s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+    }
+
+    /* Interactive Mini Chessboard */
+    .mini-board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(245, 196, 81, 0.22);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 35px rgba(245, 196, 81, 0.08);
+    }
+
+    .mini-sq {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1rem, 1.6vw, 1.38rem);
+      position: relative;
+      transition: background-color 0.4s ease, transform 0.3s ease;
+      user-select: none;
+    }
+
+    .mini-sq.light {
+      background-color: #242938;
+    }
+
+    .mini-sq.dark {
+      background-color: #141722;
+    }
+
+    .mini-sq.highlight-from {
+      background-color: rgba(245, 196, 81, 0.22) !important;
+      box-shadow: inset 0 0 0 1px rgba(245, 196, 81, 0.4);
+    }
+
+    .mini-sq.highlight-to {
+      background-color: rgba(16, 185, 129, 0.26) !important;
+      box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.55);
+    }
+
+    .piece-white {
+      color: #f8e4aa;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 10px rgba(245, 196, 81, 0.28);
+    }
+
+    .piece-black {
+      color: #9ca3af;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+    }
+
+    /* Toast Slide Animation */
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(36px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    @keyframes toastOut {
+      from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(36px) scale(0.95);
+      }
+    }
+
+    .toast-enter {
+      animation: toastIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .toast-exit {
+      animation: toastOut 0.28s ease forwards;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255, 255, 255, 0.25);
+      border-top-color: currentColor;
+      border-radius: 9999px;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Lobby Mode Card Hover */
+    .mode-card {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.28s ease, box-shadow 0.28s ease;
+    }
+    .mode-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(245, 196, 81, 0.42);
+      box-shadow: 0 18px 40px -12px rgba(245, 196, 81, 0.16);
+    }
+  </style>
+</head>
+
+<body class="antialiased selection:bg-gold/30 selection:text-gold-light">
+
+  <!-- Animated Perspective Chessboard Background -->
+  <div class="chess-grid-bg" aria-hidden="true">
+    <div class="chess-plane"></div>
+  </div>
+
+  <!-- Ambient Glow Orbs -->
+  <div class="ambient-orb orb-gold" aria-hidden="true"></div>
+  <div class="ambient-orb orb-violet" aria-hidden="true"></div>
+  <div class="ambient-orb orb-emerald" aria-hidden="true"></div>
+
+  <!-- Floating Translucent Chess Pieces Layer -->
+  <div id="floatingPiecesContainer" aria-hidden="true"></div>
+
+  <!-- Custom Toast Notification Container (Top-Right) -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-3 w-[calc(100vw-2rem)] max-w-sm pointer-events-none"></div>
+
+  <!-- =========================================================
+       AUTH SCREEN VIEW (SPLIT-SCREEN HERO + GLASSMORPHIC CARD)
+  ========================================================== -->
+  <main id="authView" class="relative z-10 min-h-screen flex items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
+    <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+
+      <!-- LEFT COLUMN: DRAMATIC GAMBIT HERO SHOWCASE -->
+      <section class="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left animate-enter">
+
+        <!-- Live Online Pill -->
+        <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-surface/80 border border-emerald/30 backdrop-blur-md shadow-lg mb-6">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald"></span>
+          </span>
+          <span class="text-xs sm:text-sm font-semibold tracking-wide text-emerald-300">
+            <span id="onlineCount">1,248</span> Players Online
+          </span>
+          <span class="text-xs text-gray-500">•</span>
+          <span class="text-xs text-gray-300 font-medium">Season 1 Live 🏆</span>
+        </div>
+
+        <!-- Brand Emblem & Title -->
+        <div class="flex items-center gap-4 mb-3">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-gold/25 via-gold/10 to-transparent border border-gold/40 flex items-center justify-center shadow-[0_0_32px_rgba(245,196,81,0.22)]">
+            <span class="text-3xl sm:text-4xl text-gold-gradient leading-none" aria-hidden="true">♞</span>
+          </div>
+          <div class="text-left">
+            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[0.14em] text-gold-gradient leading-none">
+              GAMBIT
+            </h1>
+            <p class="text-[11px] sm:text-xs font-bold tracking-[0.3em] text-gray-400 mt-1.5 uppercase">
+              OUTSMART. OUTPLAY. CHECKMATE.
+            </p>
+          </div>
+        </div>
+
+        <p class="text-gray-400 text-sm sm:text-base max-w-lg mt-3 leading-relaxed">
+          Step onto the grandmaster arena. Challenge rivals worldwide in real-time ranked matches, blitz duels, and private chess rooms. ♛
+        </p>
+
+        <!-- Animated Mini Tactical Chessboard Showcase -->
+        <div class="w-full max-w-[340px] sm:max-w-[370px] mt-7 mb-7 relative group">
+          <div class="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-gold/25 via-transparent to-emerald/25 blur-md opacity-70 group-hover:opacity-100 transition duration-500"></div>
+          <div class="relative bg-[#0c0e15]/95 p-3 rounded-2xl border border-white/10">
+            <div class="flex items-center justify-between text-[11px] text-gray-400 mb-2 px-1">
+              <span class="font-semibold text-gray-300 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-gold"></span> Live Showcase • Queen's Gambit
+              </span>
+              <span id="moveBadge" class="font-mono text-gold font-semibold bg-gold/10 px-2 py-0.5 rounded-md border border-gold/20">
+                1. d4 d5
+              </span>
+            </div>
+            <div id="miniChessboard" class="mini-board" aria-label="Animated Chess Showcase"></div>
+          </div>
+        </div>
+
+        <!-- Feature Highlights -->
+        <div class="grid grid-cols-3 gap-2.5 sm:gap-3.5 w-full max-w-lg">
+          <div class="rounded-xl bg-surface/70 border border-white/10 p-3 backdrop-blur-md hover:border-gold/30 transition">
+            <div class="text-xl mb-1">⚡</div>
+            <div class="text-xs sm:text-sm font-bold text-white">Blitz &amp; Bullet</div>
+            <div class="text-[11px] text-gray-400 mt-0.5">1+0 &amp; 3+2 Arenas</div>
+          </div>
+          <div class="rounded-xl bg-surface/70 border border-white/10 p-3 backdrop-blur-md hover:border-gold/30 transition">
+            <div class="text-xl mb-1">🌍</div>
+            <div class="text-xs sm:text-sm font-bold text-white">Global Ranked</div>
+            <div class="text-[11px] text-gray-400 mt-0.5">Live ELO Ladder</div>
+          </div>
+          <div class="rounded-xl bg-surface/70 border border-white/10 p-3 backdrop-blur-md hover:border-gold/30 transition">
+            <div class="text-xl mb-1">🤝</div>
+            <div class="text-xs sm:text-sm font-bold text-white">Private Rooms</div>
+            <div class="text-[11px] text-gray-400 mt-0.5">Play With Friends</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: GLASSMORPHIC AUTH CARD -->
+      <section class="lg:col-span-6 flex justify-center lg:justify-end animate-enter-delay">
+        <div class="glass-card w-full max-w-md rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+
+          <!-- Subtle Top Gold Accent Line -->
+          <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent opacity-80"></div>
+
+          <!-- Card Header -->
+          <div class="text-center mb-6">
+            <h2 id="authCardTitle" class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Welcome Back 👑
+            </h2>
+            <p id="authCardSubtitle" class="text-xs sm:text-sm text-gray-400 mt-1.5">
+              Sign in to continue your road to Grandmaster
+            </p>
+          </div>
+
+          <!-- Animated Tab Switcher: Sign In | Sign Up -->
+          <div class="relative grid grid-cols-2 p-1.5 rounded-2xl bg-black/45 border border-white/10 mb-6" role="tablist">
+            <div id="tabPill" class="tab-pill absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-xl bg-gradient-to-r from-gold/25 to-gold/15 border border-gold/40 shadow-[0_0_20px_rgba(245,196,81,0.18)]"></div>
+
+            <button
+              type="button"
+              id="tabSignIn"
+              role="tab"
+              aria-selected="true"
+              class="relative z-10 py-2.5 text-sm font-bold rounded-xl transition-colors text-gold-light cursor-pointer"
+            >
+              Sign In ♟️
+            </button>
+            <button
+              type="button"
+              id="tabSignUp"
+              role="tab"
+              aria-selected="false"
+              class="relative z-10 py-2.5 text-sm font-bold rounded-xl transition-colors text-gray-400 hover:text-gray-200 cursor-pointer"
+            >
+              Sign Up ✨
+            </button>
+          </div>
+
+          <!-- Continue with Google Button -->
+          <button
+            type="button"
+            id="googleAuthBtn"
+            class="btn-google w-full py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 text-sm font-semibold text-white cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <!-- Crisp Multicolor Google SVG -->
+            <svg id="googleIcon" class="w-5 h-5 shrink-0" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            <span id="googleBtnText">Continue with Google</span>
+          </button>
+
+          <!-- Divider -->
+          <div class="relative flex items-center my-6">
+            <div class="flex-grow border-t border-white/10"></div>
+            <span class="px-3 text-[11px] font-semibold uppercase tracking-widest text-gray-500">
+              or with email
+            </span>
+            <div class="flex-grow border-t border-white/10"></div>
+          </div>
+
+          <!-- Email & Password Form -->
+          <form id="authForm" class="space-y-4" novalidate>
+
+            <!-- Sign Up Only: Grandmaster Tag / Username -->
+            <div id="usernameField" class="hidden">
+              <label for="usernameInput" class="block text-xs font-semibold text-gray-300 mb-1.5">
+                Grandmaster Tag (Username) 🏷️
+              </label>
+              <div class="relative">
+                <input
+                  id="usernameInput"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="e.g. Magnus_Blitz99"
+                  maxlength="24"
+                  class="gambit-input w-full rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500"
+                />
+              </div>
+            </div>
+
+            <!-- Email Input -->
+            <div>
+              <label for="emailInput" class="block text-xs font-semibold text-gray-300 mb-1.5">
+                Email Address 📧
+              </label>
+              <input
+                id="emailInput"
+                type="email"
+                required
+                autocomplete="email"
+                placeholder="grandmaster@gambit.gg"
+                class="gambit-input w-full rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500"
+              />
+            </div>
+
+            <!-- Password Input -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="passwordInput" class="block text-xs font-semibold text-gray-300">
+                  Password 🔒
+                </label>
+                <button
+                  type="button"
+                  id="forgotPasswordBtn"
+                  class="text-xs font-semibold text-gold hover:text-gold-light transition cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+              <div class="relative">
+                <input
+                  id="passwordInput"
+                  type="password"
+                  required
+                  autocomplete="current-password"
+                  placeholder="Enter your secret move..."
+                  class="gambit-input w-full rounded-xl pl-4 pr-12 py-3 text-sm text-white placeholder-gray-500"
+                />
+                <button
+                  type="button"
+                  id="togglePasswordBtn"
+                  aria-label="Toggle password visibility"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-400 hover:text-gold transition cursor-pointer"
+                >
+                  <!-- Eye Open SVG -->
+                  <svg id="eyeOpenIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <!-- Eye Closed SVG -->
+                  <svg id="eyeClosedIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Sign Up Only: Password Strength Indicator -->
+              <div id="strengthWrapper" class="hidden mt-2.5">
+                <div class="flex items-center justify-between text-[11px] mb-1">
+                  <span class="text-gray-400">Password Strength</span>
+                  <span id="strengthLabel" class="font-semibold text-gray-400">Too weak</span>
+                </div>
+                <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden flex gap-1">
+                  <div id="strengthBar" class="h-full w-0 rounded-full transition-all duration-300 bg-red-500"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              id="submitAuthBtn"
+              class="btn-gold w-full py-3.5 px-4 rounded-xl font-extrabold text-sm tracking-wide flex items-center justify-center gap-2 mt-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <span id="submitBtnText">Enter the Arena ♟️</span>
+            </button>
+          </form>
+
+          <!-- Footer: Demo Mode Preview Link -->
+          <div class="mt-6 pt-5 border-t border-white/10 flex flex-col items-center gap-2 text-center">
+            <button
+              type="button"
+              id="demoModeBtn"
+              class="text-xs font-semibold text-gray-400 hover:text-gold transition inline-flex items-center gap-1.5 py-1 px-3 rounded-lg hover:bg-white/5 cursor-pointer"
+            >
+              Preview Lobby (Demo Mode) 👀
+            </button>
+            <p class="text-[11px] text-gray-500">
+              Secured by Firebase Auth • Fair Play Anti-Cheat 🛡️
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- =========================================================
+       LOGGED-IN VIEW: GAMBIT PLAYER LOBBY PREVIEW
+  ========================================================== -->
+  <section id="lobbyView" class="hidden relative z-10 min-h-screen flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-30 backdrop-blur-xl bg-obsidian/80 border-b border-white/10">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold/25 to-transparent border border-gold/40 flex items-center justify-center shadow-md">
+            <span class="text-xl text-gold-gradient">♞</span>
+          </div>
+          <div>
+            <span class="font-display text-xl sm:text-2xl font-extrabold tracking-[0.14em] text-gold-gradient block leading-none">
+              GAMBIT
+            </span>
+            <span id="demoPill" class="hidden text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/30 px-1.5 py-0.5 rounded mt-1 inline-block">
+              Demo Mode
+            </span>
+          </div>
+        </div>
+
+        <!-- Right User Profile & Sign Out -->
+        <div class="flex items-center gap-3 sm:gap-4">
+          <!-- Starting ELO Badge -->
+          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gold/10 border border-gold/30 text-xs font-bold text-gold-light">
+            🏆 1200 ELO
+          </div>
+
+          <!-- Avatar + Name -->
+          <div class="flex items-center gap-2.5 bg-surface/90 border border-white/10 rounded-2xl pl-1.5 pr-3 py-1.5">
+            <img
+              id="lobbyAvatarImg"
+              src=""
+              alt="Player Avatar"
+              class="hidden w-8 h-8 rounded-xl object-cover border border-gold/40"
+            />
+            <div
+              id="lobbyAvatarFallback"
+              class="w-8 h-8 rounded-xl bg-gradient-to-br from-gold to-gold-dark text-obsidian font-extrabold text-xs flex items-center justify-center"
+            >
+              GM
+            </div>
+            <div class="text-left max-w-[120px] sm:max-w-[180px]">
+              <div id="lobbyPlayerName" class="text-xs sm:text-sm font-bold text-white truncate">
+                Grandmaster
+              </div>
+              <div id="lobbyPlayerEmail" class="text-[10px] text-gray-400 truncate">
+                player@gambit.gg
+              </div>
+            </div>
+          </div>
+
+          <!-- Sign Out Button -->
+          <button
+            type="button"
+            id="signOutBtn"
+            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-gray-300 bg-white/5 hover:bg-red-500/15 hover:text-red-300 border border-white/10 hover:border-red-500/35 transition cursor-pointer"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Lobby Content -->
+    <div class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 animate-enter">
+
+      <!-- Welcome Banner -->
+      <div class="glass-card rounded-3xl p-6 sm:p-10 mb-8 relative overflow-hidden">
+        <div class="absolute right-6 top-1/2 -translate-y-1/2 text-[9rem] text-gold/5 select-none pointer-events-none hidden md:block">
+          ♛
+        </div>
+
+        <div class="relative z-10 max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald/15 border border-emerald/30 text-emerald-300 text-xs font-bold mb-4">
+            <span class="w-2 h-2 rounded-full bg-emerald animate-pulse"></span>
+            Arena Ready • Matchmaking Connected
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Ready to make your first move, <span id="welcomeName" class="text-gold-gradient">Player</span>? ♟️
+          </h2>
+          <p class="text-sm sm:text-base text-gray-400 mt-3 leading-relaxed">
+            Your GAMBIT profile is active with a starting rating of <strong class="text-gold-light">🏆 1200 ELO</strong>. Choose a battle mode below to launch your next match!
+          </p>
+
+          <!-- Mobile ELO Pill -->
+          <div class="sm:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gold/10 border border-gold/30 text-xs font-bold text-gold-light mt-4">
+            🏆 1200 ELO • Unranked Novice
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Mode Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+        <!-- Card 1: Quick Match -->
+        <button
+          type="button"
+          data-mode="Quick Match"
+          class="mode-btn mode-card glass-card text-left rounded-3xl p-6 flex flex-col justify-between cursor-pointer group"
+        >
+          <div>
+            <div class="w-14 h-14 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+              ⚡
+            </div>
+            <h3 class="text-xl font-bold text-white flex items-center justify-between">
+              Quick Match
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-gold/15 text-gold-light">3+2 Blitz</span>
+            </h3>
+            <p class="text-sm text-gray-400 mt-2 leading-relaxed">
+              Get instantly paired with a live opponent near your ELO rating for a high-intensity ranked clash.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-gold">
+            <span>Find Opponent</span>
+            <span class="group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </button>
+
+        <!-- Card 2: Create Private Room -->
+        <button
+          type="button"
+          data-mode="Create Private Room"
+          class="mode-btn mode-card glass-card text-left rounded-3xl p-6 flex flex-col justify-between cursor-pointer group"
+        >
+          <div>
+            <div class="w-14 h-14 rounded-2xl bg-emerald/15 border border-emerald/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+              🤝
+            </div>
+            <h3 class="text-xl font-bold text-white flex items-center justify-between">
+              Create Private Room
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald/15 text-emerald-300">Invite Link</span>
+            </h3>
+            <p class="text-sm text-gray-400 mt-2 leading-relaxed">
+              Generate a custom room code, pick your time control, and challenge your friends directly.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-emerald-300">
+            <span>Host Room</span>
+            <span class="group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </button>
+
+        <!-- Card 3: Practice vs AI -->
+        <button
+          type="button"
+          data-mode="Practice vs AI"
+          class="mode-btn mode-card glass-card text-left rounded-3xl p-6 flex flex-col justify-between cursor-pointer group"
+        >
+          <div>
+            <div class="w-14 h-14 rounded-2xl bg-violet-500/15 border border-violet-400/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+              🤖
+            </div>
+            <h3 class="text-xl font-bold text-white flex items-center justify-between">
+              Practice vs AI
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-violet-500/15 text-violet-300">6 Levels</span>
+            </h3>
+            <p class="text-sm text-gray-400 mt-2 leading-relaxed">
+              Sharpen your openings, test new gambits, and analyze blunders offline against our chess engine.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-violet-300">
+            <span>Start Training</span>
+            <span class="group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       FIREBASE v10 MODULAR SDK + APPLICATION LOGIC
+  ========================================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      sendPasswordResetEmail,
+      updateProfile,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    // Exact Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCX9xcZSbGKsHqWSTAcrgsU4N-qOeU-SRo",
+      authDomain: "gambit-bbfc9.firebaseapp.com",
+      projectId: "gambit-bbfc9",
+      storageBucket: "gambit-bbfc9.firebasestorage.app",
+      messagingSenderId: "537455726650",
+      appId: "1:537455726650:web:b1f890ee2f42d767396503",
+      measurementId: "G-WNLL810JW2"
+    };
+
+    // Initialize Firebase App
+    const app = initializeApp(firebaseConfig);
+
+    // Wrap Analytics in try/catch so ad-blockers or sandboxed previews never crash the app
+    try {
+      getAnalytics(app);
+    } catch (analyticsErr) {
+      console.info("Firebase Analytics skipped in this environment:", analyticsErr?.message);
+    }
+
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: "select_account" });
+
+    // ---------------------------------------------------------
+    // DOM REFERENCES
+    // ---------------------------------------------------------
+    const authView = document.getElementById("authView");
+    const lobbyView = document.getElementById("lobbyView");
+
+    const tabSignIn = document.getElementById("tabSignIn");
+    const tabSignUp = document.getElementById("tabSignUp");
+    const tabPill = document.getElementById("tabPill");
+    const authCardTitle = document.getElementById("authCardTitle");
+    const authCardSubtitle = document.getElementById("authCardSubtitle");
+
+    const authForm = document.getElementById("authForm");
+    const usernameField = document.getElementById("usernameField");
+    const usernameInput = document.getElementById("usernameInput");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+    const togglePasswordBtn = document.getElementById("togglePasswordBtn");
+    const eyeOpenIcon = document.getElementById("eyeOpenIcon");
+    const eyeClosedIcon = document.getElementById("eyeClosedIcon");
+    const strengthWrapper = document.getElementById("strengthWrapper");
+    const strengthBar = document.getElementById("strengthBar");
+    const strengthLabel = document.getElementById("strengthLabel");
+
+    const submitAuthBtn = document.getElementById("submitAuthBtn");
+    const submitBtnText = document.getElementById("submitBtnText");
+    const googleAuthBtn = document.getElementById("googleAuthBtn");
+    const googleBtnText = document.getElementById("googleBtnText");
+    const demoModeBtn = document.getElementById("demoModeBtn");
+
+    // Lobby Elements
+    const lobbyAvatarImg = document.getElementById("lobbyAvatarImg");
+    const lobbyAvatarFallback = document.getElementById("lobbyAvatarFallback");
+    const lobbyPlayerName = document.getElementById("lobbyPlayerName");
+    const lobbyPlayerEmail = document.getElementById("lobbyPlayerEmail");
+    const welcomeName = document.getElementById("welcomeName");
+    const demoPill = document.getElementById("demoPill");
+    const signOutBtn = document.getElementById("signOutBtn");
+    const toastContainer = document.getElementById("toastContainer");
+
+    // Application State
+    let authMode = "signin"; // "signin" | "signup"
+    let isDemoMode = false;
+
+    // ---------------------------------------------------------
+    // CUSTOM TOAST NOTIFICATION SYSTEM (NO alert() EVER)
+    // ---------------------------------------------------------
+    function showToast(title, message = "", type = "info", duration = 4500) {
+      const styles = {
+        success: {
+          border: "border-emerald/45",
+          bg: "bg-[#0d1916]/95",
+          icon: "✅",
+          titleColor: "text-emerald-300"
+        },
+        error: {
+          border: "border-red-500/45",
+          bg: "bg-[#1b1014]/95",
+          icon: "⚠️",
+          titleColor: "text-red-300"
+        },
+        info: {
+          border: "border-gold/45",
+          bg: "bg-[#171510]/95",
+          icon: "♟️",
+          titleColor: "text-gold-light"
+        }
+      };
+
+      const cfg = styles[type] || styles.info;
+      const toast = document.createElement("div");
+      toast.className = `pointer-events-auto toast-enter rounded-2xl border ${cfg.border} ${cfg.bg} backdrop-blur-xl p-4 shadow-2xl flex items-start gap-3`;
+
+      toast.innerHTML = `
+        <span class="text-lg leading-none mt-0.5 shrink-0">${cfg.icon}</span>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-bold ${cfg.titleColor}">${title}</div>
+          ${message ? `<div class="text-xs text-gray-300 mt-1 leading-relaxed">${message}</div>` : ""}
+        </div>
+        <button type="button" aria-label="Dismiss notification" class="text-gray-500 hover:text-white text-sm leading-none p-1 cursor-pointer">✕</button>
+      `;
+
+      const closeToast = () => {
+        toast.classList.remove("toast-enter");
+        toast.classList.add("toast-exit");
+        setTimeout(() => toast.remove(), 280);
+      };
+
+      toast.querySelector("button").addEventListener("click", closeToast);
+      toastContainer.appendChild(toast);
+
+      if (duration > 0) {
+        setTimeout(() => {
+          if (toast.isConnected) closeToast();
+        }, duration);
+      }
+    }
+
+    // Friendly Firebase Error Translator
+    function handleFirebaseError(error) {
+      console.error("Firebase Auth Error:", error);
+      const code = error?.code || "";
+
+      switch (code) {
+        case "auth/unauthorized-domain":
+          showToast(
+            "Domain Not Authorized Yet 🌐",
+            `Add "${window.location.hostname || "this domain"}" in Firebase Console → Authentication → Settings → Authorized domains. You can also test using Demo Mode below!`,
+            "error",
+            7500
+          );
+          break;
+        case "auth/popup-closed-by-user":
+          showToast("Popup Closed", "Google sign-in was cancelled. Try again whenever you're ready! ♟️", "info");
+          break;
+        case "auth/popup-blocked":
+          showToast("Popup Blocked 🔒", "Please allow browser popups to sign in with Google.", "error");
+          break;
+        case "auth/invalid-credential":
+        case "auth/wrong-password":
+        case "auth/user-not-found":
+          showToast("Invalid Credentials 🔑", "Double-check your email and password, or create a new account.", "error");
+          break;
+        case "auth/email-already-in-use":
+          showToast("Email Already Registered ✨", "An account with this email already exists. Switch to Sign In!", "info");
+          break;
+        case "auth/weak-password":
+          showToast("Weak Password 🛡️", "Please choose a password with at least 6 characters.", "error");
+          break;
+        case "auth/invalid-email":
+          showToast("Invalid Email 📧", "Please enter a valid email address.", "error");
+          break;
+        case "auth/operation-not-allowed":
+          showToast(
+            "Provider Not Enabled ⚙️",
+            "Enable Email/Password and Google in Firebase Console → Authentication → Sign-in method.",
+            "error",
+            6500
+          );
+          break;
+        case "auth/too-many-requests":
+          showToast("Too Many Attempts ⏳", "Please wait a moment before trying again.", "error");
+          break;
+        default:
+          showToast("Authentication Error", error?.message || "Something went wrong. Please try again.", "error");
+      }
+    }
+
+    // ---------------------------------------------------------
+    // TAB SWITCHER (SIGN IN / SIGN UP)
+    // ---------------------------------------------------------
+    function setAuthMode(mode) {
+      authMode = mode;
+      const isSignUp = mode === "signup";
+
+      // Slide Pill
+      tabPill.style.transform = isSignUp ? "translateX(100%)" : "translateX(0%)";
+
+      // Update Tab Text Colors & ARIA
+      tabSignIn.setAttribute("aria-selected", String(!isSignUp));
+      tabSignUp.setAttribute("aria-selected", String(isSignUp));
+      tabSignIn.classList.toggle("text-gold-light", !isSignUp);
+      tabSignIn.classList.toggle("text-gray-400", isSignUp);
+      tabSignUp.classList.toggle("text-gold-light", isSignUp);
+      tabSignUp.classList.toggle("text-gray-400", !isSignUp);
+
+      // Toggle Form Fields
+      usernameField.classList.toggle("hidden", !isSignUp);
+      strengthWrapper.classList.toggle("hidden", !isSignUp);
+      forgotPasswordBtn.classList.toggle("hidden", isSignUp);
+
+      // Update Copy
+      if (isSignUp) {
+        authCardTitle.textContent = "Claim Your Board ✨";
+        authCardSubtitle.textContent = "Create your GAMBIT account & start at 1200 ELO";
+        submitBtnText.textContent = "Create Account ♛";
+        passwordInput.setAttribute("autocomplete", "new-password");
+      } else {
+        authCardTitle.textContent = "Welcome Back 👑";
+        authCardSubtitle.textContent = "Sign in to continue your road to Grandmaster";
+        submitBtnText.textContent = "Enter the Arena ♟️";
+        passwordInput.setAttribute("autocomplete", "current-password");
+      }
+    }
+
+    tabSignIn.addEventListener("click", () => setAuthMode("signin"));
+    tabSignUp.addEventListener("click", () => setAuthMode("signup"));
+
+    // ---------------------------------------------------------
+    // PASSWORD VISIBILITY & STRENGTH METER
+    // ---------------------------------------------------------
+    togglePasswordBtn.addEventListener("click", () => {
+      const isPassword = passwordInput.type === "password";
+      passwordInput.type = isPassword ? "text" : "password";
+      eyeOpenIcon.classList.toggle("hidden", isPassword);
+      eyeClosedIcon.classList.toggle("hidden", !isPassword);
+    });
+
+    passwordInput.addEventListener("input", () => {
+      if (authMode !== "signup") return;
+      const val = passwordInput.value;
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (val.length >= 10) score++;
+      if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      const levels = [
+        { width: "0%", color: "bg-red-500", text: "Enter password", textClass: "text-gray-400" },
+        { width: "25%", color: "bg-red-500", text: "Weak 🛡️", textClass: "text-red-400" },
+        { width: "50%", color: "bg-amber-400", text: "Fair ⚔️", textClass: "text-amber-300" },
+        { width: "75%", color: "bg-gold", text: "Strong ♞", textClass: "text-gold-light" },
+        { width: "100%", color: "bg-emerald", text: "Grandmaster 👑", textClass: "text-emerald-300" }
+      ];
+
+      const idx = val.length === 0 ? 0 : Math.min(4, Math.max(1, Math.ceil((score / 5) * 4)));
+      const level = levels[idx];
+      strengthBar.style.width = level.width;
+      strengthBar.className = `h-full rounded-full transition-all duration-300 ${level.color}`;
+      strengthLabel.textContent = level.text;
+      strengthLabel.className = `font-semibold ${level.textClass}`;
+    });
+
+    // ---------------------------------------------------------
+    // LOADING BUTTON HELPERS
+    // ---------------------------------------------------------
+    function setGoogleLoading(loading) {
+      googleAuthBtn.disabled = loading;
+      if (loading) {
+        googleBtnText.innerHTML = `<span class="inline-flex items-center gap-2"><span class="spinner"></span> Connecting to Google...</span>`;
+      } else {
+        googleBtnText.textContent = "Continue with Google";
+      }
+    }
+
+    function setSubmitLoading(loading) {
+      submitAuthBtn.disabled = loading;
+      if (loading) {
+        submitBtnText.innerHTML = `<span class="inline-flex items-center gap-2"><span class="spinner border-obsidian/30 border-t-obsidian"></span> ${authMode === "signup" ? "Creating Profile..." : "Signing In..."}</span>`;
+      } else {
+        submitBtnText.textContent = authMode === "signup" ? "Create Account ♛" : "Enter the Arena ♟️";
+      }
+    }
+
+    // ---------------------------------------------------------
+    // FIREBASE AUTH HANDLERS
+    // ---------------------------------------------------------
+
+    // 1. Google Sign-In
+    googleAuthBtn.addEventListener("click", async () => {
+      setGoogleLoading(true);
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const name = result.user.displayName || "Grandmaster";
+        showToast("Welcome to GAMBIT! 👑", `Signed in as ${name}`, "success");
+      } catch (err) {
+        handleFirebaseError(err);
+      } finally {
+        setGoogleLoading(false);
+      }
+    });
+
+    // 2. Email & Password Sign-In / Sign-Up
+    authForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const username = usernameInput.value.trim();
+
+      if (!email || !password) {
+        showToast("Missing Details 📝", "Please fill in both your email and password.", "error");
+        return;
+      }
+
+      if (authMode === "signup") {
+        if (!username || username.length < 3) {
+          showToast("Choose a Grandmaster Tag 🏷️", "Your username must be at least 3 characters long.", "error");
+          usernameInput.focus();
+          return;
+        }
+        if (password.length < 6) {
+          showToast("Password Too Short 🔒", "Password must be at least 6 characters long.", "error");
+          passwordInput.focus();
+          return;
+        }
+      }
+
+      setSubmitLoading(true);
+      try {
+        if (authMode === "signup") {
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await updateProfile(cred.user, { displayName: username });
+          showToast("Account Created! 🎉", `Welcome to the arena, ${username}!`, "success");
+          // Refresh Lobby UI with updated displayName
+          renderLobby({
+            displayName: username,
+            email: cred.user.email,
+            photoURL: cred.user.photoURL
+          }, false);
+        } else {
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          const name = cred.user.displayName || cred.user.email.split("@")[0];
+          showToast("Checkmate Ready! ♟️", `Welcome back, ${name}`, "success");
+        }
+      } catch (err) {
+        handleFirebaseError(err);
+      } finally {
+        setSubmitLoading(false);
+      }
+    });
+
+    // 3. Forgot Password
+    forgotPasswordBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        showToast("Enter Your Email First 📧", "Type your email address above, then click Forgot Password.", "info");
+        emailInput.focus();
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showToast("Reset Link Sent ✉️", `Check ${email} for instructions to reset your password.`, "success");
+      } catch (err) {
+        handleFirebaseError(err);
+      }
+    });
+
+    // 4. Demo Mode Preview
+    demoModeBtn.addEventListener("click", () => {
+      isDemoMode = true;
+      renderLobby({
+        displayName: "GM_Aarav",
+        email: "demo@gambit.gg",
+        photoURL: null
+      }, true);
+      showToast("Demo Lobby Active 👀", "Exploring GAMBIT Lobby in preview mode!", "info");
+    });
+
+    // 5. Sign Out
+    signOutBtn.addEventListener("click", async () => {
+      if (isDemoMode) {
+        isDemoMode = false;
+        showAuthView();
+        showToast("Exited Demo Mode 👋", "Sign in with Google or Email to save your ELO.", "info");
+        return;
+      }
+      try {
+        await signOut(auth);
+        showToast("Signed Out 👋", "See you back on the board soon!", "info");
+      } catch (err) {
+        handleFirebaseError(err);
+      }
+    });
+
+    // ---------------------------------------------------------
+    // VIEW TRANSITIONS (AUTH <-> LOBBY)
+    // ---------------------------------------------------------
+    function getInitials(name) {
+      if (!name) return "GM";
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    function renderLobby(user, demo = false) {
+      const displayName = user.displayName || (user.email ? user.email.split("@")[0] : "Grandmaster");
+      const email = user.email || "player@gambit.gg";
+
+      lobbyPlayerName.textContent = displayName;
+      lobbyPlayerEmail.textContent = email;
+      welcomeName.textContent = displayName;
+      demoPill.classList.toggle("hidden", !demo);
+
+      if (user.photoURL) {
+        lobbyAvatarImg.src = user.photoURL;
+        lobbyAvatarImg.classList.remove("hidden");
+        lobbyAvatarFallback.classList.add("hidden");
+        lobbyAvatarImg.onerror = () => {
+          lobbyAvatarImg.classList.add("hidden");
+          lobbyAvatarFallback.classList.remove("hidden");
+          lobbyAvatarFallback.textContent = getInitials(displayName);
+        };
+      } else {
+        lobbyAvatarImg.classList.add("hidden");
+        lobbyAvatarFallback.classList.remove("hidden");
+        lobbyAvatarFallback.textContent = getInitials(displayName);
+      }
+
+      authView.classList.add("hidden");
+      lobbyView.classList.remove("hidden");
+      lobbyView.classList.add("flex");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showAuthView() {
+      lobbyView.classList.add("hidden");
+      lobbyView.classList.remove("flex");
+      authView.classList.remove("hidden");
+    }
+
+    // Listen to Firebase Auth State
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        isDemoMode = false;
+        renderLobby(user, false);
+      } else if (!isDemoMode) {
+        showAuthView();
+      }
+    });
+
+    // Lobby Mode Cards Interaction
+    document.querySelectorAll(".mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const mode = btn.getAttribute("data-mode");
+        showToast(`${mode} — Coming in Step 2! 🚀`, "Next we'll build the live multiplayer chessboard & matchmaking engine.", "info");
+      });
+    });
+
+    // ---------------------------------------------------------
+    // VISUAL POLISH: FLOATING PIECES & ANIMATED MINI CHESSBOARD
+    // ---------------------------------------------------------
+    function initFloatingPieces() {
+      const container = document.getElementById("floatingPiecesContainer");
+      const pieces = ["♔", "♕", "♖", "♗", "♘", "♙", "♛", "♞"];
+      const positions = [
+        { top: "8%", left: "6%", size: "4.2rem", dur: "18s", tx: "28px", ty: "-34px" },
+        { top: "18%", left: "86%", size: "5rem", dur: "23s", tx: "-32px", ty: "26px" },
+        { top: "68%", left: "8%", size: "5.2rem", dur: "21s", tx: "24px", ty: "-45px" },
+        { top: "78%", left: "88%", size: "4.6rem", dur: "19s", tx: "-26px", ty: "-38px" },
+        { top: "44%", left: "48%", size: "3.6rem", dur: "25s", tx: "18px", ty: "32px" },
+        { top: "86%", left: "42%", size: "4rem", dur: "22s", tx: "-22px", ty: "-28px" },
+        { top: "10%", left: "52%", size: "3.2rem", dur: "20s", tx: "30px", ty: "22px" }
+      ];
+
+      positions.forEach((pos, idx) => {
+        const el = document.createElement("div");
+        el.className = "floating-piece";
+        el.textContent = pieces[idx % pieces.length];
+        el.style.top = pos.top;
+        el.style.left = pos.left;
+        el.style.fontSize = pos.size;
+        el.style.setProperty("--dur", pos.dur);
+        el.style.setProperty("--tx", pos.tx);
+        el.style.setProperty("--ty", pos.ty);
+        el.style.setProperty("--rot-start", `${(idx % 2 === 0 ? -1 : 1) * (8 + idx * 2)}deg`);
+        el.style.setProperty("--rot-end", `${(idx % 2 === 0 ? 1 : -1) * (10 + idx * 2)}deg`);
+        container.appendChild(el);
+      });
+    }
+
+    // Animated Queen's Gambit Sequence on Mini Chessboard
+    function initMiniChessboard() {
+      const boardEl = document.getElementById("miniChessboard");
+      const moveBadge = document.getElementById("moveBadge");
+      if (!boardEl) return;
+
+      const initialPieces = [
+        ["♜","♞","♝","♛","♚","♝","♞","♜"],
+        ["♟","♟","♟","♟","♟","♟","♟","♟"],
+        ["","","","","","","",""],
+        ["","","","","","","",""],
+        ["","","","","","","",""],
+        ["","","","","","","",""],
+        ["♙","♙","♙","♙","♙","♙","♙","♙"],
+        ["♖","♘","♗","♕","♔","♗","♘","♖"]
+      ];
+
+      const whiteSet = new Set(["♔","♕","♖","♗","♘","♙"]);
+
+      const sequence = [
+        { label: "1. d4", from: [6, 3], to: [4, 3] },
+        { label: "1... d5", from: [1, 3], to: [3, 3] },
+        { label: "2. c4", from: [6, 2], to: [4, 2] },
+        { label: "2... dxc4", from: [3, 3], to: [4, 2] },
+        { label: "3. Nf3", from: [7, 6], to: [5, 5] },
+        { label: "3... Nf6", from: [0, 6], to: [2, 5] }
+      ];
+
+      let board = initialPieces.map((row) => [...row]);
+      let step = 0;
+
+      function drawBoard(highlightFrom = null, highlightTo = null) {
+        boardEl.innerHTML = "";
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const sq = document.createElement("div");
+            const isLight = (r + c) % 2 === 0;
+            sq.className = `mini-sq ${isLight ? "light" : "dark"}`;
+
+            if (highlightFrom && highlightFrom[0] === r && highlightFrom[1] === c) {
+              sq.classList.add("highlight-from");
+            }
+            if (highlightTo && highlightTo[0] === r && highlightTo[1] === c) {
+              sq.classList.add("highlight-to");
+            }
+
+            const piece = board[r][c];
+            if (piece) {
+              const span = document.createElement("span");
+              span.textContent = piece;
+              span.className = whiteSet.has(piece) ? "piece-white" : "piece-black";
+              sq.appendChild(span);
+            }
+            boardEl.appendChild(sq);
+          }
+        }
+      }
+
+      drawBoard();
+
+      setInterval(() => {
+        if (step >= sequence.length) {
+          board = initialPieces.map((row) => [...row]);
+          step = 0;
+          moveBadge.textContent = "New Game ♟️";
+          drawBoard();
+          return;
+        }
+        const move = sequence[step];
+        const piece = board[move.from[0]][move.from[1]];
+        board[move.from[0]][move.from[1]] = "";
+        board[move.to[0]][move.to[1]] = piece;
+        moveBadge.textContent = move.label;
+        drawBoard(move.from, move.to);
+        step++;
+      }, 1850);
+    }
+
+    // Subtle Live Online Counter Tick
+    function initOnlineCounter() {
+      const el = document.getElementById("onlineCount");
+      let count = 1248;
+      setInterval(() => {
+        count += Math.floor(Math.random() * 7) - 3;
+        el.textContent = count.toLocaleString();
+      }, 4500);
+    }
+
+    // Boot Visuals
+    initFloatingPieces();
+    initMiniChessboard();
+    initOnlineCounter();
+  </script>
+</body>
+</html>
